@@ -1,7 +1,10 @@
 #!/bin/env bash
 
 ## Version: ImageMagick 6.9.9-27 Q16 x86_64 2017-12-23 http://www.imagemagick.org
-## 101291 101292 101293 102293
+## topng 101291 101292 101293 102293
+## topng *.*
+## topng *
+
 convert_to_png() {
     local name;
     local images=($@)
