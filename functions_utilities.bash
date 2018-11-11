@@ -19,9 +19,9 @@ echo_m() {
 }
 
 check_root(){
-    if [ $USER != "root" ]; then
-	echo_w "not root account";
-	exit 1;
+    if [[ $USER != "root" ]]; then
+	    echo_w "апустите скрипт $script_source под пользователем ROOT";
+	    exit 1;
     fi
 }
 
