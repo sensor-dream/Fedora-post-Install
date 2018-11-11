@@ -29,10 +29,10 @@
 
 #### Использовались источники:
 
->[Elastic Stack and Product Documentation](https://www.elastic.co "Elastic Stack and Product Documentation")
+>[_Elastic Stack and Product Documentation_](https://www.elastic.co "Elastic Stack and Product Documentation")`
 >
->[system-admins.ru](https://system-admins.ru/elk-o-chem-i-zachem "system-admins.ru")
+>[_system-admins.ru_](https://system-admins.ru/elk-o-chem-i-zachem "system-admins.ru")
 >
->[linux-notes.org](http://linux-notes.org/ustanovka-elk-elasticsearch-logstash-kibana-v-unix-linux "linux-notes.org")
+>[_linux-notes.org_](http://linux-notes.org/ustanovka-elk-elasticsearch-logstash-kibana-v-unix-linux "linux-notes.org")
 >
->[mkdev.me](https://mkdev.me/posts/vvedenie-v-elk-sobiraem-filtruem-i-analiziruem-bolshie-dannye "mkdev.me")
+>[_mkdev.me_](https://mkdev.me/posts/vvedenie-v-elk-sobiraem-filtruem-i-analiziruem-bolshie-dannye "mkdev.me")
