@@ -19,12 +19,9 @@ echo_m() {
 }
 
 check_root(){
-
     if [ $USER != "root" ]; then
 	echo_w "not root account";
 	exit 1;
     fi
-
 }
 
-check_root;
