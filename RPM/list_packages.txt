@@ -1,0 +1,757 @@
+#
+#  Список пакетов для установки
+#
+
+#   Установка MC (консольный файловый менеджер и не только)и соответствующих зависимостей
+mc gdbm gpm-libs gpm-libs python2 python2-libs python2-pip python2-setuptools slang python-unversioned-command
+
+#   A utility for getting files from remote servers (FTP, HTTP, and others)
+curl
+
+#   A utility for retrieving files using the HTTP or FTP protocols
+wget
+
+#   A small text editor
+nano
+
+#   A version of the VIM editor which includes recent enhancements
+#   VIM — Vi IMproved (улучшенный Vi)
+vim-minimal vim-enhanced vim-common vim-filesystem
+
+#   A text-based Web browser
+lynx
+
+#   for kernels
+kernel-devel kernel-headers kernel-cross-headers kernel-modules kernel-modules-extra kernel-tools kernel-tools-libs kernel-tools-libs-devel
+
+#   Command line tool to create/retrieve/delete accounting objects
+nfacct
+
+#   Dynamic Kernel Module Support Framework
+dkms elfutils-libelf-devel zlib-devel
+
+#   Akmods startup script will rebuild akmod packages during system
+#            : boot while its background daemon will build them for kernels right
+#            : after they were installed.
+akmods
+
+#   This package contains tools and list of recent kernels that get used when building kmod-packages.
+kmodtool
+
+#   ACPI Event Daemon
+acpid
+
+#   Various compilers (C, C++, Objective-C, ...)
+gcc cpp gcc-gdb-plugin libgcc glibc libasan libmpx libubsan gmp isl libgomp libmpc mpfr gcc-c++ 
+
+#   The GNU libc libraries, tools and utilites
+glibc glibc-utils glibc-static glibc-nss-devel glibc-minimal-langpack glibc-locale-source glibc-langpack-eu glibc-langpack-ru glibc-benchtests glibc-headers glibc-devel
+
+#   A library of handy utility functions
+glib
+
+#   Backends for the gio framework in GLib
+gvfs gvfs-fuse gvfs-afc gvfs-afp gvfs-archive gvfs-client gvfs-goa gvfs-gphoto2 gvfs-mtp gvfs-smb gvfs-devel gvfs-nfs gvfs-tests
+
+#   The GNU Portable Library Tool
+libtool
+
+#    The free peer-reviewed portable C++ source libraries
+boost boost-static 
+
+#   A GNU tool for automatically configuring source code
+autoconf
+autoconf213
+
+#   The GNU Autoconf Archive is a collection of more than 450 macros for
+#            : GNU Autoconf that have been contributed as free software by friendly
+#            : supporters of the cause from all over the Internet.
+autoconf-archive
+
+#   A GNU tool which simplifies the build process for users
+make 
+
+#   Cross-platform make system
+cmake cmake-doc cmake-elementary cmake-fedora cmake-gui
+
+#   C/C++ compiler cache
+ccache
+
+#   General-purpose scalable concurrent malloc implementation
+jemalloc
+
+#   Command line argument parsing
+docopt
+
+#   A GNU collection of binary utilities
+binutils
+
+#   Library for processing UTF-8 encoded Unicode strings
+utf8proc
+
+#   Libraries and header files for file development
+file-devel
+
+#   The GNU macro processor
+m4
+
+#    Linear Algebra over F_2^e
+m4ri m4ri-devel m4ri-static
+
+#   Linear Algebra over F_2^e
+m4rie m4rie-devel m4rie-static
+
+#   Utility for modifying/upgrading files
+patch patchutils
+
+#   Quick creation of patches against a project source tree
+patcher
+
+#   A utility for patching ELF binaries
+patchelf
+
+#   A daemon to record and keep track of system up times
+uptimed
+
+#   This package provides the shim links for pkgconf to be automatically
+pkgconf-pkg-config
+
+#   for RPM tool
+#   rpm tool 1 install
+rpm-build rpm-devel patch annobin dwz efi-srpm-macros fpc-srpm-macros ghc-srpm-macros gnat-srpm-macros go-srpm-macros libzstd-devel nim-srpm-macros ocaml-srpm-macros openblas-srpm-macros perl-srpm-macros popt-devel python-srpm-macros qt5-srpm-macros redhat-rpm-config rust-srpm-macros zstd
+#   rpm tool 2 install
+rpm-apidocs rpm-cron rpm-ostree-devel rpm-plugin-ima rpm-plugin-prioreset rpm-plugin-prioreset rpm-sign rpm-mpi-hooks rpm-ostree-toolbox rpmbuild-order rpmconf rpmconf-base rpmdeplint rpmdevtools rpmspectool rpmrebuild rpmreaper rpmlint rpmgrill rpmemd rpmlint-scl-config  rpmorphan
+
+#   пакет антивирусного ПО ( Тянется по зависимостям из установки rpm tool 2 install )
+clamav clamav-data clamav-filesystem clamav-lib
+
+#   Debian's Advanced Packaging Tool with RPM support
+apt apt-cacher-ng apt-devel apt-plugins-list apt-plugins-log fedora-package-config-apt
+
+#   Package maintenance system for Debian Linux
+dpkg dpkg-dev dpkg-devel dpkg-perl
+
+#   Utilities based around the yum package manager
+yum-utils
+
+#   The curses library routines are a terminal-independent method of
+#          : updating character screens with reasonable optimization.  The ncurses
+#          : (new curses) library is a freely distributable replacement for the
+#          : discontinued 4.4 BSD classic curses library.
+#          : 
+#          : This package contains support utilities, including a terminfo compiler
+#          : tic, a decompiler infocmp, clear, tput, tset, and a termcap conversion
+#          : tool captoinfo.
+ncurses ncurses-libs ncurses-devel ncurses-static ncurses-c++-libs
+
+#   GNU libraries and utilities for producing multi-lingual messages
+gettext
+
+#   File System in Userspace (FUSE) v3 utilitie
+fuse3 fuse3-libs
+
+#
+#   for sh tool and other
+#
+
+    #   A daemon to record and keep track of system up times
+    shtool
+
+    #   For SSH 
+    fuse-sshfs libssh libssh-devel libssh2
+
+#
+#   file archiving program and tools, utility and library and encoding
+#
+
+    zlib zziplib zip unzip p7zip p7zip-plugins p7zip-gui p7zip-doc unar tar bzip2 lzma lha unace rar unrar zlib-devel zlib-static zlibrary zlibrary-devel xz-devel arj
+    
+    #   cabextract is a program which can extract files from cabinet (.cab) archives.
+    cabextract
+
+    #   The GNU shar utilities for packaging and unpackaging shell archives
+    sharutils
+
+    #   Handles uuencoding, xxencoding, yEnc, and base-64 encoding (MIME). Can do
+    #        : automatic splitting of large encodes, automatic posting.  A must for
+    #        : anyone serious encoding/decoding.
+    uudeview
+
+    #   File Roller is an application for creating and viewing archives files, uch as tar or zip files.
+    file-roller
+
+#   Hardware monitoring tools
+lm_sensors-libs lm_sensors
+
+#   hddtemp is a tool that gives you the temperature of your hard drive by
+#            : reading S.M.A.R.T. information.
+hddtemp
+
+#
+#   Like utility
+#
+
+    #   Top like utility for I/O
+    iotop
+    #   Interactive process viewer
+    htop
+    #   An advanced interactive monitor for Linux-systems to view the load on system-level and process-level
+    atop
+    #   Bandwidth monitor and rate estimator
+    bmon
+    #   Traces the route taken by packets over an IPv4/IPv6 network
+    traceroute
+    #   A utility for removing files based on when they were last accessed
+    tmpwatch
+    #   Displays where a particular program in your path is located
+    which
+    #   Display information about users currently logged on
+    whowatch
+    #   Hardware lister
+    lshw
+    #   Scriptable, parallelized ping-like utility
+    fping
+    #   A top-like display of Apache logs
+    apachetop
+    #   A top clone for MySQL
+    mytop
+
+#   The vconfig program configures and adjusts 802.1q VLAN parameters. This tool is deprecated in favor of "ip link" command.
+vconfig
+
+#   The screen utility allows you to have multiple logins on just one terminal. Screen is useful for users who telnet into a machine or are connected via a dumb terminal, but want to use more than just one login.
+screen
+
+# View one or multiple files like tail but with multiple windows
+multitail
+
+#   A log file analysis program
+logwatch
+
+#   Statistics collection daemon for filling RRD files
+collectd
+
+#   udisks provides a daemon, D-Bus API and command line tools for managing disks and storage devices
+udisks udisks-devel udisks2 udisks2-iscsi udisks2-bcache udisks2-btrfs udisks2-lsm udisks2-lvm2 udisks2-zram libstoragemgmt python3-libstoragemgmt python3-libstoragemgmt-clibs
+
+#   monit is a utility for managing and monitoring, processes, files, directories
+#            : and devices on a UNIX system. Monit conducts automatic maintenance and repair
+#            : and can execute meaningful causal actions in error situations.
+monit
+
+#   The psacct package contains several utilities for monitoring process
+#            : activities, including ac, lastcomm, accton and sa. The ac command
+#            : displays statistics about how long users have been logged on. The
+#            : lastcomm command displays information about previous executed
+#            : commands. The accton command turns process accounting on or off. The
+#            : sa command summarizes information about previously executed
+#            : commands.
+psacct
+
+#   This is a short perl script to colorize your logs. You can use your
+#        : own colors, you can simply modify your config file in your home
+#        : directory, or system-wide (/etc/colorize).
+colorize
+
+#
+#   FOR DNF PACKAGER UTILITES
+#
+    #   Systemd units that can periodically download package upgrades and apply them.
+    dnf-automatic
+    #   Dbus daemon for performing package actions with the dnf package manager
+    dnfdaemon
+    #   Metapackage customizing the SELinux policy to make the dnf-daemon work with SELinux enabled in enforcing mode
+    dnfdaemon-selinux
+
+# FONTS and utilites for
+
+    #   Utility to create fonts.scale files for truetype fonts
+    ttmkfdir
+
+    # fonts 
+    xorg-x11-fonts-ISO8859-1-100dpi xorg-x11-fonts-ISO8859-1-75dpi xorg-x11-fonts-ISO8859-15-100dpi xorg-x11-fonts-ISO8859-15-75dpi xorg-x11-fonts-ISO8859-2-100dpi xorg-x11-fonts-ISO8859-2-75dpi
+
+#   The graphical toolkit
+
+    #   The graphical toolkit for the Tcl scripting language
+    tk
+
+    #   The turbojpeg package contains the TurboJPEG shared library.
+    turbojpeg turbojpeg-devel
+
+    #   ImageMagick is an image display and manipulation tool for the X
+    #   : Window System. ImageMagick can read and write JPEG, TIFF, PNM, GIF,
+    #   : and Photo CD image formats. It can resize, rotate, sharpen, color
+    #   : reduce, or add special effects to an image, and when finished you can
+    #   : either save the completed work in the original format or a different
+    #   : one. ImageMagick also includes command line programs for creating
+    #   : animated or transparent .gifs, creating composite images, creating
+    #   : thumbnail images, and more.
+    ImageMagick
+
+    #   GraphicsMagick is a comprehensive image processing package which is initially
+    #        : based on ImageMagick 5.5.2, but which has undergone significant re-work by
+    #        : the GraphicsMagick Group to significantly improve the quality and performance
+    #        : of the software.
+    GraphicsMagick
+
+#
+#   streaming MEDIA framework, utilites, ecodet and decoded and RTSP VCR servers and utility
+#
+
+    #   GStreamer streaming media framework runtime
+    gstreamer gstreamer-ffmpeg gstreamer-plugins gstreamer-plugins-bad-free gstreamer-plugins-bad-nonfree gstreamer-plugins-base gstreamer-plugins-espeak gstreamer-plugins-good gstreamer-plugins-ugly gstreamer-tools gstreamer1 gstreamer1-libav gstreamer1-plugins-bad-free gstreamer1-plugins-bad-freeworld gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-plugins-good-gtk gstreamer1-plugins-ugly gstreamer1-plugins-ugly-free
+
+    gstreamer-plugin-crystalhd gstreamer-plugins-bad-free-extras gstreamer-plugins-base-tool gstreamer-plugins-fc gstreamer-plugins-good-extras gstreamer-rtsp gstreamer-rtsp-vala gstreamer1-plugins-bad-free-extras gstreamer1-plugins-bad-free-fluidsynth gstreamer1-plugins-bad-free-wildmidi gstreamer1-plugins-base-tools gstreamer1-plugins-entrans gstreamer1-plugins-fc gstreamer1-plugins-good-extras gstreamer1-rtsp-server gstreamer1-vaapi gstreamer1-plugins-bad-nonfree
+
+    #   GStreamermm is a C++ wrapper library for the multimedia library
+    gstreamermm
+
+    #   Libavdevice is a complementary library to libavf "libavformat". It provides
+    #       : various "special" platform-specific muxers and demuxers, e.g. for grabbing
+    #       : devices, audio capture and playback etc.
+    libavdevice
+
+    #   FFmpeg is a complete and free Internet live audio and video
+    #        : broadcasting solution for Linux/Unix. It also includes a digital
+    #        : VCR. It can encode in real time in many formats including MPEG1 audio
+    #        : and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash.
+    ffmpeg ffmpeg-libs
+    
+    #   Lightweight video thumbnailer that can be used by file managers
+    ffmpegthumbnailer
+    #   KDE ffmpegthumbnailer service
+    # ffmpegthumbs
+
+#
+#   is a movie player
+#
+
+    #   MPlayer is a movie player that plays most MPEG, VOB, AVI, OGG/OGM,
+    #        : VIVO, ASF/WMA/WMV, QT/MOV/MP4, FLI, RM, NuppelVideo, yuv4mpeg, FILM,
+    #        : RoQ, and PVA files. You can also use it to watch VCDs, SVCDs, DVDs,
+    #        : 3ivx, RealMedia, and DivX movies.
+    #        : It supports a wide range of output drivers including X11, XVideo, DGA,
+    #        : OpenGL, SVGAlib, fbdev, AAlib, DirectFB etc. There are also nice
+    #        : antialiased shaded subtitles and OSD.
+    mplayer mplayer-common mplayer-gui mplayer-tools
+
+    #   This package contains the MPlayer movie encoder.
+    mencoder 
+
+#
+#   programming language
+#
+
+    #   A modern programming language for GNOME
+    vala
+
+#
+#   runing in GNOME and others window manager ( for X system )
+#
+    
+    #
+    #   for sh tool and other
+    #
+
+        #   A daemon to record and keep track of system up times
+        shtool
+        #   shUnit2 is a xUnit unit test framework for Bourne based shell scripts,
+        #        : and it is designed to work in a similar manner to JUnit, PyUnit, etc.
+        #        : If you have ever had the desire to write a unit test for a shell script,
+        #        : shUnit2 can do the job.
+        shunit2
+
+    # FONTS and utilites for
+        
+        #   X.Org X11 font utilities required for font installation, conversion, and generation.
+        xorg-x11-font-utils
+
+        #   A collection of Type1 fonts which are part of the core X Window System distribution.
+        xorg-x11-fonts-Type1
+
+        #   A free and portable font rendering engine
+        freetype-freeworld
+
+    #   System utility and tools
+
+        #   BAMF removes the headache of applications matching into a simple DBus
+        #    : daemon and C wrapper library. Currently features application matching
+        #    : at amazing levels of accuracy (covering nearly every corner case).
+
+        #   BAMF removes the headache of applications matching into a simple DBus
+        #    : daemon and C wrapper library. Currently features application matching
+        #    : at amazing levels of accuracy (covering nearly every corner case). This
+        #    : package contains the bamf daemon and supporting data.
+        bafm bamf-daemon
+
+        #   Valgrind is an instrumentation framework for building dynamic analysis
+        #    : tools. There are Valgrind tools that can automatically detect many
+        #    : memory management and threading bugs, and profile your programs in
+        #    : detail. You can also use Valgrind to build new tools. The Valgrind
+        #    : distribution currently includes six production-quality tools: a memory
+        #    : error detector (memcheck, the default tool), two thread error
+        #    : detectors (helgrind and drd), a cache and branch-prediction profiler
+        #    : (cachegrind), a call-graph generating cache and branch-prediction
+        #    : profiler (callgrind), and a heap profiler (massif).
+        valgrind valgrind-devel valgrind-openmpi valgrind-tools-devel
+
+        #   Command line tool to interact with an X Window Manager
+        wmctrl
+
+        # X.Org X11 xkb gadgets
+        xorg-x11-xkb-extras
+
+        #   Latency Logging and Graphing System
+        smokeping
+
+        #   dconf is a low-level configuration system. Its main purpose is to provide a backend to the GSettings API in GLib.
+        dconf
+
+        #   Customize advanced GNOME 3 options
+        gnome-tweaks gnome-tweak-tool
+
+        #   Shell script analysis tool
+        ShellCheck
+
+
+    #   GNOME terminals in one window
+
+        #   Store and run multiple GNOME terminals in one window
+        # terminator
+
+        #   EFL based terminal emulator
+        # terminology
+
+        #   Tilix is a tiling terminal emulator
+        # tilix tilix-nautilus
+
+        #   ouR XVT, a VT102 emulator for the X window system
+        # rxvt rxvt-unicode rxvt-unicode-256color rxvt-unicode-256color-ml perl-Text-Bidi-urxvt
+
+        #   A lightweight multi-tabbed terminal emulator for X
+        # mrxvt 
+
+        #   Drop-down terminal for GNOME
+        guake
+
+        #   Terminal emulator for the X Window System
+        # xterm
+
+    #   for AUDIO system
+        
+        #   The Advanced Linux Sound Architecture (ALSA) library
+        alsa-lib alsa-plugins-pulseaudio alsa-ucm alsa-utils alsa-lib-devel alsa-plugins-arcamav alsa-plugins-jack alsa-plugins-maemo alsa-plugins-oss alsa-plugins-samplerate alsa-plugins-speex alsa-plugins-upmix alsa-plugins-usbstream alsa-plugins-vdownmix alsa-tools alsa-tools-firmware alsa-topology alsa-topology-utils alsa-ucm-utils alsa-utils-alsabat alsa-firmware alsa-plugins-freeworld-a52 alsa-plugins-freeworld-lavrate alsamixergui
+
+        #   Real-time Audio Synthesizer
+        terminatorX
+
+        #
+        #   Improved Linux Sound Server
+        #
+            pulseaudio pulseaudio-libs pulseaudio-libs-devel pulseaudio-libs-glib2 pulseaudio-module-bluetooth pulseaudio-module-x11 pulseaudio-utils
+
+            pulseaudio-equalizer pulseaudio-esound-compat pulseaudio-module-gconf pulseaudio-module-gsettings pulseaudio-module-jack pulseaudio-module-lirc pulseaudio-module-zeroconf pulseaudio-qpaeq
+
+        #   Volume control for PulseAudio
+        pavucontrol
+
+    #   EDITORS
+
+        #   Binary editor for GNOME
+        ghex
+
+        #   GTK+ based simple text editor
+        leafpad
+
+    #   The graphical toolkit
+
+        #   A very simple dock written in Vala.
+        plank plank-docklets plank-devel
+
+        #   Rawtherapee is a RAW image processing software. It gives full control over many parameters to enhance the raw picture before finally exporting it to some common image format.
+        rawtherapee
+
+        #   Shutter is a GTK+ 2.x based screenshot application written in Perl.
+        #    : Shutter covers all features of common command line tools like
+        #    : scrot or import and adds reasonable new features combined
+        #    : with a comfortable GUI using the GTK+ 2.x framework.
+        shutter
+
+#
+#   utilities to create a distribution
+#
+
+    #   Tools for generating live CDs on Fedora based systems including
+    #        : derived distributions such as RHEL, CentOS and others.
+    livecd-tools
+
+    #   Kickstarts used to compose the official Fedora Spins (see
+    #        : http://spins.fedoraproject.org/ for a full list)
+    fedora-kickstarts
+
+    #   Kickstart Configurator is a graphical tool for creating kickstart files
+    system-config-kickstart
+
+    #
+    # Graphical system installer
+    #
+        #   ANACONDA
+        anaconda anaconda-core anaconda-gui anaconda-install-env-deps anaconda-tui anaconda-user-help anaconda-widgets anaconda-realmd anaconda-dracut anaconda-widgets-devel
+
+#
+#   Tools for network auditing and penetration testing
+#
+
+    #   Описание     : A collection of tools for network auditing and penetration testing. Dsniff,
+    #        : filesnarf, mailsnarf, msgsnarf, urlsnarf and webspy allow to passively monitor
+    #        : a network for interesting data (passwords, e-mail, files). Arpspoof, dnsspoof
+    #        : and macof facilitate the interception of network traffic normally unavailable
+    #        : to an attacker (e.g, due to layer-2 switching). Sshmitm and webmitm implement
+    #        : active monkey-in-the-middle attacks against redirected SSH and HTTPS sessions
+    #        : by exploiting weak bindings in ad-hoc PKI.
+    dsniff
+
+    #   A network traffic monitoring tool
+    tcpdump
+
+    #    Network exploration tool and security scanner
+    nmap
+
+    #    A tool resembling top for network traffic
+    nethogs
+
+    #   A console-based network monitoring utility
+    iptraf-ng
+
+    #    Network traffic tracker
+    jnettop
+
+    #   A system-independent interface for user-level packet capture
+    libpcap libpcap-devel
+
+    #   Libpcapnav is a libpcap wrapper library that allows navigation to arbitrary packets in a tcpdump trace file between reads, using timestamps or percentage offsets. It was originally based on Vern Paxson's tcpslice tool.
+    libpcapnav libpcapnav-devel
+
+    #   Python module for the libpcap packet capture library, based on the original python libpcap module by Aaron Rhodes.
+    pylibpcap
+
+    #   Wireshark allows you to examine protocol data stored in files or as it is captured from wired or wireless (WiFi or Bluetooth) networks, USB devices, and many other sources.  It supports dozens of protocol capture file formats and understands more than a thousand protocols
+    wireshark wireshark-devel wireshark-cli
+
+#
+#   системы управления версиями
+#
+
+    #   Meta-package to pull in all git tools
+    # git-all
+    
+    #   Fast Version Control System
+    git git-core
+
+    #   Mercurial is a fast, lightweight source control management system designed for efficient handling of very large istributed projects
+    mercurial mercurial-chg mercurial-hgk qct-mercurial trac-mercurial-plugin
+
+    #   A Modern Concurrent Version Control System
+    # subversion subversion-api-docs subversion-devel subversion-gnome subversion-javahl subversion-kde subversion-perl subversion-ruby subversion-tools
+
+#
+#   Виртуализация
+#
+
+    # LIBVIRT
+
+        #   Library providing a simple virtualization API
+
+        libvirt libvirt-devel libvirt-docs
+
+        #   Server side daemon and supporting files for libvirt library   
+        libvirt-daemon libvirt-daemon-config-network libvirt-daemon-driver-interface libvirt-daemon-driver-network libvirt-daemon-driver-nodedev libvirt-daemon-driver-nwfilter libvirt-daemon-driver-qemu libvirt-daemon-driver-secret libvirt-daemon-driver-storage libvirt-daemon-driver-storage-core libvirt-daemon-driver-storage-disk libvirt-daemon-driver-storage-gluster libvirt-daemon-driver-storage-iscsi libvirt-daemon-driver-storage-iscsi-direct libvirt-daemon-driver-storage-logical libvirt-daemon-driver-storage-mpath libvirt-daemon-driver-storage-rbd libvirt-daemon-driver-storage-scsi libvirt-daemon-driver-storage-sheepdog libvirt-daemon-driver-storage-zfs libvirt-daemon-kvm libvirt-daemon-qemu libvirt-gconfig libvirt-glib libvirt-gobject libvirt-libs
+
+        libvirt-daemon-config-nwfilter libvirt-daemon-driver-libxl libvirt-daemon-driver-lxc libvirt-daemon-driver-uml libvirt-daemon-driver-vbox libvirt-daemon-lxc libvirt-daemon-uml libvirt-daemon-vbox libvirt-daemon-xen
+
+        libvirt-admin libvirt-bash-completion  libvirt-cim libvirt-client 
+        libvirt-dbus
+        libvirt-designer libvirt-designer-devel libvirt-designer-devel-doc libvirt-designer-vala 
+        libvirt-gconfig-devel libvirt-glib-devel libvirt-gobject-devel
+        libvirt-java libvirt-java-devel libvirt-java-javadoc        
+        libvirt-sandbox libvirt-sandbox-devel
+        libvirt-lock-sanlock        
+        libvirt-login-shell
+        libvirt-nss
+        libvirt-wireshark
+
+    #   Desktop tool for managing virtual machines via libvirt
+    virt-manager
+
+#
+#   ForJava
+#
+
+#
+#   Google's Protocol Buffers
+#
+    protobuf protobuf-c protobuf-c-compiler protobuf-c-devel protobuf-devel protobuf-emacs protobuf-emacs-el protobuf-java protobuf-java-format protobuf-java-format-javadoc protobuf-java-util protobuf-javadoc protobuf-javanano protobuf-lite protobuf-lite-devel protobuf-lite-static protobuf-parent protobuf-static protobuf-vim
+
+#
+#   A cross-platform multimedia library
+#
+    SDL SDL2 SDL2-devel SDL2-static SDL2_image SDL2_image-devel SDL2_mixer SDL2_mixer-devel SDL-devel SDL-static SDL2_gfx SDL2_gfx-devel SDL2_gfx-docs SDL2_net SDL2_net-devel SDL2_ttf SDL2_ttf-devel SDL_Pango SDL_Pango-devel SDL_gfx SDL_gfx-devel SDL_image SDL_image-devel SDL_mixer-devel SDL_mng SDL_mng-devel SDL_net SDL_net-devel SDL_sound SDL_sound-devel SDL_ttf-devel
+
+#
+#   Graphics Layout Engine
+#
+    GLee GLee-devel
+
+#
+#   FOR GL
+#
+
+    #
+    #   MESA SYSTEM AND LIBRARY
+    #
+        mesa-dri-drivers mesa-filesystem mesa-libEGL mesa-libEGL-devel mesa-libGL mesa-libGL-devel mesa-libGLES mesa-libGLES-devel mesa-libGLU mesa-libGLU-devel mesa-libOpenCL mesa-libgbm mesa-libglapi mesa-libxatracker mesa-vulkan-drivers mesa-libOSMesa mesa-libOSMesa-devel mesa-libOpenCL-devel mesa-libd3d mesa-libd3d-devel mesa-libgbm-devel mesa-libxatracker-devel mesa-omx-drivers mesa-vdpau-drivers mesa-vulkan-devel mesa-demos mesa-libGLw mesa-libGLw-devel
+
+    #
+    #   The GL Vendor-Neutral Dispatch library
+    #
+    libglvnd libglvnd-opengl libglvnd-egl libglvnd-gles libglvnd-glx libglvnd-devel libglvnd-core-devel
+
+    #   EGL utilities
+    egl-utils
+
+    #   Wayland EGL External Platform library development package
+    egl-wayland egl-wayland-devel
+
+#
+#   libGLEW
+#
+    libGLEW
+
+#
+#    FOR NVIDIA CARD
+#
+
+    #   Akmod package for nvidia-340xx kernel module(s)
+    akmod-nvidia-340xx
+
+    #   Metapackage which tracks in nvidia-340xx kernel module for newest kernel
+    kmod-nvidia-340xx
+
+    #   NVIDIA's 340xx series proprietary display driver for NVIDIA graphic cards
+    xorg-x11-drv-nvidia-340xx
+
+    #   CUDA libraries for xorg-x11-drv-nvidia-340xx
+    xorg-x11-drv-nvidia-340xx-cuda
+
+    #   Development files for xorg-x11-drv-nvidia-340xx
+    xorg-x11-drv-nvidia-340xx-devel
+
+    #   xorg-x11-drv-nvidia-340xx kernel module source code
+    xorg-x11-drv-nvidia-340xx-kmodsrc
+
+    #   Libraries for xorg-x11-drv-nvidia-340xx
+    xorg-x11-drv-nvidia-340xx-libs
+
+    #   Querying OpenGL resource usage of applications using the NVIDIA OpenGL driver
+    nvidia-query-resource-opengl nvidia-query-resource-opengl-lib
+
+
+#
+#   Tools for managing Linux kernel packet filtering capabilities. Network Library and utilites. Network security library and utilites
+#
+    #
+    #   The iptables utility controls the network packet filtering code in the
+    #        : Linux kernel. If you need to set up firewalls and/or IP masquerading,
+    #        : you should install this package.
+    #
+        iptables iptables-devel iptables-libs iptables-nft iptables-services iptables-utils 
+    
+        #   Extensions targets and matches for iptables
+        akmod-xtables-addons kmod-xtables-addons xtables-addons
+
+        #   Iptables plugin for collectd
+        collectd-iptables
+
+        #   Go wrapper around iptables utility
+        #        : go-iptables wraps invokation of iptables utility with functions
+        #        : to append and delete rules; create, clear and delete chains.
+        golang-github-coreos-go-iptables-devel
+
+        #   python-iptables is a library for doing iptables manipulations from Python 3 and 2.
+        python2-iptables python3-iptables
+
+        # Manipulate netfilter connection tracking table and run High Availability
+        conntrack-tools
+
+        #
+        #   IP sets are a framework inside the Linux kernel since version 2.4.x, which can
+        #        : be administered by the ipset utility. Depending on the type, currently an IP
+        #        : set may store IP addresses, (TCP/UDP) port numbers or IP addresses with MAC
+        #        : addresses in a way, which ensures lightning speed when matching an entry
+        #        : against a set.
+        #        : 
+        #        : If you want to:
+        #        :  - store multiple IP addresses or port numbers and match against the collection
+        #        :    by iptables at one swoop;
+        #        :  - dynamically update iptables rules against IP addresses or ports without
+        #        :    performance penalty;
+        #        :  - express complex IP address and ports based rulesets with one single iptables
+        #        :    rule and benefit from the speed of IP sets
+        #        : then ipset may be the proper tool for you.
+        #
+            ipset ipset-libs ipset-service ipset-devel
+
+    #
+    #   User space tool to set up tables of ARP rules in kernel
+    #
+        arptables
+
+    #
+    #   Ethernet Bridge frame table administration tool
+    #
+        ebtables
+
+    #
+    #   Netfilter Tables userspace utilities.
+    #
+        nftables nftables-devel
+
+    #
+    #   libnetfilter_queue is a userspace library providing an API to packets that have
+    #        : been queued by the kernel packet filter. It is is part of a system that
+    #        : deprecates the old ip_queue / libipq mechanism.
+    #
+        libnetfilter_queue libnetfilter_queue-devel
+    
+    #
+    #   A library for low-level interaction with nftables Netlink's API over libmnl
+    #
+        libnftnl libnftnl-devel
+    
+    #
+    #   libmnl is a minimalistic user-space library oriented to Netlink developers.
+    #        : There are a lot of common tasks in parsing, validating, constructing of both
+    #        : the Netlink header and TLVs that are repetitive and easy to get wrong.
+    #        : This library aims to provide simple helpers that allows you to re-use code and
+    #        : to avoid re-inventing the wheel.
+    #
+        libmnl libmnl-devel libmnl-static
+
+    #    
+    #   ENet is a relatively thin, simple and robust network communication layer on
+    #            : top of UDP (User Datagram Protocol). The primary feature it provides is
+    #            : optional reliable, in-order delivery of packets.
+    #
+        enet enet-devel
+
+    #
+    #   Network Security Services (NSS) is a set of libraries designed to
+    #        : support cross-platform development of security-enabled client and
+    #        : server applications. Applications built with NSS can support SSL v2
+    #        : and v3, TLS, PKCS #5, PKCS #7, PKCS #11, PKCS #12, S/MIME, X.509
+    #        : v3 certificates, and other security standards.
+    #
+        nss nss-mdns nss-softokn nss-softokn-freebl nss-sysinit nss-tools nss-util nss_db nss_hesiod
+
+        nss_wrapper nss-altfiles nss-devel nss-pam-ldapd nss-pem nss-pkcs11-devel nss-softokn-devel nss-util-devel nss_nis nss_updatedb

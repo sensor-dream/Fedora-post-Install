@@ -1,0 +1,5 @@
+#!/bin/env bash
+
+. "Lib/functions";
+
+. "ELK/run";

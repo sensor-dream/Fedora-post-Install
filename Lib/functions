@@ -1,0 +1,253 @@
+#!/bin/env bash
+
+declare -r finction_utilites="finction_utilites";
+
+#
+#   Сообщение-Предупреждение (Warning):  echo_w <string>
+#
+
+function echo_w() {
+    echo -e '\e[47;31m'"!!! $@ !!!\033[0m";
+    tput sgr0;
+}
+
+#
+#   Сообщение-Обычное:  echo_m <string>
+#
+
+function echo_m() {
+    echo -e '\e[47;30m'"!!! $@ !!!\033[0m";
+    tput sgr0;
+}
+
+function check_root(){
+    if [[ $USER != "root" ]]; then
+	    echo_w "апустите скрипт $script_source под пользователем ROOT";
+	    exit 1;
+    fi
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   N={0,1,2,3,...} by syntaxerror
+#
+
+function isNaturalNumber() {
+    [[ ${1} =~ ^[0-9]+$ ]];
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   Z={...,-2,-1,0,1,2,...} by karttu
+#
+
+function isInteger() {
+    [[ ${1} == ?(-)+([0-9]) ]];
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   Q={...,-½,-¼,0.0,¼,½,...} by karttu
+#
+
+function isFloat() {
+    [[ ${1} == ?(-)@(+([0-9]).*([0-9])|*([0-9]).+([0-9]))?(E?(-|+)+([0-9])) ]];
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   R={...,-1,-½,-¼,0.E+n,¼,½,1,...}
+#
+
+function isNumber() {
+    isNaturalNumber $1 || isInteger $1 || isFloat $1;
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   Этот подход обрабатывает целые числа, float, отрицательные числа и терпит неудачу во всем остальном, включая незаявленные и пустые переменные
+#
+
+function isNumberBC {
+    if (( $(echo "$var == $var" | bc -l 2>/dev/null) )); then
+        # echo "It a number"
+        return true;
+    else
+        # echo "not a number"
+        return false;
+    fi
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   (($(check_number $var "${CHECK_INTEGER}" "Error: Found $var - An integer is required."))) && { echo "$var+5" | bc; }
+#
+
+declare  -r CHECK_FLOAT="%f"  
+declare  -r CHECK_INTEGER="%i"  
+
+ ## <arg 1> Number - Number to check  
+ ## <arg 2> String - Number type to check  
+ ## <arg 3> String - Error message  
+function check_number() { 
+  local NUMBER="${1}" 
+  local NUMBER_TYPE="${2}" 
+  local ERROR_MESG="${3}"
+  local -i PASS=1 
+  local -i FAIL=0   
+  case "${NUMBER_TYPE}" in 
+    "${CHECK_FLOAT}") 
+        if ((! $(printf "${CHECK_FLOAT}" "${NUMBER}" &>/dev/random;echo $?))); then 
+           echo "${PASS}"
+        else 
+           echo "${ERROR_MESG}" 1>&2
+           echo "${FAIL}"
+        fi 
+        ;;                 
+    "${CHECK_INTEGER}") 
+        if ((! $(printf "${CHECK_INTEGER}" "${NUMBER}" &>/dev/random;echo $?))); then 
+           echo "${PASS}"
+        else 
+           echo "${ERROR_MESG}" 1>&2
+           echo "${FAIL}"
+        fi 
+        ;;                 
+                     *) 
+        echo "Invalid number type format: ${NUMBER_TYPE} to check_number()." 1>&2
+        echo "${FAIL}"
+        ;;                 
+   esac
+} 
+
+#
+#   check_install_packages <${array[@]}>
+#   check_install_packages <"a b c d">
+#   return list text  string
+#
+
+function check_install_packages(){
+    local Arg=($@);
+    echo $(rpm -qa "${Arg[@]}");
+}
+
+#
+#   check_install_packages <${array[@]}>
+#   check_install_packages <"a b c d">
+#   использовать:
+#       preparationPackages=()
+#       mapfile -t preparationPackages <<< $(find_packages_installation <${array[@]}> | <"a b c d">
+#       ${preparationPackages[0]} - пакеты которые нужно ставить
+#       ${preparationPackages[1]} - пакеты которые уже стоят
+#
+
+function find_packages_installation(){
+    local Arg=($@);
+    local installPackages=($(check_install_packages "${Arg[@]}"));
+    local Install=();
+    for index in "${!Arg[@]}"; do
+        if ! $(echo "${installPackages[@]}" | grep -q "${Arg[$index]}"); then
+            Install+=("${Arg[$index]}");
+        fi
+    done
+    echo "${Install[@]}"
+    echo "${installPackages[@]}";
+}
+
+#
+#   install_packages <${array[@]}> or install_packages <"a b c d">
+#
+
+function install_packages(){
+    local installPackages=($@);
+    # dnf clean packages;
+    local preparationPackages=()
+    mapfile -t preparationPackages <<< $(find_packages_installation ${installPackages[@]});
+    if [[ -n "${preparationPackages[1]}" ]]; then
+        echo_m "${preparationPackages[1]} already install packages";
+    fi
+    if [[ -n "${preparationPackages[0]}" ]]; then
+        echo_m "Start installation packages: ${preparationPackages[0]}";
+        ## dnf install --allowerasing -y  ${preparationPackages[0]};
+        dnf install --skip-broken -y  ${preparationPackages[0]};
+    fi
+}
+
+#
+#   Взято из http://qaru.site/questions/28117/how-to-create-a-cron-job-using-bash-automatically-without-the-interactive-editor
+#   usage: cronjob_editor '<interval>' '<command>' '<add|remove>' '<user>'
+#
+
+function cronjob_editor() {
+
+    if [[ -z "$1" ]] ;then printf " no interval specified\n" ;fi
+    if [[ -z "$2" ]] ;then printf " no command specified\n" ;fi
+    if [[ -z "$3" ]] ;then printf " no action specified\n" ;fi
+
+    if [[ "$3" == "add" ]] ;then
+        # add cronjob, no duplication:
+        if [[ -n "$4" ]]; then
+            ( crontab -u "$4" -l | grep -v -F -w "$2" ; echo "$1 $2" ) | crontab -u "$4" -
+        else
+            ( crontab -l | grep -v -F -w "$2" ; echo "$1 $2" ) | crontab -
+        fi
+    elif [[ "$3" == "remove" ]] ;then
+        # remove cronjob:
+        if [[ -n "$4" ]]; then
+            ( crontab -u "$4" -l | grep -v -F -w "$2" ) | crontab -u "$4" -
+        else
+            ( crontab -l | grep -v -F -w "$2" ) | crontab -
+        fi
+    fi 
+} 
+
+#
+#   usage: add_cron_job '<interval>' '<command>' '<user>'
+#
+
+function add_cron_job(){
+    cronjob_editor "$1" "$2" "add" "$3"
+}
+
+#
+#   usage: del_cron_job '<interval>' '<command>' '<user>'
+#
+
+function del_cron_job(){
+    cronjob_editor "$1" "$2" "remove" "$3"
+}
+
+function systemctl_activate_service() {
+
+    local service="$1";
+
+    if [[ -n "$service" ]]; then
+
+        if [[ $(systemctl status "$service.service" | awk '/Active/ { print $2 }') = "active" ]]; then
+            echo_m "Restart systemd unit service: $service.service ";
+            systemctl restart "$service.service";
+        else
+            echo_m "Configure $service.service service to start automatically using systemd";
+
+            systemctl daemon-reload;
+
+            if [[ $(systemctl status "$service.service" | awk '/Loaded/ { print $2 }') = "masked" ]]; then
+                systemctl unmask "$service.service";
+            fi
+            if [[ $(systemctl status "$service.service" | awk '/Loaded/ { print $4 }') = "disabled;" ]]; then
+                systemctl enable "$service.service";
+            fi
+            if [[ $(systemctl status "$service.service" | awk '/Active/ { print $2 }') = "inactive" ]]; then
+                systemctl start "$service.service";
+            fi
+            if [[ $(systemctl status "$service.service" | awk '/Active/ { print $2 }') = "failed" ]]; then
+                systemctl start "$service.service";
+            fi
+            
+        fi
+
+        return systemctl status "$service.service";
+        
+    fi
+
+}
+
