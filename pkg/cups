@@ -1,0 +1,89 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : cups
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 26.05.2019, 20:15:41
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_cups_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_cups_script_source)";
+
+function install_pkg_cups(){
+
+  local install_pkg=(\
+# Summary      : CUPS printing system
+# URL          : http://www.cups.org/
+# Лицензия     : GPLv2+ and LGPLv2+ with exceptions and AML
+# Description  : CUPS printing system provides a portable printing layer for
+# : UNIX® operating systems. It has been developed by Apple Inc.
+# : to promote a standard printing solution for all UNIX vendors and users.
+# : CUPS provides the System V and Berkeley command-line interfaces.
+"cups" \
+'cups-client' \
+"cups-devel" \
+'cups-filters' \
+"cups-filters-devel" \
+'cups-filters-libs' \
+'cups-filesystem' \
+'cups-ipptool' \
+'cups-libs' \
+"cups-pdf" \
+"cups-lpd" \
+"cups-bjnp" \
+"cups-x2go" \
+'cups-pk-helper' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_cups_script_source(){
+
+  echo_m "Initialise main function of cups script source";
+
+  install_pkg_cups "$@";
+
+}
+
+main_pkg_cups_script_source "$@";

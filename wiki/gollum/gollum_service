@@ -1,0 +1,123 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : gollum_service
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 09.08.2019, 2:53:12
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx  version_control_system_gollum_gollum_service_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "${main_cfg_script_source}" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "${main_project_path}/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${version_control_system_gollum_gollum_service_script_source})";
+
+function create_version_control_system_gollum_gollum_service(){
+
+  echo_m "Repo wiki path: ${gollum_git_repo_wiki_path}";
+  echo_m "Repo wiki upload path: ${gollum_git_repo_wiki_upload_path}";
+  echo_m "Repo git refs: ${gollumgit_git_repo_refs}";
+
+  if [[ ! -f "/usr/lib/systemd/system/${gollum_service_name}.service" ]]; then
+
+    echo_w "Create ${gollum_service_name}.service";
+
+    cat<<EOF > "/usr/lib/systemd/system/${gollum_service_name}.service";
+[Unit]
+Description=gollum service
+## After=syslog.target
+After=network.target
+
+[Service]
+#
+##
+### for a separately created user and installed in his home dir ruby and gollum...
+### ExecStart=${golum_home_dir}/.rvm/wrappers/ruby-2.3.1/gollum --live-preview ${gollum_git_repo_share}
+##
+#
+User=${gollum_service_user_name}
+ExecStart=gollum --live-preview ${gollum_git_repo_wiki_path} --allow-uploads --mathjax --emoji --h1-title --show-all --collapse-tree --user-icons gravatar --ref ${gollumgit_git_repo_refs}
+#
+#--page-file-dir ${main_repo_path}
+#
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    reload_sustemd_daemons_version_control_system_gollum_gollum_service;
+    systemctl_activate_and_start_or_restart_service "${gollum_service_name}";
+  else
+    echo_w "Service ${gollum_service_name}, already exists";
+  fi
+
+}
+
+function delete_version_control_system_gollum_gollum_service() {
+
+  if [[ -f "/usr/lib/systemd/system/${gollum_service_name}.service" ]]; then
+    echo_w "Remove service ${gollum_service_name}";
+    systemctl_disabled_services -- ${gollum_service_name};
+    rm -f "/usr/lib/systemd/system/${gollum_service_name}.service";
+    reload_sustemd_daemons_version_control_system_gollum_gollum_service;
+  else
+    echo_w "Service service ${gollum_service_name}, already removed";
+  fi
+
+}
+
+function reload_sustemd_daemons_version_control_system_gollum_gollum_service() {
+  echo_w "Reload configuration of systemd daemons";
+  systemctl daemon-reload;
+}
+
+function restart_version_control_system_gollum_gollum_service() {
+  echo_w "Reload configuration of systemd daemons";
+  systemctl_activate_and_start_or_restart_service "${gollum_service_name}";
+
+}
+
+function main_version_control_system_gollum_gollum_service_script_source(){
+
+  echo_m "Initialise main function of gollum_service script source";
+
+}
+
+main_version_control_system_gollum_gollum_service_script_source "$@";

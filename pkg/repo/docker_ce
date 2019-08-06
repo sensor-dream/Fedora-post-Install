@@ -1,0 +1,70 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : docker_ce
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 06.05.2019, 20:56:08
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_repo_docker_ce_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_repo_docker_ce_script_source)";
+
+
+function main_pkg_repo_docker_ce_script_source(){
+
+  echo_m "Initialise main function";
+
+  if [  -z "$( find  /etc/yum.repos.d/docker-ce* 2> /dev/null )" ]; then
+    dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo;
+
+
+    dnf config-manager --set-disabled docker-ce-stable;
+
+    dnf config-manager --set-enabled docker-ce-nightly;
+
+    # dnf config-manager --set-enabled docker-ce-test;
+
+  fi
+
+}
+
+main_pkg_repo_docker_ce_script_source "$@";

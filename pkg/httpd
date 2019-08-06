@@ -1,0 +1,95 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : httpd
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 11.08.2019, 0:20:14
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_httpd_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_httpd_script_source})";
+
+function install_pkg_httpd(){
+
+  local install_pkg=(\
+httpd \
+httpd-devel \
+# mod_gnutls \
+# xmlsec1-gnutls \
+# xmlsec1-gnutls-devel \
+mod_ssl \
+# mod_md \
+mod_http2 \
+mod_security \
+mod_perl \
+# mod_auth_token \
+# mod_auth_openid \
+# mod_proxy_html \
+# mod_passenger \
+# mod_revocator \
+# mod_suphp \
+mod_log_post \
+mod_session \
+# mod_lookup_identity \
+# python2-mod_wsgi \
+# python3-mod_wsgi \
+# python2-sphinx \
+# python3-sphinx \
+mod_geoip \
+#   A top-like display of Apache logs
+apachetop \
+# syslog-ng \
+logwatch \
+# awstats \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_httpd_script_source(){
+
+  echo_m "Initialise main function of httpd script source";
+
+  install_pkg_httpd "$@";
+
+}
+
+main_pkg_httpd_script_source "$@";

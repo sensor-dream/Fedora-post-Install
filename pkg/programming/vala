@@ -1,0 +1,70 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : vala
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 24.10.2019, 2:45:52
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_programming_vala_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_programming_vala_script_source})";
+
+function install_pkg_programming_vala(){
+
+  local install_pkg=(\
+vala \
+#
+#   A very simple dock written in Vala.
+plank plank-docklets plank-devel \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_programming_vala_script_source(){
+
+  echo_m "Initialise main function of vala script source";
+
+  install_pkg_programming_vala "$@";
+
+}
+
+main_pkg_programming_vala_script_source "$@";

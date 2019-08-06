@@ -1,0 +1,199 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : sysctl.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-13 05:35:09
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_sysctl_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $preparation_sysctl_script_source";
+
+## экстренную перезагрузку стоит проводить, зажав клавиши Alt + SysRq и с интервалом в 2-3 секунды нажать последовательно: R E I S U B
+## Alt+SysRq+R - unraw - забирает контроль над мышью и клавиатурой у Х-сервера, что полезно, если Х-севрвер завис: так можно перейти в консоль, убить Х-сервер или проверить логи. Но вот экран иксы могут и не вернуть, поэтому дальше либо действовать на ощупь, либо Ctrl+Alt+Del для корректной перезагрузки;
+## Alt+SysRq+E - terminate - послать сигнал завершения работы SIGTERM всем процессам, кроме init.
+## Alt+SysRq+I - kill - послать сигнал немедленного завершения работы SIGKILL всем процессам, кроме init.
+## Alt+SysRq+S - sync - пытается синхронизировать все примонтированные файловые системы, при этом пишет в консоли "Emergency Remount R/O" - когда этот процесс закончится, должно написать "Emergency Remount Complete";
+## Alt+SysRq+U - unmount - пытается перемонтировать все примонтированные файловые системы в режим "только-чтение";
+## Alt+SysRq+B - reboot - немедленная перезагрузка системы, прямо как клавиша RESET (без синхронизации и размонтирования файловых систем);
+
+## Для того, чтобы восстановить управление клавиатурой X-сервером после unRaw используйте следующую команду с правами суперпользователя: kbd_mode -s -C /dev/tty7[10]. Вместо tty7 (7 — обычный номер для запуска X-сервера) можно использовать tty$(fgconsole) для программного определения номера tty.
+
+function configure_sysctl(){
+
+  check_root;
+
+  local sysctlVal=(\
+## "fs.inotify.max_user_watches = 524288" \
+"fs.inotify.max_user_watches = 1048576" \
+# Увеличить лимит дескрипторов файлов
+"fs.file-max = 50000" \
+## Увеличиваем время ожидания обращения к swap default = 60
+"vm.swappiness = 10" \
+## уровень выделяемой памяти под кэш default = 100
+## изменения стратегии сокращения объема кэша структур inode
+## 512 МБ памяти, то параметр vfs_cache_pressure можно выставить равным 50
+## выставить 1000
+"vm.vfs_cache_pressure = 1000" \
+# Максимальный процент оперативной памяти, который может быть заполнен страничным кэшем до записи данных на диск. default = 10
+"vm.dirty_background_ratio = 10" \
+# максимальный процент общей оперативной памяти, который может быть выделен под страничный кэш, до того как pdflush будет писать данные на диск.
+# Примечание: Во время записи на диск блокируются все процессы на запись, а не только тот который заполнил буфер на запись. Это может спровоцировать блокировку одним процессов всех операций вводы/вывода в системе.
+# default = 20 выставить 40
+"vm.dirty_ratio = 40" \
+#  количество финализаций записи на диск
+# default = 500 выставить 15000
+"vm.dirty_writeback_centisecs = 15000" \
+## Controls the System Request debugging functionality of the kernel
+## включить все комбинации Alt+SysRq, в т.ч. Alt+SysRq+F для принудительного вызова OOM Killer
+"kernel.sysrq = 1" \
+## с 8 МБ увеличим размер памяти, который будет гарантированно не занят в системе, чтобы у нас могли работать SSH и пр.
+"vm.admin_reserve_kbytes = 60192" \
+## Controls IP packet forwarding
+"net.ipv4.ip_forward = 1" \
+"net.ipv4.conf.all.forwarding = 1" \
+"net.ipv6.ip_forward = 1" \
+"net.ipv6.conf.all.forwarding = 1" \
+## Controls source route verification
+"net.ipv4.conf.default.rp_filter = 1" \
+"net.ipv6.conf.default.rp_filter = 1" \
+## активация IP Spoofing Protection
+"net.ipv4.conf.all.rp_filter = 1" \
+"net.ipv6.conf.all.rp_filter = 1" \
+## Do not accept source routing
+"net.ipv4.conf.default.accept_source_route = 0" \
+"net.ipv6.conf.default.accept_source_route = 0" \
+## игнорирование Broadcast Request
+"net.ipv4.icmp_echo_ignore_broadcasts = 1" \
+"net.ipv4.conf.all.accept_redirects = 1" \
+"net.ipv6.icmp_echo_ignore_broadcasts = 1" \
+"net.ipv6.conf.all.accept_redirects = 1" \
+## this gives the kernel more memory for tcp
+## which you need with many (100k+) open socket connections
+"net.ipv4.tcp_mem = 50576 64768 98152" \
+"net.ipv6.tcp_mem = 50576 64768 98152" \
+# Увеличить число IP-портов
+"net.ipv4.ip_local_port_range = 2000 65000" \
+"net.ipv6.ip_local_port_range = 2000 65000" \
+## активация TCP SYN Cookie Protection
+"net.ipv4.tcp_syncookies = 1" \
+"net.ipv4.tcp_tw_recycle = 1" \
+"net.ipv4.tcp_tw_reuse = 1" \
+"net.ipv4.tcp_keepalive_time = 10" \
+"net.ipv4.tcp_fin_timeout = 5" \
+'net.ipv4.tcp_rmem = 4096 87380 16777216' \
+'net.ipv4.tcp_wmem = 4096 65536 16777216' \
+"net.ipv6.tcp_syncookies = 1" \
+"net.ipv6.tcp_tw_recycle = 1" \
+"net.ipv6.tcp_tw_reuse = 1" \
+"net.ipv6.tcp_keepalive_time = 10" \
+"net.ipv6.tcp_fin_timeout = 5" \
+'net.ipv6.tcp_rmem = 4096 87380 16777216' \
+'net.ipv6.tcp_wmem = 4096 65536 16777216' \
+"net.core.somaxconn = 16384" \
+"net.core.rmem_max = 16777216" \
+"net.core.wmem_max = 16777216" \
+"net.core.netdev_max_backlog = 2500" \
+## Disable netfilter on bridges.
+"net.bridge.bridge-nf-call-ip6tables = 0" \
+"net.bridge.bridge-nf-call-iptables = 0" \
+"net.bridge.bridge-nf-call-arptables = 0" \
+## Controls whether core dumps will append the PID to the core filename.
+## Useful for debugging multi-threaded applications.
+"kernel.core_uses_pid = 1" \
+"kernel.panic = 1" \
+"kernel.panic_on_oops = 1" \
+"kernel.panic_on_io_nmi = 1" \
+"kernel.panic_on_unrecovered_nmi = 1" \
+# Включаем дедупликацию страниц памяти
+"sys.kernel.mm.ksm.run = 1" \
+"sys.kernel.mm.ksm.sleep_millisecs = 1000" \
+);
+
+  create_back_file "/etc/sysctl.conf";
+
+  ## Удаляем пустые строки и начальные пробелы
+  ## заменяем (=) на ( = ) заменяем табуляции и пробелы на 1 пробел
+  sed -i -e '/./!d; s/=/ = /; s/[[:space:]]\+/ /g; s/^[ \t]//; s/[ \t]$//;' "/etc/sysctl.conf";
+
+  local subVal="";
+  local numString="";
+  ## local OLD_IFS='';
+  local ii=0;
+
+  for i in ${!sysctlVal[*]}; do
+      sysctlVal[$i]=$(echo -n ${sysctlVal[$i]} | sed -e 's/=/ = /; s/[[:space:]]\+/ /g; s/^[ ]//; s/[ \t]$//;');
+      # OLD_IFS="$IFS";
+      IFS="=";
+      subVal=(${sysctlVal[$i]});
+      IFS="$OLD_IFS";
+      if ! grep -q "${subVal[0]}" "/etc/sysctl.conf"; then
+        echo_m "sysctl  ${sysctlVal[$i]} prepared";
+        echo "${sysctlVal[$i]}" >> "/etc/sysctl.conf";
+      else
+        numString=($(sed -n "/${subVal[0]}=/=" "/etc/sysctl.conf"));
+        ii=0;
+        let ii=${#numString[*]}-1;
+        if [ $ii -ge 1 ]; then
+          echo ${numString[$ii]};
+          until [ $ii -eq 0 ]; do
+              echo ${numString[$ii]};
+              sed -i "${numString[$ii]}d" "/etc/sysctl.conf";
+              ((ii-=1));
+          done
+        fi
+        if ! grep -q "${subVal[0]}=${subVal[1]}" "/etc/sysctl.conf"; then
+          echo_m "${subVal[0]}=${subVal[1]}";
+          sed -i -e "s/${subVal[0]}=/#${subVal[0]}=/; ${numString[0]}a\\${subVal[0]}=${subVal[1]}" "/etc/sysctl.conf";
+        fi
+      fi
+  done
+
+  ## синхронизируем данные кэша и диска
+  sync;
+  ## очистим кэш
+  echo 3 > /proc/sys/vm/drop_caches;
+  ## сохраним параметры
+  sysctl -p 1> /dev/null 2> /dev/null;
+  echo_m "sysctl prepared";
+
+}
+
+configure_sysctl;

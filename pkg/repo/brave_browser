@@ -1,0 +1,84 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: Pavel M. Teslenko
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © Pavel M. Teslenko. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: brave_browser
+## @Creation date file: 16.04.2020, 16:34:35
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx brave_browser_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo -e '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${brave_browser_script_source})";
+
+function install_brave_browser(){
+
+  local version="$1";
+  local sversion="-nightly";
+
+  local install_pkg=(\
+'dnf-plugins-core' \
+);
+
+  pkg -a -- "${install_pkg[*]}";
+  
+  version="-${version}";
+  
+  if [[ "${version}" == "release" ]]; then
+    sversion="";
+  fi
+
+  dnf config-manager --add-repo https://brave-browser-rpm"${version}".s3.brave.com/x86_64/
+
+  rpm --import https://brave-browser-rpm"${version}".s3.brave.com/brave-core${sversion}.asc
+
+}
+
+function main_brave_browser_script_source(){
+
+  echo_m "Initialise main function of brave_browser script source";
+
+  install_brave_browser "$@";
+
+}
+
+main_brave_browser_script_source "$@";

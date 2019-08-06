@@ -1,0 +1,112 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : compiz.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-10 16:23:41
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_compiz_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $pkg_compiz_script_source";
+
+function install_compiz(){
+
+  check_root;
+
+  local install_pkg=(\
+# Summary      : OpenGL window and compositing manager
+# L          : https://gitlab.com/compiz/compiz-core
+# цензия     : GPLv2+ and LGPLv2+ and MIT
+# Description  : Compiz is one of the first OpenGL-accelerated compositing window
+# : managers for the X Window System. The integration allows it to perform
+# : compositing effects in window management, such as a minimization
+# : effect and a cube work space. Compiz is an OpenGL compositing manager
+# : that use Compiz use EXT_texture_from_pixmap OpenGL extension for
+# : binding redirected top-level windows to texture objects.
+'compiz' \
+'compiz-bcop' \
+'compiz-devel' \
+'compiz-manager' \
+'compiz-plugins-experimental' \
+'compiz-plugins-experimental-devel' \
+'compiz-plugins-extra' \
+'compizconfig-python' \
+'libcompizconfig-devel' \
+'compiz-plugins-extra-devel' \
+'compiz-plugins-main' \
+'compiz-plugins-main-devel' \
+'libcompizconfig' \
+'startup-notification-devel' \
+);
+
+  pkg -a  "$@" -x 'fedora-release-matecompiz' -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Summary      : Themeable window decorator and compositing manager for Compiz
+# URL          : https://gitlab.com/compiz/emerald
+# Лицензия     : GPLv2+
+# Description  : Emerald is themeable window decorator and compositing
+# : manager for Compiz.
+'emerald' \
+'emerald' \
+'emerald-themes' \
+'libwnck3-devel' \
+'libXres-devel' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Summary      : Compiz Fusion panel applet
+# URL          : https://gitlab.com/compiz/fusion-icon
+# Лицензия     : GPLv2+
+# Description  : The Compiz Fusion Icon is a simple panel applet for starting and controlling
+# : Compiz Fusion. Upon launch, it will attempt to start Compiz Fusion
+# : automatically. You may need to select a window decorator, if one does not
+# : appear.
+'fusion-icon' \
+'ccsm' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+install_compiz "$@";

@@ -1,0 +1,97 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : komorebi_animated
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 2019-2-1 13:14:48
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx komorebi_animated_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $komorebi_animated_script_source";
+
+function install_komorebi_animated_wallpapers(){
+
+  ## https://github.com/cheesecakeufo/komorebi.git
+
+  check_root;
+
+  local install_pkg=(\
+gnome-libs \
+libgtop2 \
+libgtop2-devel \
+gnome-libs \
+gtk+ \
+gtk2 \
+gtk3 \
+gtk4 \
+gtkd \
+gtk+extra \
+glib \
+geeqie \
+libwnck \
+webkit2gtk3 \
+webkit2gtk3-jsc \
+webkit2gtk3-plugin-process-gtk2 \
+webkit2gtk3-devel \
+webkit2gtk3-doc \
+webkit2gtk3-jsc-devel \
+clutter \
+clutter-devel \
+clutter-doc \
+clutter-gtk \
+clutter-gst3 \
+clutter-gtk-devel \
+clutter-gst3-devel \
+clutter-gst \
+make \
+cmake \
+vala \
+);
+
+  #install_packages "${install_pkg[*]}";
+
+  local tmp="$(mktemp -u -d)";
+  wget -P "$tmp" "https://github.com/cheesecakeufo/komorebi/archive/master.zip";
+
+}
+
+
+install_komorebi_animated_wallpapers;

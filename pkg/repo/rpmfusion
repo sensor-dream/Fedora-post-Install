@@ -1,0 +1,90 @@
+#!/bin/bash
+
+declare -rx pkg_repo_rpmfusion_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $pkg_repo_rpmfusion_script_source";
+
+add_rpmfusion_repo(){
+
+    check_root;
+
+    if [  -z "$( find  /etc/yum.repos.d/rpmfusion-free* 2> /dev/null )" ]; then
+        install_packages https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+        dnf config-manager --set-enabled rpmfusion-free;
+        dnf config-manager --set-enabled rpmfusion-free-updates;
+        dnf config-manager --set-enabled rpmfusion-nonfree;
+        dnf config-manager --set-enabled rpmfusion-nonfree-updates;
+        dnf groupupdate core -y;
+        dnf groupupdate multimedia -y;
+        dnf groupupdate sound-and-video -y;
+
+    fi
+}
+
+add_ostree_rpmfusion_repo(){
+
+    check_root;
+
+    if [  -z "$( find  /etc/yum.repos.d/rpmfusion-free* 2> /dev/null )" ]; then
+        rpm-ostree install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm;
+        # dnf config-manager --set-enabled rpmfusion-free;
+        # dnf config-manager --set-enabled rpmfusion-free-updates;
+        # dnf config-manager --set-enabled rpmfusion-nonfree;
+        # dnf config-manager --set-enabled rpmfusion-nonfree-updates;
+        rpm-ostree groupupdate core -y;
+        rpm-ostree groupupdate multimedia -y;
+        rpm-ostree groupupdate sound-and-video -y;
+
+    fi
+}
+
+del_rpmfusion_repo() {
+
+    check_root;
+    dnf remove rpmfusion\*  -y;
+    if [[ -n "$( find  "/etc/yum.repos.d/rpmfusion-free"* 2> /dev/null )"  ]]; then
+        remove_fp "/etc/yum.repos.d/rpmfusion-free"*;
+    fi
+    if [[ -n "$( find  "/etc/yum.repos.d/rpmfusion-nonfree"* 2> /dev/null )"  ]]; then
+        remove_fp "/etc/yum.repos.d/rpmfusion-nonfree"*;
+    fi
+
+}
+
+add_rpmfusion_repo;
+# del_rpmfusion_repo;
+# add_ostree_rpmfusion_repo;
+

@@ -1,0 +1,68 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : codelite
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 10.05.2019, 20:19:11
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_repo_codelite_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_repo_codelite_script_source)";
+
+
+function main_pkg_repo_codelite_script_source(){
+
+  echo_m "Initialise main function";
+
+  #
+  # https://codelite.org/
+  #
+d
+  rpm --import https://repos.codelite.org/CodeLite.asc
+
+  pkg -a "$@" -- clang https://repos.codelite.org/rpms-13.0/fedora/codelite-13.0-1.fc31.x86_64.rpm;
+
+  #rpm -Uvh https://repos.codelite.org/rpms-13.0/fedora/codelite-13.0-1.fc31.x86_64.rpm
+
+}
+
+main_pkg_repo_codelite_script_source "$@";

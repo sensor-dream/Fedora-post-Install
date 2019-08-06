@@ -1,0 +1,105 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : tunning
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 25.09.2019, 1:58:05
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_tunning_script_source="$BASH_SOURCE"
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)"
+  echo "Script runs from ${main_run_script_path}"
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../
+      else
+        cd ${main_run_script_path}
+        check=0
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m"
+        tput sgr0
+        exit 1
+      fi
+    else
+      check=0
+      declare -rx main_project_path="$(pwd)"
+      . "${main_project_path}/main.cfg"
+      cd "${main_run_script_path}"
+    fi
+  done
+fi
+
+echo_m "Connect $(readlink -m ${preparation_tunning_script_source})"
+
+function install_preparation_tunning() {
+
+  local install_pkg=(
+
+  )
+
+  pkg -a "$@" -- "${install_pkg[*]}"
+
+}
+
+function tuning_preparation_tunning() {
+
+  local remove_pkg=(
+    ### служба автоматической регистрации ошибок и GUI апплет
+    ### 'abrt' \
+    ### Магазин приложений (графический менеджер пакетов)
+    #'PackageKit' \
+    #'gnome-software' \
+    'dnfdragora'
+    'dnfdragora-updater'
+  )
+
+  #  pkg -s -e -n -x "libyui* python*" -- "${remove_pkg[*]}";
+
+  local mask_srv=(
+    ### лужбы Evolution, необходимые для синхронизации онлайн аккаунтов
+    'evolution-addressbook-factory.service'
+    'evolution-calendar-factory.service'
+    'evolution-source-registry.service'
+    'evolution-user-prompter.service'
+    'evolution-alarm-notify.service'
+    ### службы, необходимые для создания индекса файловой системы
+    # 'mask'
+    'tracker-miner-apps'
+    'tracker-miner-fs'
+    'tracker-store'
+  )
+
+  ### systemctl status;
+  ### systemctl --failed;
+  systemctl --user stop ${mask_srv[*]}
+  systemctl --user disable ${mask_srv[*]}
+  systemctl --user mask ${mask_srv[*]}
+
+}
+
+function main_preparation_tunning_script_source() {
+
+  echo_m "Initialise main function of tunning script source"
+
+  check_user
+
+  tuning_preparation_tunning
+
+}
+
+main_preparation_tunning_script_source "$@"

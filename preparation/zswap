@@ -1,0 +1,127 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : zswap
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 2019-2-5 23:50:07
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_zswap_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $preparation_zswap_script_source";
+
+
+function init_zswap() {
+
+  check_root;
+  ## swapon -s
+
+  if [[ "$(cat /boot/config-`uname -r` | grep -i zswap)" == "CONFIG_ZSWAP=y" ]]; then
+
+    echo_w "There is support for swap technology in the kernel";
+
+    if grep -q  "zswap" '/etc/default/grub'; then
+
+      echo_w "ZSWAP has already been added to the kernel boot parameters";
+
+    else
+
+      local install_pkg=(\
+kernel-devel \
+kernel-headers \
+kernel-modules \
+kernel-modules-extra \
+kernel-tools \
+kernel-tools-libs \
+kernel-tools-libs-devel \
+dracut \
+rpmdevtools \
+lz4 \
+);
+
+      install_packages "${install_pkg[*]}";
+
+      [[ ! -f '/etc/default/grub.back' ]] && cp '/etc/default/grub' '/etc/default/grub.back';
+
+      ## zswap.compressor = 'lzo';
+      ## zswap.compressor = 'lz4';
+      ## zswap.zpool='zbud';
+      ## zswap.zpool='z3fold';
+      ## swap.max_pool_percent рассчитывается ((сколько нужно озу/сколько у Вас есть)-1)*100
+      # zswap.max_pool_percent=50;
+
+      # sed -i '/GRUB_CMDLINE_LINUX/s/rhgb quiet"$/zswap.enabled=1 zswap.compressor=lz4 zswap.max_pool_percent=50 zswap.zpool=z3fold rhgb quiet"/' '/etc/default/grub';
+      sed -i '/GRUB_CMDLINE_LINUX/s/rhgb quiet/zswap.enabled=1 zswap.compressor=lzo zswap.max_pool_percent=50 rhgb quiet/' '/etc/default/grub';
+
+      cat '/etc/default/grub';
+
+      grub2-mkconfig -o /boot/grub2/grub.cfg;
+
+      [[ ! -f "/boot/initramfs-$(uname -r).img.old" ]] && cp "/boot/initramfs-$(uname -r).img" "/boot/initramfs-$(uname -r).img.old";
+
+      dracut -f /boot/initramfs-$(uname -r).img $(uname -r);
+
+    fi
+
+    echo_w "Parameters zswap";
+    grep . /sys/module/zswap/parameters/*
+    echo_w "Debug zswap";
+    grep -R . /sys/kernel/debug/zswap/*
+
+    echo -ne "Reboot system (n) (y/n): ";
+
+    read key;
+
+    validate_reply "$key";
+
+    if [[ "$reply" == "y" ]]; then
+      echo_w "Reebot system";
+      systemctl reboot;
+    fi
+
+  else
+
+    echo_w "No support for swap in the kernel";
+
+  fi
+
+}
+
+init_zswap;

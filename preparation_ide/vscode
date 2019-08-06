@@ -1,0 +1,243 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: Pavel M. Teslenko
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © Pavel M. Teslenko. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: vscode
+## @Creation date file: 27.02.2020, 00:44:31
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_ide_vscode_script_source="$BASH_SOURCE"
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)"
+  echo "Script runs from ${main_run_script_path}"
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../
+      else
+        cd ${main_run_script_path}
+        check=0
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m"
+        tput sgr0
+        exit 1
+      fi
+    else
+      check=0
+      declare -rx main_project_path="$(pwd)"
+      . "${main_project_path}/main.cfg"
+      cd "${main_run_script_path}"
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${preparation_ide_vscode_script_source})"
+
+function preparation_ide_install_vscode() {
+  
+  . ${main_project_path}/pkg/vscode
+  
+    cat <<EOF >/home/${main_user}/.config/Code/User/settings.json
+{
+    "templateGenerator.fields.author": "Pavel M. Teslenko",
+    "templateGenerator.fields.email": "sensor-dream@sensor-dream.ru",
+    "templateGenerator.fields.link": "https://sensor-dream.ru",
+    "telemetry.enableCrashReporter": false,
+    "telemetry.enableTelemetry": false,
+    "workbench.sideBar.location": "right",
+    "editor.fontFamily": "'Fira code', 'Droid Sans Mono', 'monospace', monospace, 'Droid Sans Fallback'",
+    "editor.fontLigatures": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnType": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "workbench.colorTheme": "bashling",
+    "workbench.enableExperiments": false,
+    "update.showReleaseNotes": false,
+    "editor.multiCursorModifier": "ctrlCmd",
+    "editor.wordWrap": "bounded",
+    "editor.trimAutoWhitespace": true,
+    "editor.fontSize": 14,
+    "editor.formatOnSave": true,
+    "files.autoSave": "onFocusChange",
+    "emmet.syntaxProfiles": {
+        "javascript": "jsx"
+    },
+    "eslint.autoFixOnSave": true,
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact"
+    ],
+    "javascript.validate.enable": true,
+    "git.enableSmartCommit": true,
+    "editor.tabSize": 2,
+    "gitlens.historyExplorer.enabled": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "explorer.confirmDelete": false,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "[shellscript]": {
+        "editor.defaultFormatter": "shakram02.bash-beautify"
+    },
+    "bashBeautify.tabSize": 2,
+    "peacock.favoriteColors": [
+        {
+            "name": "Angular Red",
+            "value": "#dd0531"
+        },
+        {
+            "name": "Auth0 Orange",
+            "value": "#eb5424"
+        },
+        {
+            "name": "Azure Blue",
+            "value": "#007fff"
+        },
+        {
+            "name": "C# Purple",
+            "value": "#68217A"
+        },
+        {
+            "name": "Gatsby Purple",
+            "value": "#639"
+        },
+        {
+            "name": "Go Cyan",
+            "value": "#5dc9e2"
+        },
+        {
+            "name": "Java Blue-Gray",
+            "value": "#557c9b"
+        },
+        {
+            "name": "JavaScript Yellow",
+            "value": "#f9e64f"
+        },
+        {
+            "name": "Mandalorian Blue",
+            "value": "#1857a4"
+        },
+        {
+            "name": "Node Green",
+            "value": "#215732"
+        },
+        {
+            "name": "React Blue",
+            "value": "#61dafb"
+        },
+        {
+            "name": "Something Different",
+            "value": "#832561"
+        },
+        {
+            "name": "Svelte Orange",
+            "value": "#ff3d00"
+        },
+        {
+            "name": "Vue Green",
+            "value": "#42b883"
+        }
+    ],
+}
+EOF
+  
+  chown ${main_user}.${main_user} /home/${main_user}/.config/Code/User/settings.json
+  
+    cat <<EOF
+
+Please install packages of vs code.
+
+    ctrl + P and insert in command line of install packages:
+
+    ext install MS-CEINTL.vscode-language-pack-ru
+    ext install DengSir.template-generator-vscode
+    ext install gerane.Theme-bashling
+    ext install clintonrost.theme-firefox-devtools
+    ext install chrmarti.regex
+    ext install shakram02.bash-beautify
+    ext install foxundermoon.shell-format
+    ext install Remisa.shellman
+    ext install steoates.autoimport
+    ext install stevencl.addDocComments
+    ext install samundrak.esdoc-mdn
+    ext install pranaygp.vscode-css-peek
+    ext install bierner.color-info
+    ext install cssho.vscode-svgviewer
+    ext install eamodio.gitlens
+    ext install mhutchie.git-graph
+    ext install dbaeumer.vscode-eslint
+    ext install wayou.vscode-todo-highlight
+    ext install ms-azuretools.vscode-docker
+    ext install streetsidesoftware.code-spell-checker
+    ext install wix.vscode-import-cost
+    ext install mkaufman.HTMLHint
+    ext install sidthesloth.html5-boilerplate
+    ext install johnpapa.vscode-peacock
+    ext install esbenp.prettier-vscode
+    ext install dzannotti.vscode-babel-coloring
+    ext install CoenraadS.bracket-pair-colorizer
+    ext install whtouche.vscode-js-console-utils
+    ext install christian-kohler.path-intellisense
+    ext install xabikos.JavaScriptSnippets
+    ext install octref.vetur
+    ext install hollowtree.vue-snippets
+    ext install eg2.vscode-npm-script
+    ext install johnpapa.Angular2
+    ext install HookyQR.minify
+    ext install felixfbecker.php-intellisense
+    ext install ms-python.python
+    ext install ms-vscode.cpptools
+    ext install ms-vscode.Go
+    ext install coderfee.open-html-in-browser
+    ext install firefox-devtools.vscode-firefox-debug
+    ext install msjsdiag.debugger-for-chrome
+    ext install humao.rest-client
+    ext install alefragnani.project-manager
+    ext install yzhang.markdown-all-in-one
+    ext install alefragnani.Bookmarks
+    ext install HookyQR.beautify
+    ext install vscode-icons-team.vscode-icons
+    ext install idleberg.icon-fonts
+    ext install lior-chamla.google-fonts
+    ext install WakaTime.vscode-wakatime
+    ext install quicktype.quicktype
+    ext install ZainChen.json
+    ext install mohsen1.prettify-json
+
+
+    Install debugger for Chrome or Firefox for VS Code
+
+EOF
+  
+  npm install -g eslint
+  
+  echo "run command in path project: eslint --init"
+  
+}
+
+function main_preparation_ide_vscode_script_source() {
+  
+  echo_m "Initialise main function of vscode script source"
+  
+  preparation_ide_install_vscode
+  
+}
+
+main_preparation_ide_vscode_script_source "$@"

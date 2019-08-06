@@ -1,0 +1,290 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : monitoring_utilites_system_packs
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 13.08.2019, 23:08:34
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx monitoring_utilites_system_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${monitoring_utilites_system_packs_script_source})";
+
+function install_monitoring_utilites_system_packs(){
+
+#
+ ##
+  ### https://habr.com/ru/company/ua-hosting/blog/281519/
+ ##
+#
+
+  local install_pkg=(\
+# EtherApe is a graphical network monitor modeled after etherman.
+# EtherApe — показывает сетевой трафик в виде графика, показывает не только соединения, но и поток по каждому из них, вид протокола по номеру порта, сетевую активность разных хостов. На графике узлы выведены в виде кольца, а соединения в виде линий, так вот, чем интенсивнее трафик, тем толще соединительные линии, различные типы трафика обозначены различными цветами.
+'etherape' \
+# IPTState — выводит статистику открытых портов в виде таблицы с указанием IP адресов. Эффективный инструмент, мониторит IP трафик, выводит как общую статистику для всех сетевых интерфейсов, так и детализированную статистику для отдельного взятого интерфейса.
+#'ipstate' \
+# Network traffic analyzer
+# darkstat is a network traffic analyzer. It's basically a packet sniffer
+# : which runs as a background process on a cable/DSL router and gathers
+# : all sorts of useless but interesting statistics.
+# darkstat — мониторит сетевой трафик, выводит статистику использования сети, отправляет отчеты по http. Собранная информация о скорости, количестве переданных пакетов, байтах, посещенных хостах и данных о хостах выводится в виде веб странички.
+### connect 127.0.0.1:667
+#'darkstat' \
+# Summary      : A system monitor for X
+# URL          : https://github.com/brndnmtthws/conky
+# Лицензия     : GPLv3+
+# Description  : A system monitor for X originally based on the torsmo code. but more kickass.
+# : It just keeps on given'er. Yeah.
+# conky — многофункциональный полностью настраиваемый системный монитор для Linux и BSD систем, отслеживает многие показатели системы, такие как CPU, память, swap, размеры дисков, температуру, скорость закачки и загрузки, системные сообщения и многое другое.
+#'conky' \
+# A simple GUI for managing Conky configuration files. Options for changing
+# : themes and running Conky at start up.
+#'conky-manager' \
+# Summary      : Round Robin Database Tool to store and display time-series data
+# URL          : http://oss.oetiker.ch/rrdtool/
+# Лицензия     : GPLv2+ with exceptions
+# Description  : RRD is the Acronym for Round Robin Database. RRD is a system to store and
+# : display time-series data (i.e. network bandwidth, machine-room temperature,
+# : server load average). It stores the data in a very compact way that will not
+# : expand over time, and it presents useful graphs by processing the data to
+# : enforce a certain data density. It can be used either via simple wrapper
+# : scripts (from shell or Perl) or via frontends that poll network devices and
+# : put a friendly user interface on it.
+# RRDtool — утилита для мониторинга сети и аппаратных ресурсов, набор утилит RRDtool предназначен для хранения, обработки и отображения любых данных, изменяющихся во времени, сюда относятся: сетевой трафик, пропускная способность сети, загрузка процессора и ОЗУ, температура.
+# RRDTool собирает информацию и создает графики, информация хранится в кольцевой БД. Размер БД остается постоянным, потому что ячейки задействованы циклически.
+'rrdtool' \
+# Summary      : Manages and monitors processes, files, directories and devices
+# URL          : http://mmonit.com/monit/
+# Лицензия     : AGPLv3
+# Description  : monit is a utility for managing and monitoring, processes, files, directories
+# : and devices on a UNIX system. Monit conducts automatic maintenance and repair
+# : and can execute meaningful causal actions in error situations.
+# monit — утилита выполняет те же функции что и monitord, мониторит состояние сервисов, отправляет уведомления о различных событиях по email, совершает действия по перезапуску служб в зависимости от условий. Есть возможность следить за состоянием системы как из командной строки, так и через собственный веб-сервер monit.
+#'monit' \
+# xosview — является классическим инструментом для мониторинга системы, он прост, отображает текущее состояние системы в виде набора графических полос, длинна и ширина которых зависит от размера окна.
+'xosview' \
+# Summary      : A collection of SNMP protocol tools and libraries
+# URL          : http://net-snmp.sourceforge.net/
+# Лицензия     : BSD
+# Description  : SNMP (Simple Network Management Protocol) is a protocol used for
+# : network management. The NET-SNMP project includes various SNMP tools:
+# : an extensible agent, an SNMP library, tools for requesting or setting
+# : information from SNMP agents, tools for generating and handling SNMP
+# : traps, a version of the netstat command which uses SNMP, and a Tk/Perl
+# : mib browser. This package contains the snmpd and snmptrapd daemons,
+# : documentation, etc.
+# : You will probably also want to install the net-snmp-utils package,
+# : which contains NET-SNMP utilities.
+# SNMP — протокол модели OSI, был разработан с целью проверки функционирования сетевых маршрутизаторов и мостов, потом сфера действия протокола охватила и другие сетевые устройства, такие как хабы, шлюзы, терминальные сервера, LAN Manager сервера, машины под управлением Windows NT.
+# Утилиты пакета Net-SNMP — для отслеживания параметров маршрутизатора.
+'net-snmp' \
+# Summary      : Inotify cron system
+# URL          : https://github.com/ar-/incron
+# Лицензия     : GPLv2
+# Description  : This program is an "inotify cron" system.
+# : It consists of a daemon and a table manipulator.
+# : You can use it a similar way as the regular cron.
+# : The difference is that the inotify cron handles
+# : filesystem events rather than time periods.
+# incron (INotify CRON) — пакет утилит, можно запускать скрипты по событиям на файловой системе, используя систему уведомлений ядра Linux inotify. Утилита типа как cron, но в качестве рычага для выполнения команды не время, а совпадение заданного события файловой системы применительно к указанному файлу.
+'incron' \
+# Summary      : A free, open source, lightweight system monitoring tool
+# URL          : http://www.monitorix.org
+# Лицензия     : GPLv2+
+# Description  : Monitorix is a free, open source and lightweight system monitoring tool
+# : designed to monitor as many services and system resources as possible. It has
+# : been created to be used under production Linux/UNIX servers, but due to its
+# : simplicity and small size may also be used on embedded devices as well.
+# 'monitoix' \
+# Summary      : Real-time web log analyzer and interactive viewer
+# URL          : https://goaccess.io/
+# Лицензия     : GPLv2+
+# Description  : GoAccess is a real-time web log analyzer and interactive viewer that runs in a
+# : terminal in *nix systems. It provides fast and valuable HTTP statistics for
+# : system administrators that require a visual server report on the fly.
+# :
+# : Features:
+# : GoAccess parses the specified web log file and outputs the data to terminal.
+# :
+# : * General statistics, bandwidth, etc.
+# : * Time taken to serve the request (useful to track pages that are slowing down.
+# : your site).
+# : * Metrics for cumulative, average and slowest running requests.
+# : * Top visitors.
+# : * Requested files & static files.
+# : * 404 or Not Found.
+# : * Hosts, Reverse DNS, IP Location.
+# : * Operating Systems.
+# : * Browsers and Spiders.
+# : * Referring Sites & URLs.
+# : * Keyphrases.
+# : * Geo Location - Continent/Country/City.
+# : * Visitors Time Distribution.
+# : * HTTP Status Codes.
+# : * Ability to output JSON and CSV.
+# : * Tailor GoAccess to suit your own color taste/schemes.
+# : * Support for large datasets + data persistence.
+# : * Support for IPv6.
+# : * Output statistics to HTML.
+# : and more...
+# :
+# : GoAccess allows any custom log format string. Predefined options include, but
+# : not limited to:
+# :
+# : * Amazon CloudFront (Download Distribution).
+# : * AWS Elastic Load Balancing.
+# : * Apache/Nginx Common/Combined + VHosts.
+# : * Google Cloud Storage.
+# : * W3C format (IIS).
+# GoAccess — утилита, с помощью которой можно анализировать логи веб серверов и строить отчеты (анализ логов доступа к вашим сайтам) в режиме реального времени. Кроме того, данные можно выводить в HTML, JSON или CSV. Выводит общую статистику, топ посетителей, 404, геолокации и многое другое.
+#'goaccess' \
+# Summary      : A log file analysis program
+# URL          : http://www.logwatch.org/
+# Лицензия     : MIT
+# Description  : Logwatch is a customizable, pluggable log-monitoring system.  It will go
+# : through your logs for a given period of time and make a report in the areas
+# : that you wish with the detail that you wish.  Easy to use - works right out
+# : of the package on many systems.
+# Logwatch — анализирует логи системы по различным критериям с возможность составления отчета и отправки его по почте, построена на модульном принципе, вы можете создать собственные критерии для анализа.
+'logwatch' \
+# Summary      : Tool for actively monitoring log files
+# URL          : http://swatch.sourceforge.net/
+# Лицензия     : GPLv2+
+# Description  : The Simple WATCHer is an automated monitoring tool that is capable
+# : of alerting system administrators of anything that matches the
+# : patterns described in the configuration file, whilst constantly
+# : searching logfiles using perl.
+# Swatch — утилита для активного мониторинга журналов регистрации, контролирует практически любые типы лог файлов.
+'swatch' \
+# Summary      : View one or multiple files like tail but with multiple windows
+# URL          : http://www.vanheusden.com/multitail/
+# Лицензия     : GPLv2
+# scription  : MultiTail lets you view one or multiple files like the original tail
+# : program. The difference is that it creates multiple windows on your
+# : console (with ncurses). It can also monitor wildcards: if another file
+# : matching the wildcard has a more recent modification date, it will
+# : automatically switch to that file. That way you can, for example,
+# : monitor a complete directory of files. Merging of 2 or even more
+# : logfiles is possible.
+# : It can also use colors while displaying the logfiles (through regular
+# : expressions), for faster recognition of what is important and what not.
+# : Multitail can also filter lines (again with regular expressions) and
+# : has interactive menus for editing given regular expressions and
+# : deleting and adding windows. One can also have windows with the output
+# : of shell scripts and other software. When viewing the output of
+# : external software, MultiTail can mimic the functionality of tools like
+# : 'watch' and such.
+#MultiTail — консольный инструмент, можно наблюдать за log файлами, а также за выводом других команд (таких как rsstail, wtmptail, negtail), может разбивать терминал на много маленьких окон.
+'multitail' \
+# Summary      : System monitoring based on Perl, rrdtool, and sysstat
+# URL          : http://sysusage.darold.net/
+# Лицензия     : GPLv3+
+# Description  : SysUsage continuously monitor your systems information and generate
+# : periodic graphical reports using rrdtool or JavaScript jqplot library.
+# : All reports are shown through a web interface.
+# :
+# : SysUsage grabs all system activities using Sar and system commands allowing
+# : you to keep tracks of your computer or server activity during its life.
+# : It is a great help for performance analysis and resources management. The
+# : threshold notification can alarm you when the system capabilities are
+# : reached by sending SMTP messages or through Nagios reports.
+# :
+# : By default it will monitor all you need to know on your server activity, it
+# : is written in Perl and should works on all Unix like platforms. It doesn't
+# : require a Database system like MySQL or PostgreSQL but relies on rrdtool. In
+# : addition you can embedded your own plugins written in any programming language.
+# :
+# : Since release 5.0 SysUsage can be run from a centralized place where
+# : collected statistics will be stored and where graphics will be rendered.
+# : Unlike other monitoring tools with lot of administration work, SysUsage is
+# : design to have the least possible things to configure and a high level of admin
+# : system knowledge. Each server can also be self monitored and you just have to
+# : connect your browser to the web interface to know its health level.
+# :
+# : SysUsage is design with simplicity in mind. providing all relevant statistics
+# : from the servers within an intuitive web interface and without spending too
+# : much time to configure it, if you know Nagios, you know what I mean. You will
+# : especially like SysUsage for that.
+# SysUsage — утилита, работает на всех unix-платформах и отображает подробную информацию о процессорах, памяти, устройствах ввода/вывода, сетевых устройствах, файлах, процессах и датчиках температуры. Диаграммы создаются при помощи rrdtool.
+'sysusage' \
+# collectd — собирает статистку об использовании ресурсов, легконастраиваемый инструмент.
+# Summary      : Statistics collection daemon for filling RRD files
+# URL          : https://collectd.org/
+# Лицензия     : GPLv2
+# Description  : collectd is a daemon which collects system performance statistics periodically
+# : and provides mechanisms to store the values in a variety of ways,
+# : for example in RRD files.
+'collectd' \
+# Summary      : Latency Logging and Graphing System
+# URL          : https://oss.oetiker.ch/smokeping/
+# Лицензия     : GPLv2+
+# Description  : SmokePing is a latency logging and graphing system. It consists of a
+# : daemon process which organizes the latency measurements and a CGI
+# : which presents the graphs.
+# SmokePing — утилита для накопления информации о задержках в передаче и потере пакетов, отображает все состояния в виде графиков, можно контролировать скорость реакции сервисов на запросы.
+'smokeping' \
+# Summary      : Real-time performance monitoring
+# URL          : https://github.com/netdata/netdata/
+# Лицензия     : GPLv3 and GPLv3+ and ASL 2.0 and CC-BY and MIT and WTFPL
+# Description  : netdata is the fastest way to visualize metrics. It is a resource
+# : efficient, highly optimized system for collecting and visualizing any
+# : type of realtime time-series data, from CPU usage, disk activity, SQL
+# : queries, API calls, web site visitors, etc.
+# : netdata tries to visualize the truth of now, in its greatest detail,
+# : so that you can get insights of what is happening now and what just
+#: happened, on your systems and applications.
+# ориентирован на сбор и визуализацию метрик в реальном времени (при необходимости можно подключать бэкенды для сбора и хранения собранных метрик).
+# С помощью netdata можно отслеживать просто огромное количество показателей: статистику использования процессора, потребления памяти, операций ввода-вывода, сети (список далеко не полный). Также Netdata оснащен плагинами для отслеживания различных служб: Postfix, Squid, PHP-FPM и другие.
+#'netdata' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_monitoring_utilites_system_packs_script_source(){
+
+  echo_m "Initialise main function of monitoring_utilites_system_packs script source";
+
+  install_monitoring_utilites_system_packs "$@";
+
+}
+
+main_monitoring_utilites_system_packs_script_source "$@";

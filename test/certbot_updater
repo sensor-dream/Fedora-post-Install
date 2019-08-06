@@ -1,0 +1,60 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : certbot_updater.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2018-11-28 01:28:41
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx test_certbot_updater_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $test_certbot_updater_script_source";
+
+# sleep ${RANDOM:0:3}m && /home/admin/certbot-auto renew --quiet --no-self-upgrade --authenticator webroot --installer apache -w /var/www/mywebroot
+
+##test -x /usr/bin/certbot -a ! -d /run/systemd/system &&
+##perl -e 'sleep int(rand(3600))' &&
+#systemctl stop httpd;
+certbot -q --authenticator webroot -w /mnt/sda/Development/noindex renew --no-self-upgrade --allow-subset-of-names --force-renewal 2>&1 > /dev/null &
+#systemctl start httpd;
+ #>/dev/null 2>&1;
+
+#add_cron_job '0 4 * * 2' 'certbot -q --authenticator webroot -w /mnt/sda/Development/noindex renew --no-self-upgrade --allow-subset-of-names --force-renewal 2>&1 > /dev/null &' 'root';
+
+#add_cron_job '10 4 * * 2' 'systemctl restart httpd' 'root';

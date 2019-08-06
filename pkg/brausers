@@ -1,0 +1,247 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : barauzers
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-10 17:45:26
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_barauzers_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $pkg_barauzers_script_source";
+
+function initial_pkg_barauzers_chromium(){
+
+  check_root;
+
+  local install_pkg=(\
+'chromium' \
+'chromium-common' \
+'chromium-libs' \
+'chromium-libs-media' \
+'minizip-compat' \
+);
+
+  if [[ "$1" == "-u" ]];then
+    if [[ -n "$(check_install_packages 'chromium')"  ]]; then
+      remove_packages "${install_pkg[*]}";
+    fi
+  else
+    if [[ -z "$(check_install_packages 'chromium')"  ]]; then
+      install_packages "${install_pkg[*]}";
+    else
+      echo_m "chromium already installed";
+    fi
+  fi
+
+}
+
+function initial_pkg_barauzers_firefox(){
+
+  check_root;
+
+  local install_pkg=(\
+'firefox' \
+'firefox-wayland' \
+'firefox-pkcs11-loader' \
+);
+
+  if [[ "$1" == "-u" ]];then
+    if [[ -n "$(check_install_packages 'firefox')"  ]]; then
+      remove_packages "${install_pkg[*]}";
+    fi
+  else
+    if [[ -z "$(check_install_packages 'firefox')"  ]]; then
+      install_packages "${install_pkg[*]}";
+      # sudo -u $main_user firefox --new-tab https://download-installer.cdn.mozilla.net/pub/firefox/releases/$(firefox -v | awk '{ print $3 }')/win32/xpi/ru.xpi
+
+      echo_m "Страница со ссылками на русификации https://mozilla-russia.org/products/firefox/history.html.";
+      echo_w "Установите языковый пакет firefox https://download-installer.cdn.mozilla.net/pub/firefox/releases/"$(firefox -v | awk '{ print $3 }')"/win32/xpi/ru.xpi, если Firefox не руссифицирован.";
+
+      echo_w "Настройте параметр about:config -> intl.locale.requested (для Firefox 59 или выше) или general.useragent.locale (для Firefox 58 или ниже) и установите его на ru_RU.UTF-8";
+
+    else
+      echo_m "firefox already installed";
+    fi
+  fi
+
+}
+
+#
+# function if -u then uninstall -v <version>
+# version stable. unstable. betta
+#
+
+function initial_pkg_barauzers_google_chrome(){
+
+  check_root;
+
+  local version='';
+  local initial='';
+
+  OPTIND=1
+
+  while getopts "uv:" OPT
+  do
+    case $OPT in
+      v   ) version="$OPTARG"; ;;
+      u   ) initial="-u"; ;;
+      *   ) ;;
+    esac
+  done
+  shift $(($OPTIND - 1));
+  [ "${1:-}" = "--" ] && shift;
+
+  local install_pkg=(\
+"google-chrome-${version}" \
+'libappindicator-gtk3' \
+'liberation-fonts' \
+'libindicator-gtk3' \
+);
+
+  if [[ "${initial}" == "-u" ]];then
+    if [[ -n "$(check_install_packages google-chrome-${version})"  ]]; then
+      . "${main_project_path}/pkg/repo/fedora_workstation";
+      remove_packages "${install_pkg[*]}";
+      disable_google_chrome;
+    fi
+  else
+    if [[ -z "$(check_install_packages google-chrome-${version})"  ]]; then
+      . "${main_project_path}/pkg/repo/fedora_workstation";
+      enable_google_chrome;
+      install_packages "${install_pkg[*]}";
+    else
+      echo_m "google-chrome-${version} already installed";
+    fi
+  fi
+
+}
+
+function install_pkg_barauzer_hrenoYandex(){
+
+  echo_w "Initialise install Yandex.";
+
+  . "${main_project_path}/pkg/repo/yandex";
+
+  OPTIND=1
+
+  while getopts "sbu" OPT
+  do
+    case $OPT in
+      s   ) rel="stable"; ;;
+      b   ) rel="beta"; ;;
+      u   ) initial="-u"; ;;
+      *   ) ;;
+    esac
+  done
+  shift $(($OPTIND - 1));
+  [ "${1:-}" = "--" ] && shift;
+
+  if [[ "${initial}" == "-u" ]];then
+    if [[ -n "$(check_install_packages yandex-browser-${rel})"  ]]; then
+      remove_packages "$yandex-browser";
+    fi
+  else
+    if [[ -z "$(check_install_packages yandex-browser-${rel})"  ]]; then
+      install_packages "yandex-browser-${rel}";
+    else
+      echo_m "yandex-browser-${rel} already installed";
+    fi
+  fi
+
+}
+
+function install_pkg_barauzer_brave(){
+
+  echo_w "Initialise install Brave.";
+
+  local version='release';
+  OPTIND=1
+
+  while getopts "urbn" OPT
+  do
+    case $OPT in
+      b   ) version="beta"; ;;
+      n   ) version="nightly"; ;;
+      r   ) version="release"; ;;
+      u   ) initial="-u"; ;;
+      *   ) ;;
+    esac
+  done
+  shift $(($OPTIND - 1));
+  [ "${1:-}" = "--" ] && shift;
+
+  . ${main_project_path}/pkg/repo/brave_browser ${version};
+
+  if [[ ${version} == "release" ]]; then
+    version="";
+  else
+    version="-${version}";
+  fi
+
+  if [[ "${initial}" == "-u" ]];then
+    if [[ -n "$(check_install_packages brave-browser${version})"  ]]; then
+      remove_packages "brave-browser${version}";
+    fi
+  else
+    if [[ -z "$(check_install_packages brave-browser${version})"  ]]; then
+      install_packages "brave-browser${version}";
+    else
+      echo_m "brave-browser already installed";
+    fi
+  fi
+
+}
+
+function main_pkg_barauzers_script_source(){
+
+  echo_m "Initialise main function";
+
+  # initial_pkg_barauzers_firefox "$@";
+  # initial_pkg_barauzers_chromium "$@";
+  initial_pkg_barauzers_google_chrome "$@" -v stable;
+  # initial_pkg_barauzers_google_chrome "$@" -v unstable;
+  # initial_pkg_barauzers_google_chrome "$@" -v beta;
+  install_pkg_barauzer_hrenoYandex -b "$@";
+  install_pkg_barauzer_brave -r -u "$@";
+
+}
+
+main_pkg_barauzers_script_source "$@";
+

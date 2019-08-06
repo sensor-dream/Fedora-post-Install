@@ -1,0 +1,601 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : virtual_hosts
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2018-12-8 09:38:33
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx www_virtual_hosts_script_source="$BASH_SOURCE"
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)"
+  echo "Скрипт запускается из ${main_run_script_path}"
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../
+      else
+        cd "${main_run_script_path}"
+        check=0
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m"
+        tput sgr0
+        exit 1
+      fi
+    else
+      check=0
+      if [[ -z "${main_cfg_script_source}" ]]; then
+        declare -rx main_project_path="$(pwd)"
+        . "${main_project_path}/main.cfg"
+      fi
+      cd "${main_run_script_path}"
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m ${www_virtual_hosts_script_source})"
+
+## check_root;
+chk_sudo_root
+
+if [[ -z "${www_initial_certbot_script_source}" ]]; then
+  . "${main_project_path}/www/initial_certbot"
+fi
+
+function create_virtual_host() {
+
+  local SERVER_SIGNATURE="${main_server_signature}"
+  local SERVER_SIGNATURE_VERSION="${main_server_signature_version}"
+  local SERVER_OS_VERSION="${main_server_os_version}"
+  local SERVER_TIME_ZONE="${main_local_zone}"
+  local SERVER_DEFAULT_CHARSET="${main_default_charset}"
+  local SERVER_CONTENT_LANGUAGE="${main_content_language}"
+  local SERVER_FULL_ORG_NAME="${main_full_org}"
+  local SERVER_HOST_NAME="${main_hostname}"
+  local SERVER_LOCAL_IP_DEVICE="${ip_device}"
+  local base_path="${main_www_base_path}"
+  local domain_list=""
+  local domain="${main_domain}"
+  local root_domain=''
+  local cert_root_domain=''
+  local domain_aliases=""
+  local domain_base_path=""
+  local domain_root_path=""
+
+  local len=0
+  local tmp=''
+  local OLDIFS="$IFS"
+  local result=''
+  local OPT=''
+  local key_remove=0
+  local erase_log_domain=0
+
+  local internet_connection="$(ping ${main_server_ping_host} -c 1 -W 1 | grep loss | awk -F, '{ print $3 }' | awk '{ print $1 }')"
+
+  if [[ "$internet_connection" == "100%" ]]; then
+    echo_w "No Internet connection. $internet_connection packet loss."
+  else
+    echo_n "Internet connection is ok. $internet_connection packet loss."
+  fi
+
+  OPTIND=1
+
+  while getopts "ue" OPT; do
+    case $OPT in
+      u) key_remove=1 ;;
+      e) erase_log_domain=1 ;;
+      *) ;;
+    esac
+  done
+
+  shift $(($OPTIND - 1))
+  # shift `expr $OPTIND - 1`;
+  [ "${1:-}" = "--" ] && shift
+
+  if [[ ! -d '/etc/letsencrypt' ]]; then
+    echo_m 'Not instal CERTBOT ( Not fin /etc/letsencrypt directory )'
+    exit 1
+  fi
+
+  if [[ -f '/etc/letsencrypt/isrgrootx.pem' && -s '/etc/letsencrypt/isrgrootx.pem' ]]; then
+    cp -f '/etc/letsencrypt/isrgrootx.pem' '/etc/letsencrypt/isrgrootx1.pem'
+    httpd -k graceful
+  fi
+
+  if [[ ! -f '/etc/letsencrypt/isrgrootx1.pem' || "$(file /etc/letsencrypt/isrgrootx1.pem | awk '{print $2}')" == "empty" ]]; then
+    rm '/etc/letsencrypt/isrgrootx.pem'
+    echo_w "Download https://letsencrypt.org/certs/isrgrootx1.pem.txt"
+    wget -q 'https://letsencrypt.org/certs/isrgrootx1.pem.txt' -O '/etc/letsencrypt/isrgrootx.pem'
+  fi
+
+    cat <<EOF > /dev/null
+    add_cron_job '@daily' "sh <<<'wget -q https://letsencrypt.org/certs/isrgrootx1.pem.txt -O /etc/letsencrypt/isrgrootx.pem; if [[ -f /etc/letsencrypt/isrgrootx.pem ]]; then cp -f /etc/letsencrypt/isrgrootx.pem /etc/letsencrypt/isrgrootx1.pem; httpd -k graceful; fi 2>&1' > /dev/null &" 'root'
+EOF
+
+if [[ -z "$domain" ]]; then
+  domain="$main_user.ru"
+fi
+
+[[ -z "$base_path" ]] && base_path="/var/www/html"
+
+if [[ ! -d "$base_path" ]]; then
+  mkdir -p -m 775 "$base_path"
+  chown -R "$main_user".apache "$base_path"
+fi
+
+if [[ -n "$@" ]]; then
+  domain_list=($@)
+else
+  domain_list=(${main_www_domain_list[*]})
+fi
+
+[[ ${#domain_list[*]} -eq 0 ]] && domain_list=("$main_domain")
+
+# install_packages "mod_ssl mod_md mod_http2 mod_security certbot";
+
+for i in ${!domain_list[*]}; do
+
+  domain=${domain_list[$i]}
+
+  if [[ -f "/etc/httpd/conf.d/$domain.conf" ]]; then
+    rm -f "/etc/httpd/conf.d/$domain.conf"
+  fi
+
+  if [[ -f "/etc/logrotate.d/$domain" ]]; then
+    rm -f "/etc/logrotate.d/$domain"
+  fi
+
+  if [[ -f "/etc/php-fpm.d/www.$domain.conf" ]]; then
+    rm -f "/etc/php-fpm.d/www.$domain.conf"
+  fi
+
+done
+
+if [[ -f "/etc/httpd/conf.d/MAIN_CONFIG_SERVER.conf" ]]; then
+  rm -f "/etc/httpd/conf.d/MAIN_CONFIG_SERVER.conf"
+fi
+
+echo_m "Delete all configurations files for domains ${domain_list[*]}"
+
+result=$(httpd -t 2>&1)
+
+  if grep -q "OK" <<<$result; then
+    if [[ $(chk_active_service httpd) -eq 1 ]]; then
+      echo_m "Apply the pre configure configuration."
+      $(httpd -k graceful)
+    else
+      echo_w "Restart HTTPD server."
+      systemctl_start_services httpd
+    fi
+    echo_m "Pre configuration domains completed."
+  else
+    echo_w $result
+    echo_w "Выход :("
+    exit 1
+  fi
+
+  if [[ $key_remove -eq 1 ]]; then
+    exit 0
+  fi
+
+  if [[ ! -f "/etc/httpd/conf.d/MAIN_CONFIG_SERVER.conf" ]]; then
+
+    cat <<LOLS >'/etc/httpd/conf.d/MAIN_CONFIG_SERVER.conf'
+
+##
+##  GLOBALs server configuration
+##
+## Must be installed: mod_ssl mod_md mod_http2 mod_security
+##
+
+<IfModule mod_status.c>
+  ExtendedStatus On
+</IfModule>
+
+#ProductOnly	Server: Apache
+#Major	Server: Apache/2
+#Minor	Server: Apache/2.0
+#Minimal	Server: Apache/2.0.55
+#OS	Server: Apache/2.0.55 (Fedora)
+#Full (or not specified) default	Server: Apache/2.0.55 (Debian) PHP/5.1.2-1+b1 mod_ssl/2.0.55 OpenSSL/0.9.8b
+#ServerTokens ProductOnly
+#ServerTokens Full
+#ServerTokens Minimal
+ServerTokens OS
+
+# On | Off | EMail
+ServerSignature EMail
+
+<IfModule mod_security2.c>
+#  SecServerSignature "$SERVER_SIGNATURE"
+#  SecServerSignature "$SERVER_SIGNATURE/$SERVER_SIGNATURE_VERSION"
+  SecServerSignature "$SERVER_SIGNATURE/$SERVER_SIGNATURE_VERSION ($SERVER_OS_VERSION)"
+</IfModule>
+
+<IfModule mod_md.c>
+  ## MDomain $domain
+  ## off|temporary|permanent
+  MDRequireHttps temporary
+  MDCertificateAgreement https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf
+</IfModule>
+
+<IfModule mod_ident.c>
+  IdentityCheck Off
+  # Is default
+  IdentityCheckTimeout 30
+</IfModule>
+
+<IfModule mod_setenvif.c>
+
+	SetEnv TZ ${SERVER_TIME_ZONE}
+
+  # LogLevel:
+  # : emerg - экстренный – система не функционирует;
+  # : alert - ошибку необходимо немедленно исправить;
+  # : crit - критическая ошибка;
+  # : error – ошибка;
+  # : warn – предупреждение;
+  # : notice - уведомление (нормальное функционирование);
+  # : info - информационное сообщение;
+  # : debug - сообщение отладки.
+  LogLevel warn
+  BrowserMatch bot is_bot
+  SetEnvIf User-Agent bot Bot crawler Crawler monitor Monitor is_bot
+  SetEnvIf Remote_Addr ::1 127.0.0.1 ${ip_device} is_i
+  LogFormat "[ %{sec}t ]\nDate/time: %t\nHost: %h\nName of the remote host: %l\nFirst line of request: \"%r\"\nUser: %u\nUser-agent: \"%{User-agent}i\"\nReferer: \"%{Referer}i\"\nStatus code: %>s\nConnection status: %X\nBytes received: %I\nBytes sent: %O\nResponse size: %b\n" custom
+  LogFormat "%h %l %u %t \"%r\" %>s %b" common
+  LogFormat "[ %{sec}t ]\nDate/time: %t\nHost: %h\nName of the remote host: %l\nFirst line of request: \"%r\"\nUser: %u\nReferer: %{Referer}i -> %U\nStatus code: %>s\nConnection status: %X\n" referer
+  LogFormat "[ %{sec}t ]\nDate/time: %t\nHost: %h\nName of the remote host: %l\nFirst line of request: \"%r\"\nUser: %u\nUser-agent: %{User-agent}i\nStatus code: %>s\nConnection status: %X\n" agent
+  LogFormat "[ %{sec}t ]\nDate/time: %t\nHost: %h\nName of the remote host: %l\nFirst line of request: \"%r\"\nUser-agent: %{User-agent}i\nStatus code: %>s\nConnection status: %X\n" bot
+
+</IfModule>
+
+LOLS
+
+    echo_m "File /etc/httpd/conf.d/MAIN_CONFIG_SERVER.conf created."
+
+  fi
+
+  if ! grep -q "SSLStaplingCache" "/etc/httpd/conf/httpd.conf"; then
+    cat <<EOF >>"/etc/httpd/conf/httpd.conf"
+
+# Устанавливаем местоположение SSL Stapling Cache и его время жизни
+SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
+
+EOF
+  fi
+
+  for i in ${!domain_list[*]}; do
+
+    domain=${domain_list[$i]}
+
+    domain_base_path=(${domain//./ })
+    len=${#domain_base_path[*]}
+
+    if [[ $len -gt 1 ]]; then
+
+      domain_root_path="$base_path/${domain_base_path[$len - 1]}/${domain_base_path[$len - 2]}"
+
+      root_domain="${domain_base_path[$len - 2]}.${domain_base_path[$len - 1]}"
+
+      if [[ ! -f "/etc/letsencrypt/live/$root_domain/fullchain.pem" ]]; then
+        generate_wildcard_certificate_for_main_domain -- "$root_domain"
+      fi
+
+      if [[ ${len} -eq 3 && ! -f "/etc/letsencrypt/live/${domain}/fullchain.pem" ]]; then
+
+        echo_w -n "Создать wildcard для домена ${domain} (n) (y/n): "
+        read key
+
+        if [[ $(validate_reply ${key}) -eq 1 ]]; then
+
+          generate_wildcard_certificate_for_main_domain -- "${domain}"
+
+        fi
+
+      fi
+
+      if [[ $len -eq 2 ]]; then
+        domain_aliases="www.$domain"
+        domain_root_path="$domain_root_path/root"
+        domain_base_path="root"
+      else
+        domain_aliases="$domain"
+        unset domain_base_path[$len-1]
+        unset domain_base_path[$len-2]
+        IFS="."
+        domain_base_path="${domain_base_path[*]}"
+        IFS="$OLDIFS"
+        domain_root_path="$domain_root_path/$domain_base_path"
+      fi
+
+      if [[ ! -d "$domain_root_path" ]]; then
+        mkdir -p -m 775 "$domain_root_path"
+        # mkdir -p -m 775 "$domain_root_path/www";
+        cp -r "$main_project_path/www/www_def" "$domain_root_path/www"
+        mkdir -p -m 775 "$domain_root_path/logs/statistics"
+        mkdir -p -m 775 "$domain_root_path/logs/nginx"
+        mkdir -p -m 775 "$domain_root_path/logs/unit"
+        mkdir -p -m 775 "$domain_root_path/cgi-bin"
+        mkdir -p -m 775 "$domain_root_path/tmp"
+        chown -R ${main_user}.apache "$domain_root_path"
+        # set_permission "$domain_root_path/logs"
+      fi
+
+      if [[ $erase_log_domain -eq 1 ]]; then
+        rm -f $domain_root_path/logs/*.log.*
+        truncate -c -s 0 $domain_root_path/logs/*.log
+        set_permission -r -u root -g root $domain_root_path/logs
+      fi
+
+      echo "Домен $len уровня"
+      echo "Основной домен $root_domain"
+      echo "Название хранилища: $domain_base_path"
+      echo "Корневая директория: $domain_root_path"
+      echo "WWW директория: $domain_root_path/www"
+      echo "TEMP директория: $domain_root_path/tmp"
+      echo "LOGS директория: $domain_root_path/logs"
+      echo "Статистика логов директория: $domain_root_path/logs/statistics"
+      echo "CGI директория: $domain_root_path/cgi-bin"
+
+      rm -f /etc/logrotate.d/${root_domain}
+
+      cat <<LOG >"/etc/logrotate.d/$domain"
+#
+# Generate file: /etc/logrotate.d/$domain of logrotates
+# Date generate: $(date);
+#
+$domain_root_path/logs/*.log {
+    missingok
+    notifempty
+    sharedscripts
+#    compress
+#    delaycompress
+    nocompress
+    daily
+    copytruncate
+    maxsize 0.5M
+    rotate 10
+    dateext
+    postrotate
+      /bin/systemctl reload httpd.service > /dev/null 2>/dev/null || true
+    endscript
+}
+LOG
+
+      cert_root_domain="${domain}"
+
+      if [[ "${cert_root_domain}" != "${root_domain}" ]]; then
+        while [[ ! -e "/etc/letsencrypt/live/${cert_root_domain}" && "${cert_root_domain}" != "${root_domain}" || -z "${cert_root_domain}" ]]; do
+          cert_root_domain=${cert_root_domain#*.}
+        done
+      fi
+
+      [[ ${#cert_root_domain} -eq 0 ]] && cert_root_domain="${root_domain}"
+
+      echo_n "Домен ${domain}. Сертификат домена ${cert_root_domain}"
+
+      cat <<EOF >"/etc/httpd/conf.d/$domain.conf"
+#
+# Generate file: $domain.conf of $virtual_hosts_script_source
+# Date generate: $(date);
+
+<VirtualHost *:${main_apache_server_http_port} [::]:${main_apache_server_http_port}>
+
+  AddDefaultCharset ${SERVER_DEFAULT_CHARSET}
+
+  # Default TimeOut 60
+  TimeOut 320
+
+  <IfModule mod_http2.c>
+    Protocols h2c http/1.1
+  </IfModule>
+
+  SuexecUserGroup apache apache
+  DocumentRoot $domain_root_path/www
+  ServerName $domain
+  ServerAlias $domain_aliases
+  ServerAdmin $main_email
+  UseCanonicalName Off
+
+  DirectoryIndex index.php
+
+  CustomLog $domain_root_path/logs/custom.log custom "expr=( -z reqenv('is_bot') && -z reqenv('is_i'))"
+  CustomLog $domain_root_path/logs/referer.log referer "expr=( -z reqenv('is_bot') && -z reqenv('is_i'))"
+  CustomLog $domain_root_path/logs/agent.log agent "expr=( -z reqenv('is_bot') && -z reqenv('is_i'))"
+  CustomLog $domain_root_path/logs/bot.log bot "expr=( -n reqenv('is_bot') && -z reqenv('is_i'))"
+  # not workers :(
+  # CustomLog $domain_root_path/logs/custom.log custom env=[!is_bot,!is_i]
+  # CustomLog $domain_root_path/logs/referer.log referer env=[!is_bot,!is_i]
+  # CustomLog $domain_root_path/logs/agent.log agent env=[!is_bot,!is_i]
+  # CustomLog $domain_root_path/logs/bot.log bot env=[is_bot,!is_i]
+  ErrorLog $domain_root_path/logs/error.log
+  TransferLog $domain_root_path/logs/access.log
+
+  <Directory $domain_root_path/www>
+    Options -MultiViews -Indexes -ExecCGI +FollowSymLinks
+    AllowOverride All
+    Require all granted
+  </Directory>
+
+  RemoteIPHeader X-Forwarded-For
+  RemoteIPTrustedProxy 127.0.0.1 ${ip_device}
+
+  ## <If "req('Host') != '$domain' || %{HTTPS} == 'off'">
+  <If "%{HTTPS} == 'off'">
+    Redirect permanent / https://$domain/
+    ## Redirect / https://$domain/
+  </If>
+
+  Header set Server-Host "$HOSTNAME"
+
+</VirtualHost>
+
+<VirtualHost *:${main_apache_server_https_port} [::]:${main_apache_server_https_port}>
+
+  AddDefaultCharset ${SERVER_DEFAULT_CHARSET}
+
+  # Default TimeOut 60
+  TimeOut 320
+
+  <IfModule mod_http2.c>
+    Protocols h2 http/1.1
+  </IfModule>
+
+  SuexecUserGroup apache apache
+  DocumentRoot $domain_root_path/www
+  ServerName $domain
+  ServerAlias $domain_aliases
+  ServerAdmin $main_email
+  UseCanonicalName Off
+
+  DirectoryIndex index.php
+
+  FileETag MTime Size
+
+  CustomLog $domain_root_path/logs/ssl_custom.log custom "expr=( -z reqenv('is_bot') && -z reqenv('is_i'))"
+  CustomLog $domain_root_path/logs/ssl_referer.log referer "expr=( -z reqenv('is_bot') && -z reqenv('is_i'))"
+  CustomLog $domain_root_path/logs/ssl_agent.log agent "expr=( -z reqenv('is_bot') && -z reqenv('is_i'))"
+  CustomLog $domain_root_path/logs/ssl_bot.log bot "expr=( -n reqenv('is_bot') && -z reqenv('is_i'))"
+  # not workers :(
+  # CustomLog $domain_root_path/logs/ssl_custom.log custom env=[!is_bot,!is_i]
+  # CustomLog $domain_root_path/logs/ssl_referer.log referer env=[!is_bot,!is_i]
+  # CustomLog $domain_root_path/logs/ssl_agent.log agent env=[!is_bot,!is_i]
+  # CustomLog $domain_root_path/logs/ssl_bot.log bot env=[is_bot,!is_i]
+  ErrorLog $domain_root_path/logs/ssl_error.log
+  TransferLog $domain_root_path/logs/ssl_access.log
+
+  SSLEngine on
+  SSLProtocol all -SSLv2 -SSLv3
+  SSLHonorCipherOrder on
+  # SSLCipherSuite PROFILE=SYSTEM
+  SSLCipherSuite ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS
+
+  SSLCompression off
+  SSLOptions +StrictRequire
+
+  SSLStrictSNIVHostCheck off
+
+  SSLProxyProtocol all -SSLv3 -SSLv2
+  SSLProxyCipherSuite PROFILE=SYSTEM
+
+  SSLCertificateFile /etc/letsencrypt/live/${cert_root_domain}/cert.pem
+  SSLCertificateChainFile /etc/letsencrypt/live/${cert_root_domain}/chain.pem
+  SSLCertificateKeyFile /etc/letsencrypt/live/${cert_root_domain}/privkey.pem
+
+  # following directive when using client certificate authentication
+  SSLCACertificateFile /etc/letsencrypt/isrgrootx1.pem
+
+  SSLUseStapling on
+
+  <Files ~ "\.(cgi|shtml|phtml|php3|php?)$">
+    SSLOptions +StdEnvVars
+  </Files>
+
+  <Directory $domain_root_path/www>
+    Options -MultiViews -Indexes -ExecCGI +FollowSymLinks
+    AllowOverride All
+    Require all granted
+  </Directory>
+
+  <Directory "$domain_root_path/cgi-bin">
+    SSLOptions +StdEnvVars
+  </Directory>
+
+  <IfModule mod_lua.c>
+    <Files "*.lua">
+      SetHandler lua-script
+    </Files>
+  </IfModule>
+
+  RemoteIPHeader X-Forwarded-For
+  RemoteIPTrustedProxy 127.0.0.1 ${ip_device}
+
+  BrowserMatch "MSIE [2-5]" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0 gzip-only-text/html
+
+
+  <ifmodule mod_header.c>
+
+    RequestHeader edit Destination '^https: http: early:'
+
+    Header always set Server-Host "$HOSTNAME"
+
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0, s-maxage=10, no-transform, proxy-revalidate"
+
+    ### HTTP-methods GET, POST, HEAD, CONNECT, OPTIONS, PUT, DELETE, TRACE, TRACK, PATCH
+    Header always set Access-Control-Allow-Methods "GET, POST, HEAD, CONNECT, OPTIONS, PUT"
+    Header always set Content-Language "${SERVER_CONTENT_LANGUAGE}"
+    Header always set Title "${SERVER_FULL_ORG_NAME}"
+    Header always set Host "${SERVER_HOST_NAME}"
+    # Disable content sniffing, since it's an attack vector.
+    Header always set X-Content-Type-Options nosniff
+    # Disable Proxy header, since it's an attack vector.
+    RequestHeader unset Proxy
+
+  </ifmodule>
+
+  # This configuration prevents mod_security at phpMyAdmin directories from
+  # filtering SQL etc.  This may break your mod_security implementation.
+  #
+  <IfModule mod_security2.c>
+    # <Directory "$domain_root_path/www">
+      # SecRuleEngine Off
+      SecRequestBodyAccess Off
+      # SecRuleInheritance Off
+      # SecFilterEngine Off
+      # SecFilterScanPOST Off
+    # </Directory>
+  </IfModule>
+
+</VirtualHost>
+EOF
+
+      create_name_in_hosts_file "${domain}"
+      echo_m "Configuration domain: $domain completed."
+
+      result=$(httpd -t 2>&1)
+
+      echo_w "$result"
+
+      if grep -q "OK" <<<$result; then
+        if [[ $(chk_active_service httpd) -eq 1 ]]; then
+          echo_m "Apply the new configuration."
+          $(httpd -k graceful)
+        else
+          echo_w "Restart HTTPD server."
+          systemctl_start_services httpd
+        fi
+        echo_n "Configuration domains completed."
+
+        chk_status_OCSP_Stapling "127.0.0.1:${main_apache_server_https_port}"
+
+      else
+        echo_w $result
+        echo_w "Выход :("
+        exit 1
+      fi
+
+      sleep 1
+
+    else
+
+      echo_w "Domain \`$domain\` of the first level, not applicable."
+
+    fi
+
+  done
+
+}
+
+create_virtual_host $@

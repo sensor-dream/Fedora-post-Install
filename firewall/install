@@ -1,0 +1,95 @@
+#!/bin/env bash
+
+declare -rx firewall_run_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $firewall_run_script_source";
+
+check_root;
+
+#
+#   отключаем firewalld
+#
+function disable_firewalld(){
+
+  systemctl stop firewalld;
+  systemctl disable firewalld;
+  systemctl mask firewalld;
+  systemctl daemon-reload;
+}
+
+function install_kernel_packages() {
+  install_packages 'kernel-devel' 'kernel-headers' 'kernel-cross-headers' 'kernel-modules' 'kernel-modules-extra' 'kernel-tools' 'kernel-tools-libs' 'kernel-tools-libs-devel';
+}
+
+function install_iptables_packages() {
+
+  install_packages 'conntrack-tools' 'iptables' 'iptables-devel' 'iptables-libs' 'iptables-nft' 'iptables-services' 'iptables-utils' 'akmod-xtables-addons' 'kmod-xtables-addons' 'xtables-addons' 'python3-iptables';
+
+}
+
+function install_nftables_packages() {
+  install_packages 'nftables' 'libnftnl' 'libnfnetlink';
+}
+
+function install_ebtables_packages() {
+  install_packages 'ebtables';
+}
+
+function install_arptables_packages() {
+  install_packages 'arptables';
+}
+
+function install_ipset_packages() {
+  install_packages 'ipset' 'ipset-libs' 'ipset-service';
+}
+
+function install_fail2ban_packages() {
+  install_packages 'fail2ban' 'fail2ban-all' 'fail2ban-firewalld' 'fail2ban-hostsdeny' 'fail2ban-mail' 'fail2ban-sendmail' 'fail2ban-server' 'fail2ban-systemd' 'fail2ban-tests';
+}
+
+function install_kernel_system_security_library_utilites_and__other_packages(){
+  install_packages 'libnetfilter_queue' 'libnetfilter_log' 'libnetfilter_conntrack' 'libnetfilter_cttimeout' 'libnetfilter_cthelper' 'libnetfilter_acct' 'libmnl' 'libmnl-static' 'enet' 'nfacct'  'nss' 'nss-mdns' 'nss-softokn' 'nss-softokn-freebl' 'nss-sysinit' 'nss-tools' 'nss-util' 'nss_db' 'nss_hesiod' 'nss_wrapper' 'nss-altfiles' 'nss-pam-ldapd' 'nss-pem' 'nss_nis' 'nss_updatedb' 'perl-Text-CSV_XS' 'perl-Net-CIDR' 'perl-Net-CIDR' 'perl-Regexp-Common' 'perl-Regexp-Common-net-CIDR';
+
+}
+
+disable_firewalld;
+install_kernel_packages;
+install_kernel_system_security_library_utilites_and__other_packages;
+install_iptables_packages;
+
+. "${main_project_path}/firewall/iptables_configure";
+
+# $(install_kernel_module_list_file 'mod_list_ipt');

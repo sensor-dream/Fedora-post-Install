@@ -1,0 +1,61 @@
+#!/bin/bash
+
+declare -rx pkg_repo_adobe_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $pkg_repo_adobe_script_source";
+
+add_adobe_repo(){
+
+    check_root;
+
+    if [  -z "$( find  /etc/yum.repos.d/adobe* 2> /dev/null )" ]; then
+        rpm -ivh http://linuxdownload.adobe.com/adobe-release/adobe-release-x86_64-1.0-1.noarch.rpm
+        rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-adobe-linux
+        dnf config-manager --set-enabled adobe-linux-x86_64;
+    fi
+}
+
+del_adobe_repo() {
+
+    check_root;
+
+    if [[ -n "$( find  /etc/yum.repos.d/adobe* 2> /dev/null )"  ]]; then
+        remove_fp "/etc/yum.repos.d/adobe"*;
+    fi
+
+}
+
+add_adobe_repo;

@@ -1,0 +1,11 @@
+[Unit]
+Description=centos-lap  docker container
+Requires=docker.service
+After=docker.service
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a centos-lap
+ExecStop=/usr/bin/docker stop -t 2 centos-lap
+TimeoutSec=30
+[Install]
+WantedBy=multi-user.target

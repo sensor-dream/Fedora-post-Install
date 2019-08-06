@@ -1,0 +1,105 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : offline_documentation_browsers
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 07.09.2019, 21:26:04
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_offline_documentation_browsers_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_offline_documentation_browsers_script_source})";
+
+function install_pkg_offline_documentation_browsers(){
+
+  local install_pkg=(\
+# Summary      : Offline documentation browser inspired by Dash
+# URL          : https://zealdocs.org/
+# Лицензия     : GPLv3+ and BSD
+# Description  : Zeal is a simple offline documentation browser inspired by Dash.
+'zeal' \
+);
+
+  # alternatives online https://devdocs.io
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  if [[ ! -d "${main_storage}/ToHome/.local/share/Zeal" ]]; then
+    if [[ ! -d "${main_storage}/ToHome/.local/share" ]]; then
+      mkdir -p "${main_storage}/ToHome/.local/share";
+      chown ${main_user}.${main_user} "${main_storage}/ToHome/.local/share";
+    fi
+    if [[ -d "${main_storage}/ToHome/.local/share/Zeal" && ! -L "/home/${main_user}/.local/share/Zeal" ]]; then
+      mv "/home/${main_user}/.local/share/Zeal" "${main_storage}/ToHome/.local/share/Zeal";
+    else
+      mkdir -p "${main_storage}/ToHome/.local/share/Zeal";
+    fi
+    chown -R ${main_user}.${main_user} "${main_storage}/ToHome/.local/share/Zeal";
+  fi
+  [[ -d "/home/${main_user}/.local/share/Zeal" && ! -L "/home/${main_user}/.local/share/Zeal" ]] && rm -f -r "/home/${main_user}/.local/share/Zeal";
+  [[ -L "/home/${main_user}/.local/share/Zeal" ]] && rm -f "/home/${main_user}/.local/share/Zeal";
+  ln -s "${main_storage}/ToHome/.local/share/Zeal" "/home/${main_user}/.local/share/Zeal";
+
+  if [[ ! -d "${main_storage}/ToHome/.config/Zeal" ]]; then
+    if [[ ! -d "${main_storage}/ToHome/.config" ]]; then
+      mkdir -p "${main_storage}/ToHome/.config";
+      chown ${main_user}.${main_user} "${main_storage}/ToHome/.config";
+    fi
+    if [[ -d "/home/${main_user}/.config/Zeal" && ! -L "/home/${main_user}/.config/Zeal" ]]; then
+      mv "/home/${main_user}/.config/Zeal" "${main_storage}/ToHome/.config/Zeal";
+    else
+      mkdir -p "${main_storage}/ToHome/.config/Zeal";
+    fi
+    chown -R ${main_user}.${main_user} "${main_storage}/ToHome/.config/Zeal";
+  fi
+  [[ -d "/home/${main_user}/.config/Zeal" && ! -L "/home/${main_user}/.config/Zeal" ]] && rm -f -r "/home/${main_user}/.config/Zeal";
+  [[ -L "/home/${main_user}/.config/Zeal" ]] && rm -f "/home/${main_user}/.config/Zeal";
+  ln -s  "${main_storage}/ToHome/.config/Zeal" "/home/${main_user}/.config/Zeal";
+
+}
+
+function main_pkg_offline_documentation_browsers_script_source(){
+
+  echo_m "Initialise main function of offline_documentation_browsers script source";
+
+  install_pkg_offline_documentation_browsers "$@";
+
+}
+
+main_pkg_offline_documentation_browsers_script_source "$@";

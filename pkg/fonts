@@ -1,0 +1,160 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : fonts
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 10.05.2019, 15:44:06
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx fonts_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "${main_project_path}/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $fonts_script_source)";
+
+
+function main_fonts_script_source(){
+
+  echo_m "Initialise main function";
+
+  local install_pkg=(\
+# FONTS and utilites for
+#
+#   Utility to create fonts.scale files for truetype fonts
+xorg-x11-font-utils fontconfig \
+ttmkfdir cabextract \
+rpmdevtools \
+# fonts
+xorg-x11-fonts-ISO8859-1-100dpi xorg-x11-fonts-ISO8859-1-75dpi \
+xorg-x11-fonts-ISO8859-2-100dpi xorg-x11-fonts-ISO8859-2-75dpi \
+xorg-x11-fonts-ISO8859-9-100dpi xorg-x11-fonts-ISO8859-9-75dpi \
+xorg-x11-fonts-ISO8859-14-100dpi xorg-x11-fonts-ISO8859-14-75dpi \
+xorg-x11-fonts-ISO8859-15-100dpi xorg-x11-fonts-ISO8859-15-75dpi \
+
+# X.Org X11 application bitmaps
+xorg-x11-xbitmaps \
+#   X.Org X11 font utilities required for font installation, conversion, and generation.
+xorg-x11-font-utils \
+#   A collection of Type1 fonts which are part of the core X Window System distribution.
+xorg-x11-fonts-Type1 \
+#   A free and portable font rendering engine
+freetype \
+);
+
+  pkg -s -a "$@" -- "${install_pkg[*]}";
+
+  create_back_file "/etc/fonts/local.conf";
+
+sudo cat << EOF > "/etc/fonts/local.conf"
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <match target="pattern">
+    <test compare="eq" name="family" qual="any">
+      <string>Arial</string>
+    </test>
+    <edit binding="same" mode="assign" name="family">
+      <string>Noto Sans</string>
+    </edit>
+  </match>
+  <match target="pattern">
+    <edit name="dpi" mode="assign">96</edit>
+  </match>
+  <match target="font">
+    <edit mode="assign" name="antialias" >
+      <bool>true</bool>
+    </edit>
+  </match>
+  <match target="font">
+    <edit mode="assign" name="hinting" >
+      <bool>true</bool>
+    </edit>
+  </match>
+  <match target="font">
+    <edit mode="assign" name="hintstyle" >
+      <const>hintslight</const>
+    </edit>
+  </match>
+  <match target="font">
+    <edit mode="assign" name="rgba" >
+      <const>rgb</const>
+    </edit>
+  </match>
+  <match target="font">
+    <edit mode="assign" name="lcdfilter">
+      <const>lcddefault</const>
+    </edit>
+  </match>
+  <alias binding="strong">
+    <family>sans-serif</family>
+    <prefer>
+      <family>Open Sans</family>
+    </prefer>
+  </alias>
+  <alias binding="strong">
+    <family>serif</family>
+    <prefer>
+      <family>Bitstream Charter</family>
+    </prefer>
+  </alias>
+  <alias binding="strong">
+    <family>monospace</family>
+    <prefer>
+      <family>Source Code Pro</family>
+    </prefer>
+  </alias>
+</fontconfig>
+EOF
+
+    if [[ ! -f "${main_project_path}/pkg/msttcorefonts-2.5-1.spec" ]]; then
+      curl http://corefonts.sourceforge.net/msttcorefonts-2.5-1.spec -o "${main_project_path}/pkg/msttcorefonts-2.5-1.spec";
+    fi
+
+    if [[ ! -d "/home/${main_user}/rpmbuild" ]]; then
+      mkdir -p "/home/${main_user}/rpmbuild/SPECS";
+    fi
+
+    chown ${main_user}.${main_user} "/home/${main_user}/rpmbuild";
+    cp -f "${main_project_path}/pkg/msttcorefonts-2.5-1.spec" "/home/${main_user}/rpmbuild/SPECS/msttcorefonts-2.5-1.spec";
+    su - ${main_user} -c "rpmbuild -ba /home/${main_user}/rpmbuild/SPECS/msttcorefonts-2.5-1.spec";
+    pkg -a "/home/${main_user}/rpmbuild/RPMS/noarch/msttcorefonts-2.5-1.noarch.rpm";
+
+}
+
+main_fonts_script_source "$@";

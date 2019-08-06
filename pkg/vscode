@@ -1,0 +1,86 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : vscode.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-9 02:48:09
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_vscode_script_source="$BASH_SOURCE"
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)"
+  echo "Скрипт запускается из ${main_run_script_path}"
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../
+      else
+        cd "${main_run_script_path}"
+        check=0
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m"
+        tput sgr0
+        exit 1
+      fi
+    else
+      check=0
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)"
+        . "$main_project_path/main.cfg"
+      fi
+      cd "${main_run_script_path}"
+    fi
+  done
+fi
+
+echo_w "Подключаем $pkg_vscode_script_source"
+
+if [[ -z "$vscode_repo_script_source" ]]; then
+  . "${main_project_path}/pkg/repo/vscode"
+fi
+
+function install_vscode() {
+
+  check_root
+
+  # Visual Studio Code is a new choice of tool that combines the simplicity of a code editor with what developers need for the
+  # : core edit-build-debug cycle. See https://code.visualstudio.com/docs/setup/linux for installation instructions and FAQ.
+
+  if [[ "$1" == "-u" ]]; then
+    remove_packages "fira-code-fonts code"
+  else
+    #if [[ -z "$(check_install_packages 'nodejs')"  ]]; then
+    install_packages "code nodejs npm"
+    install_fonts_ligature
+    #fi
+  fi
+
+}
+
+function install_fonts_ligature() {
+
+  check_root
+
+  dnf copr enable "evana/fira-code-fonts" -y
+  install_packages "fira-code-fonts"
+
+  sudo -u "$main_user" fc-cache -f -v
+
+  echo_w "Please configure VSCode: { \"editor.fontFamily\": \"'Fira Code Retina' or 'Fira code'\", \
+\"editor.fontLigatures\": true" }
+
+}
+
+install_vscode
+# install_fonts_ligature;

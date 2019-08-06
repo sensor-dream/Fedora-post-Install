@@ -1,0 +1,76 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: Pavel M. Teslenko
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © Pavel M. Teslenko. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: sapr_cad_system
+## @Creation date file: 28.05.2020, 16:02:50
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx sapr_cad_system_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo -e '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${sapr_cad_system_script_source})";
+
+function install_sapr_cad_system(){
+  
+  local install_pkg=(\
+    # FreeCAD - это бесплатная кроссплатформенная многоцелевая 3D-CAD-среда с открытым исходным кодом для параметрического и информационного моделирования с поддержкой метода конечных элементов. С программой можно работать как через графический интерфейс, так и через терминал. Здесь применяется концепция рабочего места, есть геометрия твёрдого тела, встроенная консоль Python и фреймворк для создания скриптов и многое другое. Это отличный инструмент для создания 3D-проектов из 2D-моделей и наоборот, а также лучший бесплатный аналог программы AutoCAD.
+    'freecad' \
+    # LibreCAD - это свободная 2D-CAD с открытым исходным кодом и графическим интерфейсом на основе Qt4, поэтому на разных платформах она может выглядеть немного по-разному. Разработка программы началась с форка QCAD под названием CADuntu. Сейчас программа содержит множество инструментов для создания 2D-моделей и доступна на более чем 30-ти языках.
+    'librecad' \
+    # QCAD - это свободная, кроссплатформенная CAD с открытым исходным кодом, разработанная для двухмерного моделирования и черчения, выполнения технических чертежей зданий и механических схем. Программа поддерживает слои, группы блоков, привязку объектов, измерительные инструменты, печать в масштабе, шрифты TrueType, более сорока инструментов конструктирования, 35 шрифтов CAD и более 35 инструментов модификации.
+    'qcad' \
+  );
+  
+  pkg -a "$@" -- "${install_pkg[*]}";
+  
+}
+
+function main_sapr_cad_system_script_source(){
+  
+  echo_m "Initialise main function of sapr_cad_system script source";
+  
+  install_sapr_cad_system "$@";
+  
+}
+
+main_sapr_cad_system_script_source "$@";

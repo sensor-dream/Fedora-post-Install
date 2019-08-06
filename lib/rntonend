@@ -1,0 +1,11 @@
+#!/bin/bash
+
+path="$(dirname $(readlink -m $0))";
+
+find "$path" -type f -exec sed -i -e 's/\r$//g; s/[ \t]$//' {} \;
+#find "$path" -type f -exec tr -d '\r' {} \;
+
+# sed 's/\r$//'
+# tr -d '\r'
+# echo -ne "1\r\n2" |  od -A n -t x1 31 0d 0a 32
+# echo -ne "1\r\n2" | dos2unix | od -A n -t x1 31 0a 32

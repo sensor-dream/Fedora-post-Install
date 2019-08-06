@@ -1,0 +1,98 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : test
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 29.03.2019, 13:25:04
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx test_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $test_script_source)";
+
+
+function main_test_script_source(){
+
+  echo_m "Initialise main function";
+
+  local argv="$@";
+
+  if [[ -z "$argv" ]]; then
+
+    argv=0;
+
+    echo $argv;
+
+  fi
+
+  echo -ne "Check validate_reply (n) (y/n): ";
+
+  read key;
+
+  validate_reply "$key";
+
+  if [[ $(validate_reply $key) -eq 0 ]]; then
+
+    echo_m "no";
+
+  elif [[ $(validate_reply $key) -eq 1 ]]; then
+
+    echo_m "yes";
+
+  fi
+
+  if [[ $argv -gt $lsb_release_short ]]; then
+
+    echo "$argv > $lsb_release_short";
+
+  elif [[ $argv -eq $lsb_release_short ]]; then
+
+    echo "$argv = $lsb_release_short";
+
+  else
+
+    echo "$argv < $lsb_release_short";
+
+  fi
+
+}
+
+main_test_script_source "$@";

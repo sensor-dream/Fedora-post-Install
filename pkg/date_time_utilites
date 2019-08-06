@@ -1,0 +1,116 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : date_time_utilites
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 02.10.2019, 20:55:01
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_date_time_utilites_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_date_time_utilites_script_source})";
+
+function install_date_time_utilites(){
+
+  local install_pkg=(\
+# Summary      : The NTP daemon and utilities
+# URL          : http://www.ntp.org
+# Лицензия     : MIT and BSD and BSD with advertising
+# Description  : The Network Time Protocol (NTP) is used to synchronize a computer's
+# : time with another reference time source. This package includes ntpd
+# : (a daemon which continuously adjusts system time) and utilities used
+# : to query and configure the ntpd daemon.
+# :
+# : Perl scripts are in the ntp-perl package, ntpdate is in the ntpdate
+# : package and sntp is in the sntp package. The documentation in HTML
+# : format is in the ntp-doc package.
+'ntp' \
+# Summary      : NTP documentation
+# URL          : http://www.ntp.org
+# Лицензия     : MIT and BSD and BSD with advertising
+# Description  : This package contains NTP documentation in HTML format.
+'ntp-doc' \
+# Summary      : NTP utilities written in Perl
+# URL          : http://www.ntp.org
+# Лицензия     : MIT and BSD and BSD with advertising
+# Description  : This package contains Perl scripts calc_tickadj, ntp-wait and ntptrace.
+'ntp-perl' \
+# Summary      : Drivers for hardware reference clocks
+# URL          : https://github.com/mlichvar/ntp-refclock
+# Лицензия     : MIT and BSD and BSD with advertising
+# Description  : ntp-refclock is a wrapper for reference clock drivers included in the ntpd
+# : daemon, which enables other NTP implementations to use the supported hardware
+# : reference clocks for synchronization of the system clock.
+# :
+# : It provides a minimal environment for the drivers to be able to run in a
+# : separate process, measuring the offset of the system clock relative to the
+# : reference clock and sending the measurements to another process controlling
+# : the system clock.
+'ntp-refclock' \
+# Summary      : Utility to set the date and time via NTP
+# URL          : http://www.ntp.org
+# Лицензия     : MIT and BSD and BSD with advertising
+# Description  : ntpdate is a program for retrieving the date and time from
+# : NTP servers.
+'ntpdate' \
+# Summary      : Utility to print NTP synchronization status
+# URL          : https://github.com/mlichvar/ntpstat
+# Лицензия     : MIT
+# Description  : This package contains a script which prints a brief summary of the system
+# : clock's synchronisation status when the ntpd or chronyd daemon is running.
+'ntpstat' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_date_time_utilites_script_source(){
+
+  echo_m "Initialise main function of date_time_utilites script source";
+
+  check_root;
+
+  install_date_time_utilites "$@";
+
+  systemctl_activate_and_start_or_restart_service ntpd;
+
+}
+
+main_pkg_date_time_utilites_script_source "$@";

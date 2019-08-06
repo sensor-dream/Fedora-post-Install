@@ -1,0 +1,94 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : compare_and_merge_packs
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 12.05.2019, 3:23:00
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_compare_and_merge_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_compare_and_merge_packs_script_source)";
+
+
+function main_pkg_compare_and_merge_packs_script_source(){
+
+  echo_m "Initialise main function of compare_and_merge script source";
+
+  check_root;
+
+  local install_pkg=(\
+#
+#   compare and merge tool
+#
+#   The diff command compares files line by line.  Diffstat reads the
+#        : output of the diff command and displays a histogram of the insertions,
+#        : deletions and modifications in each file.  Diffstat is commonly used
+#        : to provide a summary of the changes in large, complex patch files.
+diffstat \
+#   xxdiff is a graphical browser for viewing the differences between two or three
+#        : files, or between two directories, and can be used to produce a merged version.
+#xxdiff xxdiff-tools \
+#   KDiff3 is a program that
+#        : - compares and merges two or three input files or directories,
+#        : - shows the differences line by line and character by character (!),
+#        : - provides an automatic merge-facility and
+#        : - an integrated editor for comfortable solving of merge-conflicts
+#        : - has support for KDE-KIO (ftp, sftp, http, fish, smb)
+#         : - and has an intuitive graphical user interface.
+kdiff3 \
+#   tool to visualize changes between two versions of a file
+kompare kompare-libs kompare-devel \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Meld — это программа для визуального сравнения различий, предназначенная для разработчиков
+#
+meld \
+);
+
+  install_packages "${install_pkg[*]}";
+
+}
+
+main_pkg_compare_and_merge_packs_script_source "$@";

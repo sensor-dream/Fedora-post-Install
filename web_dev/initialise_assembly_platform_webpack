@@ -1,0 +1,66 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : initialise_assembly_platform.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2018-11-29 01:26:08
+
+#
+#   Декларируем имя файла
+#
+
+declare -r initialise_assembly_platform_script_source="$BASH_SOURCE";
+
+cd ../../dev
+
+[[ ! -f "package.json" ]] && npm init;
+
+list_global=(\
+'npm-gui' \
+'express' \
+'webpack' \
+'webpack-cli' \
+'webpack-dev-server' \
+'webpack-dev-middleware' \
+'webpack-merge'\
+);
+
+list_local=(\
+'express' \
+'webpack' \
+'webpack-cli' \
+'webpack-dev-server' \
+'lodash' \
+'jquery' \
+'underscore' \
+'precss' \
+'postcss-loader' \
+'postcss-import' \
+'css-loader' \
+'style-loader' \
+'file-loader' \
+'normalizr' \
+'autoprefixer' \
+'babel-loader' \
+'eslint' \
+'eslint-loader' \
+'mini-css-extract-plugin' \
+'image-webpack-loader' \
+'html-webpack-plugin' \
+'clean-webpack-plugin' \
+'webpack-manifest-plugin' \
+'webpack-dev-middleware' \
+'webpack-merge'\
+);
+
+for i in ${!list_global[*]}; do
+#    sudo npm remove "${list[$i]}" -g;
+    sudo npm install "${list_global[$i]}" -g --save-dev;
+#    npm install "${list[$i]}" --save-dev;
+done
+
+for i in ${!list_local[*]}; do
+#    sudo npm remove "${list[$i]}" -g;
+    npm install "${list_local[$i]}" -S --save-dev;
+#    npm install "${list[$i]}" --save-dev;
+done

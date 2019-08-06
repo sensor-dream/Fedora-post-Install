@@ -1,0 +1,97 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : mariadb.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-13 18:44:48
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx maria_db_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $maria_db_script_source";
+
+function install_mariadb(){
+
+  check_root;
+
+  local pkg=(\
+mariadb mariadb-server mariadb-server-utils mariadb-common mariadb-backup mariadb-errmsg \
+community-mysql-libs mysql++ mariadb-connector-c mariadb-connector-c-config mariadb-connector-odbc \
+mariadb-connect-engine mariadb-cracklib-password-check \
+mariadb-oqgraph-engine mariadb-rocksdb-engine mariadb-tokudb-engine \
+# mariadb-gssapi-server \
+# mariadb-devel mariadb-connector-c-devel \
+# mariadb-bench \
+# mariadb-embedded-devel mariadb-embedded \
+# mariadb-java-client mariadb-java-client-javadoc mariadb-java-client-tests \
+# mariadb-server-galera mariadb-sphinx-engine mariadb-test \
+#
+# Handle the administration of MySQL over the World Wide Web
+#phpMyAdmin \
+#
+#   A top clone for MySQL
+mytop \
+);
+
+  install_packages "${pkg[*]}";
+  # remove_packages "${pkg[*]}";
+
+}
+
+function preparation_mariadb(){
+
+  local base_path="$1";
+
+  if [[ $(systemctl status httpd | awk '/Active/ { print $2 }') = "active" ]]; then
+    httpd -k "graceful";
+  fi
+
+  if [[ -n "$base_path" ]]; then
+    mkdir -p "$base_path/mysql";
+    [[ -d "$base_path/mysql" ]] && chown -R "mysql"."mysql" "$base_path/mysql";
+  fi
+
+  create_back_file "/etc/my.cnf.d/mariadb-server.cnf";
+
+  insert_after_found_text_one_and_commit_found 'datadir=' "datadir=$base_path/mysql" '/etc/my.cnf.d/mariadb-server.cnf';
+
+}
+
+install_mariadb;
+preparation_mariadb "$main_data_base_path";

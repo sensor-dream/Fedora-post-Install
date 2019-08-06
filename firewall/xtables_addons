@@ -1,0 +1,78 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : xtables_addons
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 12.05.2019, 20:26:03
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx firewall_xtables_addons_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $firewall_xtables_addons_script_source)";
+
+
+function main_firewall_xtables_addons_script_source(){
+
+  echo_m "Initialise main function of xtables_addons script source";
+
+  check_root;
+
+  if [[ ! -d "${main_repo_path}/xtables-addons" ]]; then
+    sudo -u "${main_user}" git clone "git://git.code.sf.net/p/xtables-addons/xtables-addons" "${main_repo_path}/xtables-addons";
+  fi
+  cd "${main_repo_path}/xtables-addons";
+
+  sudo -u ${main_user} git pull;
+
+  sudo -u ${main_user} make clean;
+
+#  if [[ ! -f configure ]]; then
+    sudo -u ${main_user} ./autogen.sh;
+#  fi
+
+  sudo -u ${main_user} ./configure;
+  sudo -u ${main_user} make -i;
+  make install;
+  cd "${main_run_script_path}";
+
+}
+
+main_firewall_xtables_addons_script_source "$@";

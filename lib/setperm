@@ -1,0 +1,9 @@
+#!/bin/bash
+
+path="$(dirname $(readlink -m $0))";
+
+. "$path/functions";
+
+set_permission -r -u sensor-dream -g sensor-dream "$path";
+
+

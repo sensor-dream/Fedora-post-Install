@@ -1,0 +1,67 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : main-phabricator_ssh-hook_sh
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 03.08.2019, 22:15:54
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx version_control_system_phabricator_main_phabricator_ssh_hook_sh_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $version_control_system_phabricator_main_phabricator_ssh_hook_sh_script_source)";
+
+cat<<EOF > /usr/libexec/main_phabricator_ssh_hook.sh;
+#!/bin/sh
+
+# NOTE: Replace this with the username that you expect users to connect with.
+VCSUSER="${vcs_user}"
+
+# NOTE: Replace this with the path to your Phabricator directory.
+ROOT="${domain_root_path}/phabricator/www/phabricator"
+
+if [ "$1" != "\$VCSUSER" ];
+then
+  exit 1
+fi
+
+exec "\$ROOT/bin/ssh-auth" \$@
+
+EOF

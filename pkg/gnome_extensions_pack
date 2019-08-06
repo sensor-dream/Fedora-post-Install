@@ -1,0 +1,539 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : gnome_extensions_pack
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 21.08.2019, 16:40:16
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_gnome_extensions_pack_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_gnome_extensions_pack_script_source})";
+
+function install_pkg_gnome_extensions_pack(){
+  
+  local install_pkg=(\
+    # Summary      : Customize advanced GNOME 3 options
+    # URL          : https://wiki.gnome.org/action/show/Apps/Tweaks
+    # Лицензия     : GPLv3 and CC0
+    # Description  : GNOME Tweaks allows adjusting advanced configuration settings in GNOME 3. This
+    # : includes things like the fonts used in user interface elements, alternative user
+    # : interface themes, changes in window management behavior, GNOME Shell appearance
+    # : and extension, etc.
+    'gnome-tweaks' \
+    #Summary      : Application menu for GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension adds a GNOME 2.x style menu for applications.
+    #
+    #'gnome-shell-extension-activities-configurator' \
+    #
+    # Summary      : KDE Connect implementation for GNOME Shell
+    # URL          : https://github.com/andyholmes/gnome-shell-extension-gsconnect
+    # Лицензия     : GPLv2
+    # Description  : The KDE Connect project allows devices to securely share content such as
+    # : notifications and files as well as interactive features such as SMS messaging
+    # : and remote input. The KDE Connect team maintains cross-desktop, Android and
+    # : Sailfish applications as well as an interface for KDE Plasma.
+    # :
+    # : GSConnect is a complete implementation of KDE Connect especially for GNOME Shell
+    # : with Nautilus, Chrome and Firefox integration. It is does not rely on the KDE
+    # : Connect desktop application and will not work with it installed.
+    #
+    'gnome-shell-extension-apps-menu' \
+    #
+    # Summary      : Background logo extension for GNOME Shell
+    # URL          : https://pagure.io/background-logo-extension
+    # Лицензия     : GPLv2+
+    # Description  : Show your pride! Display the Fedora logo (or any other graphic) in the corner of your desktop.
+    #
+    # 'gnome-shell-extension-background-logo' \
+    #
+    # Summary      : Files common to GNOME Shell Extensions
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : GNOME Shell Extensions is a collection of extensions providing additional and
+    # : optional functionality to GNOME Shell.
+    # : This package provides common data files shared by various extensions.
+    #
+    # 'gnome-shell-extension-common' \
+    #
+    # Summary      : KDE Connect implementation for GNOME Shell
+    # URL          : https://github.com/andyholmes/gnome-shell-extension-gsconnect
+    # Лицензия     : GPLv2
+    # Description  : The KDE Connect project allows devices to securely share content such as
+    # : notifications and files as well as interactive features such as SMS messaging
+    # : and remote input. The KDE Connect team maintains cross-desktop, Android and
+    # : Sailfish applications as well as an interface for KDE Plasma.
+    # :
+    # : GSConnect is a complete implementation of KDE Connect especially for GNOME Shell
+    # : with Nautilus, Chrome and Firefox integration. It is does not rely on the KDE
+    # : Connect desktop application and will not work with it installed.
+    #
+    # 'gnome-shell-extension-gsconnect' \
+    #
+    # Summary      : Arrange workspaces in GNOME Shell in a single row
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension changes the workspace layout from a single column
+    # : to a single row.
+    'gnome-shell-extension-horizontal-workspaces' \
+    # Summary      : Always launch a new application instance for GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension modifies the behavior of clicking in the dash and app
+    # : launcher to always launch a new application instance.
+    #
+    # 'gnome-shell-extension-launch-new-instance' \
+    #
+    # Summary      : Performant and simple opinionated mouse/keyboard workflow
+    # URL          : https://github.com/PapyElGringo/material-shell
+    # Лицензия     : MIT
+    # Description  : New shell for Gnome following the Material-design guidelines. Proposing a
+    # : performant and simple opinionated mouse/keyboard workflow to increase daily
+    # : productivity and comfort.
+    # :
+    # : How to install:
+    # :
+    # : 1. Reload gnome-shell by logout and re-login
+    # : 2. Open 'gnome-tweaks' and activate 'Material-shell' extension
+    #
+    # 'gnome-shell-extension-material-shell' \
+    #
+    # Summary      : Display weather information from many locations in the world
+    # URL          : https://gitlab.com/jenslody/gnome-shell-extension-openweather
+    # Лицензия     : GPLv3+ and BSD
+    # Description  : gnome-shell-extension-openweather is an extension to display weather information
+    # : from https://openweathermap.org/ or https://darksky.net for (almost) all locations
+    # : of the world in GNOME Shell.
+    # : Be aware, that system-wide installed gnome-shell-extensions are disabled by
+    # : default and have to be enable by the user(s), if they get installed the first
+    # : time.
+    # : You can use gnome-tweak-tool (additional package) or run:
+    # : "gnome-shell-extension-tool -e openweather-extension@jenslody.de" (without the
+    # : quotes) on a console.
+    'gnome-shell-extension-openweather' \
+    # Summary      : Places status menu for GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension add a system status menu for quickly navigating
+    # : places in the system.
+    #
+    # 'gnome-shell-extension-places-menu' \
+    #
+    # Summary      : Move all legacy tray icons to the top panel
+    # URL          : https://extensions.gnome.org/extension/1031/topicons/
+    # Лицензия     : GPLv2
+    # Description  : Many applications, such as chat clients, downloaders, and some media players,
+    # : are meant to run long-term in the background even after you close their window.
+    # : These applications remain accessible by adding an icon to the GNOME Shell Legacy
+    # : Tray. However, the Legacy Tray is hidden until you push your mouse into the
+    # : lower-left of the screen and click on the small tab that appears. TopIcons Plus
+    # : brings all icons back to the top panel, so that it's easier to keep track of
+    # : apps running in the background. You also get some options to control the look
+    # : and feel: You can leave the icons in full color, or dynamically convert them to
+    # : grayscale, etc.
+    #
+    # 'gnome-shell-extension-topicons-plus' \
+    #
+    # Summary      : Support for custom themes in GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension enables loading a GNOME Shell theme from
+    # : ~/.themes/<name>/gnome-shell/.
+    #
+    # 'gnome-shell-extension-user-theme' \
+    #
+    # Summary      : Display a window list at the bottom of the screen in GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension displays a window list at the bottom of the screen.
+    #
+    # 'gnome-shell-extension-window-list' \
+    #
+    # Summary      : Show app icons on top of the windows thumbnails in Activities Overview
+    # URL          : https://github.com/sustmi/gnome-shell-extension-windowoverlay-icons
+    # Лицензия     : GPLv3+
+    # Description  : Sometimes when you have many open windows, especially if they all
+    # : contain a lot of text, the windows all start to look the same in the
+    # : Activities Overview. WindowOverlay Icons adds the application icon to
+    # : every window thumbnail, making it easier to tell them apart.
+    #
+    # 'gnome-shell-extension-windowoverlay-icons' \
+    #
+    # Summary      : AppIndicator/KStatusNotifierItem support for GNOME Shell
+    # URL          : https://github.com/ubuntu/gnome-shell-extension-appindicator
+    # Лицензия     : GPLv2
+    # Description  : This extension integrates Ubuntu AppIndicators and KStatusNotifierItems
+    # : (KDE's blessed successor of the systray) into GNOME Shell.
+    # :
+    # : You can use gnome-tweaks (additional package) or run in terminal:
+    # :
+    # :   gnome-shell-extension-tool -e appindicatorsupport@rgcjonas.gmail.com
+    #
+    # 'gnome-shell-extension-appindicator' \
+    #
+    # Summary      : Assign specific workspaces to applications in GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension enables easy workspace management. A specific
+    # : workspace can be assigned to each application as soon as it creates a window, in
+    # : a manner configurable with a GSettings key.
+    #
+    # 'gnome-shell-extension-auto-move-windows' \
+    #
+    # Summary      : Dock for the Gnome Shell by micxgx.gmail.com
+    # URL          : https://micheleg.github.io/dash-to-dock
+    # Лицензия     : GPLv2+
+    # Description  : This extension enhances the dash moving it out of the overview and
+    # : transforming it in a dock for an easier launching of applications
+    # : and a faster switching between windows and desktops without having
+    # : to leave the desktop view.
+    #
+    'gnome-shell-extension-dash-to-dock' \
+    #
+    # Summary      : GNOME Shell extension for providing desktop icons
+    # URL          : https://gitlab.gnome.org/World/ShellExtensions/desktop-icons
+    # Лицензия     : GPLv3+
+    # Description  : This package provides a GNOME Shell extension for showing the contents
+    # : of ~/Desktop on the desktop of the Shell. Common file management operations
+    # : such as launching, copy/paste, rename and deleting are supported.
+    # :
+    # : You can use gnome-tweaks (additional package) or run in terminal:
+    # :
+    # :   gnome-shell-extension-tool -e desktop-icons@csoriano
+    #
+    # 'gnome-shell-extension-desktop-icons' \
+    #
+    # Summary      : GNOME Shell Extension Disconnect Wifi by kgshank
+    # URL          : https://extensions.gnome.org/extension/904/disconnect-wifi/
+    # Лицензия     : GPLv3+
+    # Description  : Adds a Disconnect option for Wifi in status menu, when a network is
+    # : connected.  Shows a Reconnect option, after network is disconnected.
+    #
+    # 'gnome-shell-extension-disconnect-wifi' \
+    #
+    # Summary      : Hide desktop notifications until you're ready to look at them
+    # URL          : https://extensions.gnome.org/extension/964/do-not-disturb-button/
+    # Лицензия     : GPLv2
+    # Description  : Do Not Disturb Button provides a panel button to temporarily hide incoming
+    # : notifications in GNOME Shell. A count of notifications appears next to the panel
+    # : button, and notifications remain hidden in the notifications message tray, until
+    # : you choose to show and dismiss them. You can also assign a keyboard shortcut to
+    # : toggle the Do Not Disturb status.
+    # :
+    # : (Do Not Disturb Button allows you to set the "available" or "busy" status for
+    # : desktop notifications only, not the status of chat or other applications
+    # : connected to GNOME's Online Accounts.)
+    #
+    # 'gnome-shell-extension-do-not-disturb-button' \
+    #
+    # Summary      : Drive status menu for GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension provides a panel status menu for accessing and
+    # : unmounting removable devices.
+    'gnome-shell-extension-drive-menu' \
+    # Summary      : GNOME Shell extension to display system temperature, voltage, and fan speed
+    # URL          : https://github.com/UshakovVasilii/gnome-shell-extension-freon/wiki
+    # Лицензия     : GPLv2
+    # Description  : Freon is a GNOME Shell extension for displaying the temperature of your
+    # : CPU, hard disk, solid state, and video card (NVIDIA, Catalyst, and
+    # : Bumblebee supported), as well as power supply voltage, and fan
+    # : speed. You can choose which HDD/SSD or other devices to include, what
+    # : temperature units to use, and how often to refresh the sensors readout,
+    # : and they will appear in the GNOME Shell top bar.
+    # :
+    # : **NOTE** that if you want to see GPU temperature, you will need to
+    # : install the vendor's driver and any related packages. (Nouveau
+    # : unfortunately won't work for Nvidia cards.)
+    # :
+    # : * hard drive temperatures requires udisks2, or smartmontools, or both
+    # :   hddtemp and GNU netcat. (udisks2 should already be installed by
+    # :   default on Fedora Workstation, but if you want to use hddtemp instead,
+    # :   you will need to install it and netcat yourself, and enable the
+    # :   hddtemp daemon.)
+    # : * Nvidia GPU temperatures require the `nvidia-settings` application,
+    # :   typically installed with the proprietary Nvidia drivers.
+    # : * Bumblebee + Nvidia requires `optirun`.
+    # : * AMD GPU temperatures requires `aticonfig`, part of AMD Radeon Software
+    # :   (formerly known as AMD Catalyst).
+    #
+    # 'gnome-shell-extension-freon' \
+    #
+    # Summary      : GameMode integration for GNOME Shell
+    # URL          : https://github.com/gicmo/gamemode-extension
+    # Лицензия     : LGPLv2
+    # Description  : GNOME Shell extension to integrate with GameMode. Can display
+    # : an icon when GameMode is active and also emit notifications
+    # : when the global GameMode status changes.
+    #
+    # 'gnome-shell-extension-gamemode' \
+    #
+    # Summary      : GNOME Shell extension for GPaste
+    # L          : https://github.com/Keruspe/GPaste/
+    # Лицензия     : BSD
+    # Description  : GPaste is a clipboard management system.
+    # :
+    # : This package provides the GNOME Shell extension for GPaste.
+    #
+    # 'gnome-shell-extension-gpaste' \
+    #
+    # Summary      : Use PageUp and PageDown to search for previous GNOME Shell commands
+    # URL          : https://github.com/sustmi/gnome-shell-extension-historymanager-prefix-search
+    # Лицензия     : GPLv3+
+    # Description  : The GNOME Shell Run Command dialog (Alt-F2) and Looking Glass let you
+    # : cycle through the history of previous commands with the arrow keys, but
+    # : there's currently no built-in way to search or do autocompletion for
+    # : commands. With HistoryManager Prefix Search, you can type the beginning
+    # : of a command, and then hit the PageUp and PageDown keys to cycle through
+    # : previous commands which match the prefix you typed.
+    #
+    # 'gnome-shell-extension-historymanager-prefix-search' \
+    #
+    # Summary      : A GNOME Shell extension for ibus-setup custom font settings
+    # URL          : https://extensions.gnome.org/extension/1121/ibus-font-setting/
+    # Лицензия     : GPLv3+
+    # Description  : use ibus font setting of ibus setup dialog to enhance the user experience
+    #
+    # 'gnome-shell-extension-ibus-font' \
+    #
+    # Summary      : A gnome-shell extension for iok application
+    # URL          : https://github.com/pnemade/gnome-shell-extension-iok
+    # Лицензия     : GPLv2
+    # Description  : This Gnome Shell extension opens iok in current locale Inscript2 keymap.
+    # : If Inscript2 keymap for current locale is not available then iok will be
+    # : started in advanced mode.
+    #
+    # 'gnome-shell-extension-iok' \
+    #
+    # Summary      : Control MPRIS2 capable media players: Rhythmbox, Banshee, Clementine and more
+    # URL          : https://extensions.gnome.org/extension/55/media-player-indicator/
+    #Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension controls any MPRIS v2.1 capable media player.
+    # :
+    # : This extension will monitor D-Bus for active players and automatically display
+    # : them in the GNOME Shell's volume menu by default.
+    #
+    # 'gnome-shell-extension-media-player-indicator' \
+    #
+    # Summary      : Native window placement for GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension provides additional configurability for the window
+    # : layout in the overview, including a mechanism similar to KDE4.
+    #
+    # 'gnome-shell-extension-native-window-placement' \
+    #
+    # Summary      : A gnome-shell extension to show speed of the internet
+    # URL          : https://github.com/hedayaty/NetSpeed
+    # Лицензия     : GPLv3+
+    # Description  : Add an Internet speed indicator to status area.
+    #
+    # 'gnome-shell-extension-netspeed' \
+    #
+    # Summary      : Disable the "hot corner" in the top-left of GNOME Shell
+    # URL          : https://extensions.gnome.org/extension/118/no-topleft-hot-corner/
+    # Лицензия     : GPLv2
+    # Description  : The top-left hot corner in GNOME Shell makes it easier to toggle the Activities
+    # : Overview --- perhaps a little too easy. No Topleft Hot Corner simply disables
+    # : the hot corner, so you don't have to worry about accidentally triggering
+    # : Activities anymore when moving the mouse near the top-left of the screen. But
+    # : you can still toggle the overview by clicking on the Activities button.
+    #
+    # 'gnome-shell-extension-no-topleft-hot-corner' \
+    #
+    # Summary      : Make Pidgin IM conversations appear in the Gnome Shell message tray
+    # URL          : https://extensions.gnome.org/extension/782/pidgin-im-integration/
+    # Лицензия     : GPLv2+
+    # Description  : This package contains the necessary components to integrate pidgin with
+    # : GNOME Shell.
+    #
+    # 'gnome-shell-extension-pidgin' \
+    #
+    # Summary      : A time management utility for GNOME
+    # URL          : http://gnomepomodoro.org/
+    # Лицензия     : GPLv3+
+    # Description  : This GNOME utility helps to manage time according to Pomodoro Technique.
+    # : It intends to improve productivity and focus by taking short breaks.
+    #
+    # 'gnome-shell-extension-pomodoro' \
+    #
+    # Summary      : GNOME Shell Extension Refresh Wifi Connections by kgshank
+    # URL          : https://extensions.gnome.org/extension/905/refresh-wifi-connections/
+    # Лицензия     : GPLv3+
+    # Description  : Introduce a manual scan button for new wifi network scan.
+    #
+    # 'gnome-shell-extension-refresh-wifi' \
+    #
+    # Summary      : A gnome-shell extension for removing the bluetooth icon
+    # URL          : http://www.affolter-engineering.ch/index.php?page=remove-bluetooth-icon
+    # Лицензия     : GPLv3+
+    # Description  : This simple extension does nothing more than to remove the bluetooth
+    # : icon from the GNOME panel.
+    #
+    # 'gnome-shell-extension-remove-bluetooth-icon' \
+    #
+    # Summary      : A gnome-shell extension for removing the volume icon
+    # URL          : http://www.affolter-engineering.ch/index.php?page=remove-volume-icon
+    # Лицензия     : GPLv3+
+    # Description  : This simple extension does nothing more than to remove the volume
+    # : icon from the GNOME panel.
+    #
+    # 'gnome-shell-extension-remove-volume-icon' \
+    #
+    # Summary      : Screenshot window sizer for GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension allows to easily resize windows for GNOME Software
+    # : screenshots.
+    #
+    # 'gnome-shell-extension-screenshot-window-sizer' \
+    #
+    # Summary      : GNOME Shell Extension Suspend-Button by laserb
+    # URL          : https://extensions.gnome.org/extension/826/suspend-button/
+    # Лицензия     : GPLv2+
+    # Description  : Allows to modify the suspend/shutdown button in the status menu.
+    #
+    # 'gnome-shell-extension-suspend-button' \
+    #
+    # Summary      : A Gnome shell system monitor extension
+    # URL          : https://extensions.gnome.org/extension/120/system-monitor/
+    # Лицензия     : GPLv3+ and BSD
+    # Description  : Display system information in gnome shell status bar, such as memory usage,
+    # : CPU usage, and network rate...
+    #
+    # 'gnome-shell-extension-system-monitor-applet' \
+    #
+    # Summary      : Taskwarrior integration for GNOME
+    # URL          : https://github.com/sgaraud/gnome-extension-taskwarrior
+    # Лицензия     : GPLv3+
+    # Description  : This GNOME shell extension is enabling access to Taskwarrior from the gnome
+    # : shell taskbar.
+    #
+    # 'gnome-shell-extension-taskwarrior' \
+    #
+    # Summary      : GNOME Shell Extension Unite by hardpixel
+    # URL          : https://extensions.gnome.org/extension/1287/unite
+    # Лицензия     : GPLv3+
+    # Description  : Unite is a GNOME Shell extension which makes a few layout tweaks to the
+    # : top panel and removes window decorations to make it look like Ubuntu
+    # : Unity Shell.
+    # :
+    # :   * Adds window buttons to the top panel for maximized windows.
+    # :   * Shows current window title in the app menu for maximized windows.
+    # :   * Removes titlebars on maximized windows.
+    # :   * Hides window controls on maximized windows with headerbars.
+    # :   * Moves the date to the right, fixes icons spacing and removes
+    # :     dropdown arrows.
+    # :   * Moves legacy tray icons to the top panel.
+    # :   * Moves notifications to the right.
+    # :   * Hides activities button.
+    #
+    # 'gnome-shell-extension-unite' \
+    #
+    # Summary      : Support for keyboard selection of windows and workspaces in GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension enables keyboard selection of windows and workspaces
+    # : in overlay mode, by pressing the Alt and Ctrl key respectively.
+    #
+    # 'gnome-shell-extension-windowsNavigator' \
+    #
+    # Summary      : Workspace indicator for GNOME Shell
+    # URL          : http://wiki.gnome.org/Projects/GnomeShell/Extensions
+    # Лицензия     : GPLv2+
+    # Description  : This GNOME Shell extension add a system status menu for quickly changing
+    # : workspaces.
+    #
+    # 'gnome-shell-extension-workspace-indicator' \
+    #
+    # Summary      : Pretty simple theme inspired on material design
+    # URL          : https://drasite.com/flat-remix-gnome
+    # Лицензия     : CC-BY-SA
+    # Description  : Flat Remix GNOME theme is a pretty simple shell theme inspired on material
+    # : design following a modern design using "flat" colors with high contrasts and
+    # : sharp borders.
+    # :
+    # : Themes:
+    # : - Flat Remix
+    # : - Flat Remix Dark
+    # : - Flat Remix Darkest
+    # : - Flat Remix Miami
+    # : - Flat Remix Miami Dark
+    # :
+    # : Variants:
+    # : - Full Panel: No topbar spacing
+    #
+    # 'gnome-shell-theme-flat-remix' \
+    #
+    # Summary      : The Selene gnome-shell theme
+    # URL          : https://launchpad.net/~tista/+archive/selene
+    # Лицензия     : GPLv3 and LGPLv2.1
+    # Description  : Selene is an "almost dark" theme based on elementary GTK theme,
+    # : inspired by the old Atolm GTK2 theme.
+    #
+    # 'gnome-shell-theme-selene' \
+    #
+    # Summary      : Yaru GNOME Shell Theme
+    # URL          : https://community.ubuntu.com/c/desktop/theme-refresh
+    # Лицензия     : GPLv3+ and CC-BY-SA
+    # Description  : Yaru theme is the default theme for Ubuntu, entirely backed by the community.
+    # : This is the theme that is shaped by the community on the Ubuntu hub, turned into
+    # : the default theme starting from Ubuntu 18.10 Cosmic Cuttlefish.
+    # :
+    # : This package contains GNOME Shell Theme.
+    #
+    # 'gnome-shell-theme-yaru' \
+    #
+  );
+  
+  pkg "$@" -- "${install_pkg[*]}";
+  
+}
+
+function main_pkg_gnome_extensions_pack_script_source(){
+  
+  echo_m "Initialise main function of gnome_extensions_pack script source";
+  
+  install_pkg_gnome_extensions_pack "$@";
+  
+}
+
+main_pkg_gnome_extensions_pack_script_source "$@";

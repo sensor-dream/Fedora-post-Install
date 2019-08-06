@@ -1,0 +1,85 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : krusader
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 26.05.2019, 20:01:28
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_krusader_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_krusader_script_source)";
+
+function install_pkg_krusader(){
+
+  . "${main_project_path}/pkg/archiving_packs";
+  . "${main_project_path}/pkg/hashes_packs";
+  . "${main_project_path}/pkg/universally_unique_identifier";
+  . "${main_project_path}/pkg/compare_and_merge_packs";
+
+  local install_pkg=(\
+"krename" \
+#    Krusader is an advanced twin panel (commander style) file manager for KDE and
+#    : other desktops in the *nix world, similar to Midnight or Total Commander.
+#    : It provides all the file management features you could possibly want.
+#    : Plus: extensive archive handling, mounted filesystem support, FTP, advanced
+#    : search module, an internal viewer/editor, directory synchronisation,
+#    : file content comparisons, powerful batch renaming and much much more.
+#    : It supports a wide variety of archive formats and can handle other KIO slaves
+#    : such as smb or fish. It is (almost) completely customizable, very user
+#    : friendly, fast and looks great on your desktop! You should give it a try.
+# Для него надо поставить 'tools to compute hashes' 'compare and merge tool' 'file archiving program and tools, utility and library and encoding' 'KDE Terminal emulator - konsole5'.
+"krusader" \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_krusader_script_source(){
+
+  echo_m "Initialise main function of krusader script source";
+
+  install_pkg_krusader "$@";
+
+}
+
+main_pkg_krusader_script_source "$@";

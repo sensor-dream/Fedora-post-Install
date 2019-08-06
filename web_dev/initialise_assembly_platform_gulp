@@ -1,0 +1,69 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : initialise_assembly_platform_gulp.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2018-11-29 19:05:22
+
+#
+#   Декларируем имя файла
+#
+
+declare -r initialise_assembly_platform_gulp_script_source="$BASH_SOURCE";
+
+
+if [[ ! -f "$path/package.json" ]]; then
+
+    npm init;
+
+fi
+
+if [[ ! -f "$path/bower.json" ]]; then
+
+    sudo npm install -g bower
+    npm install --save-dev bower
+    bower init;
+
+fi
+
+bower_list_local=(\
+'susy' \
+'breakpoint' \
+'breakpoint-sass'\
+);
+
+for i in ${!bower_list_local[*]}; do
+
+    if ! grep -q "${bower_list_local[$i]}" "$path/bower.json"; then
+        bower install --save "${bower_list_local[$i]}";
+    fi
+
+done
+
+
+if [[ ! -f "$path/gulpfile.js" ]]; then
+
+    sudo npm install gulp -g
+    sudo npm install gulp-cli -g
+    npx -p touch nodetouch gulpfile.js
+
+fi
+
+gulp_list_local=(\
+'gulp' \
+'gulp-cli' \
+'gulp-uglify'\
+);
+
+for i in ${!gulp_list_local[*]}; do
+
+    if ! grep -q "${gulp_list_local[$i]}" "$path/package.json"; then
+        npm install --save-dev "${gulp_list_local[$i]}";
+    fi
+    # npm rm "${list_local[$i]}";
+
+done
+
+# npm audit fix --force
+# npm audit fix
+npm audit

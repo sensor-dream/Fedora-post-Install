@@ -1,0 +1,162 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : run
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 09.08.2019, 1:11:56
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx version_control_system_gollum_run_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(dirname $(readlink -m $0))";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${version_control_system_gollum_run_script_source})";
+
+function install_version_control_system_gollum_run(){
+
+  local install_pkg=(\
+'curl' \
+'libicu' \
+'libicu-devel' \
+'libidn' \
+'zlib' \
+'zlib-devel' \
+'taglib-devel' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  . ${main_project_path}/version_control_system/git;
+
+  . ${main_project_path}/pkg/programming/perl;
+
+#
+# TO DO
+#
+
+#
+##
+### Installation Gollum and Ruby from root user. Create and run gollum service from root user.
+##
+#
+
+  . ${main_project_path}/pkg/programming/ruby;
+
+  #fcgi rdoc rack markdown org-mode mediawiki wikicloth
+  gem install gollum gollum-lib grit git github-markdown puma rest rbmediawiki mediafile mediafire mediakit mediawiki_api txt textile asciidoctor creole org-ruby RedCloth pandoc-ruby math-tau gollum-rugged_adapter;
+
+  easy_install docutils;
+
+  # cpan install Pod::Simple;
+
+  init_git_wiki_version_control_system_gollum_run;
+#
+##
+### Create a gollum user. Install Gollum and ruby in the user's home directory.
+### Create and run Gollum service, from user name Gollum.
+##
+#
+
+  cat << EOF > /dev/null;
+
+  adduser -d "${gollum_home_dir}" -s "${gollum_shell}" -c 'Gollum Wiki software' "${gollum_user_name}";
+  install -d -m 755 -o gollum -g "${gollum_user_name}" "${gollum_home_dir}";
+  usermod -a -G wheel "${gollum_user_name}";
+  usermod -a -G "${gollum_user_name}" "${main_user}";
+
+  sudo -u "${gollum_user_name}" sh "${main_project_path}/version_control_system/gollum/for_user_gollum ${gollum_home_dir}" "${gollum_git_repo_share}";
+
+  echo_w "${USER}";
+EOF
+
+#
+# End TO DO
+#
+
+}
+
+function init_git_wiki_version_control_system_gollum_run(){
+
+  echo_m "Create ${gollum_git_repo_wiki_path}, ${gollum_git_repo_wiki_upload_path}, initialise git path ${gollum_git_repo_wiki_path}.git and set perrmission for ${gollum_git_repo_wiki_path} recursive";
+
+  [[ ! -e "${gollum_git_repo_wiki_upload_path}" ]] && mkdir -v -p "${gollum_git_repo_wiki_upload_path}";
+  [[ ! -e "${gollum_git_repo_wiki_path}/.git" ]] && git init "${gollum_git_repo_wiki_path}";
+  [[ "$(echo $(ls -l ${gollum_git_repo_wiki_path} | awk '{ print $3 }'))" != "${main_user}" ]] && set_permission -r -u 'apache' -g "${main_user}" "${gollum_git_repo_wiki_path}";
+
+}
+
+function main_version_control_system_gollum_run_script_source(){
+
+  echo_m "Initialise main function of run script source";
+
+  local gollum_git_repo_wiki_path="${main_www_base_path}/ru/sensor-dream/handbook/www";
+  local gollum_git_repo_wiki_upload_path="${gollum_git_repo_wiki_path}/uploads";
+  local gollumgit_git_repo_refs="master";
+  local gollum_service_name="main-gollum";
+  local gollum_service_user_name="apache";
+
+  #
+    ##
+      ### for a separately created user and installed in his home dir ruby and gollum...
+      ### local gollum_user_name="mGolumn";
+      ### local gollum_home_user_dir="";
+      ### local gollum_user_shell="/usr/bin/bash";
+    ##
+  #
+
+  . ${main_project_path}/wiki/gollum/gollum_service;
+
+  OPTIND=1
+  while getopts "ipsdrh" OPT
+  do
+    case $OPT in
+      i ) install_version_control_system_gollum_run; ;;
+      p ) init_git_wiki_version_control_system_gollum_run; ;;
+      s ) create_version_control_system_gollum_gollum_service; ;;
+      d ) delete_version_control_system_gollum_gollum_service; ;;
+      r ) restart_version_control_system_gollum_gollum_service; ;;
+      h ) echo_m "\n-i: install gollum packages\n-s: install gollum as service\n-d: uninstall gollum service\n-r: restart gollum service\n-p: Create path wiki and init empty git repo"; ;;
+      * ) ;;
+    esac
+  done
+  shift $(($OPTIND - 1));
+  # shift `expr $OPTIND - 1`;
+  [ "${1:-}" = "--" ] && shift;
+
+}
+
+main_version_control_system_gollum_run_script_source "$@";

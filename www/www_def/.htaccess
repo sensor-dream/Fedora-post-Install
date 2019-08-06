@@ -1,0 +1,117 @@
+### Script generaty automaticaly
+### All rights reserved SDBS (Sensor-Dream)
+
+### AddHandler cgi-script .pl .py .jsp .asp .htm .shtml .sh .cgi
+SetHandler application/x-httpd-php
+AddHandler application/x-httpd-php .php
+AddType application/x-httpd-php .php
+AddType text/cache-manifest .manifest
+AddType application/x-javascript .js
+AddType text/html .html
+AddType text/html .php
+AddType text/css .css
+AddType text/xml .xml
+AddType application/octet-stream .doc .mov .avi .pdf .xls
+
+DirectoryIndex index.php index.html
+
+DirectorySlash off
+
+SetEnv REGISTER_GLOBALS 0
+
+### Disable directory listing
+<IfModule mod_negotiation.c>
+  Options -MultiViews -Indexes -ExecCGI +FollowSymLinks
+</IfModule>
+
+AddDefaultCharset UTF-8
+
+### secure htaccess or other files starting with a dot
+
+<FilesMatch ^(\..*)$>
+  order allow,deny
+  deny from all
+</FilesMatch>
+
+### secure config.(*)
+
+<FilesMatch ^(.*\.cfg)$>
+  order allow,deny
+  deny from all
+</FilesMatch>
+
+<FilesMatch ^(git.*)$>
+  order allow,deny
+  deny from all
+</FilesMatch>
+
+### Gzip Compression Module
+<ifmodule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css text/javascript application/x-javascript application/javascript application/xml text/xml application/rss+xml
+</ifmodule>
+
+
+<IfModule mod_headers.c>
+
+	#кэшировать html и htm файлы на один день
+	<FilesMatch "\.(html|htm)$">
+		# Header set Cache-Control "max-age=43200"
+	</FilesMatch>
+	#кэшировать css, javascript и текстовые файлы на одну неделю
+	<FilesMatch "\.(js|css|txt)$">
+		# Header set Cache-Control "max-age=604800"
+	</FilesMatch>
+	#кэшировать флэш и изображения на месяц
+	<FilesMatch "\.(flv|swf|ico|gif|jpg|jpeg|png)$">
+		# Header set Cache-Control "max-age=2592000"
+	</FilesMatch>
+	#отключить кэширование
+	<FilesMatch "\.(pl|php|cgi|spl|scgi|fcgi)$">
+		# Header unset Cache-Control
+	</FilesMatch>
+
+  ## Header unset Pragma
+  ## Header unset Cookie
+  ## Header unset Set-Cookie
+
+  ## Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0, s-maxage=0, no-transform, proxy-revalidate"
+  ## Header always set Access-Control-Allow-Origin "*"
+  ## Header always set Strict-Transport-Security "max-age=63072000; includeSubdomains; preload"
+  Header always set Content-Language "ru, en-US"
+  Header always set Title "Sensor-Dream Boxed System"
+  Header always set Host "4.home.sensor-dream.ru"
+  # Заголовок Expires
+  <IfModule mod_expires.c>
+    Header always set ExpiresActive On
+    Header always set ExpiresDefault "now"
+  </IfModule>
+
+</IfModule>
+
+<IfModule mod_rewrite.c>
+
+  <IfModule mod_env.c>
+
+    SetEnv HTTP_MOD_REWRITE On
+    SetEnv HTTP_MOD_REWRITE_MEDIA On
+    SetEnv HTTP_MOD_REWRITE_STATIC On
+
+  </IfModule>
+
+  RewriteEngine On
+
+  RewriteBase /
+
+  ### HTTP-methods GET, POST, HEAD, CONNECT, OPTIONS, PUT, DELETE, TRACE, TRACK, PATCH
+  ### Allow only HEAD, GET and POST methods
+  RewriteCond %{REQUEST_METHOD} ^(PUT|DELETE|TRACE|TRACK|PATCH)
+  RewriteRule .* - [F]
+
+  ### RewriteCond %{HTTP_HOST} ^www.sensor-dream.ru$ [NC]
+  ### RewriteRule ^(.*)$ https://sensor-dream.ru.ru/$1 [R=301,L]
+
+  ### Redirect Trailing Slashes If Not A Folder...
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+</IfModule>

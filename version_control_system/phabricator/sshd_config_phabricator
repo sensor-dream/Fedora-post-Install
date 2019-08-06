@@ -1,0 +1,80 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : sshd_config_phabricator
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 03.08.2019, 22:18:03
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx version_control_system_phabricator_sshd_config_phabricator_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $version_control_system_phabricator_sshd_config_phabricator_script_source)";
+
+cat<<EOF > /etc/ssh/sshd_config.phabricator;
+# NOTE: You must have OpenSSHD 6.2 or newer; support for AuthorizedKeysCommand
+# was added in this version.
+
+# NOTE: Edit these to the correct values for your setup.
+
+# AuthorizedKeysCommand /bin/sh /etc/ssh/auth.sh %u %f %k
+# AuthorizedKeysCommandUser root
+
+AuthorizedKeysCommand /usr/libexec/main_phabricator_ssh_hook.sh
+AuthorizedKeysCommandUser ${vcs_user}
+AllowUsers ${vcs_user}
+
+# You may need to tweak these options, but mostly they just turn off everything
+# dangerous.
+
+Port ${ph_sshd_port}
+Protocol 2
+PermitRootLogin no
+AllowAgentForwarding no
+AllowTcpForwarding no
+PrintMotd no
+PrintLastLog no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+AuthorizedKeysFile none
+
+PidFile /var/temp/phabricator-sshd/daemon.pid
+
+EOF

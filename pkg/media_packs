@@ -1,0 +1,150 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : media_packs
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 12.05.2019, 3:49:21
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_media_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_media_packs_script_source)";
+
+
+function main_pkg_media_packs_script_source(){
+
+  echo_m "Initialise main function of media_packs script source";
+
+  check_root;
+
+  local install_pkg=(\
+#   for AUDIO system
+#
+#   The Advanced Linux Sound Architecture (ALSA) library
+alsa-lib alsa-plugins-pulseaudio alsa-ucm alsa-utils alsa-lib-devel alsa-plugins-arcamav alsa-plugins-jack alsa-plugins-maemo alsa-plugins-oss alsa-plugins-samplerate alsa-plugins-speex alsa-plugins-upmix alsa-plugins-usbstream alsa-plugins-vdownmix alsa-tools alsa-tools-firmware alsa-topology alsa-topology-utils alsa-ucm-utils alsa-utils-alsabat alsa-firmware alsa-plugins-freeworld-a52 alsa-plugins-freeworld-lavrate alsamixergui \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+#   Improved Linux Sound Server
+pulseaudio pulseaudio-libs pulseaudio-libs-devel pulseaudio-libs-glib2 pulseaudio-module-bluetooth pulseaudio-module-x11 pulseaudio-utils \
+#
+# pulseaudio-equalizer \
+pulseaudio-esound-compat pulseaudio-module-gconf pulseaudio-module-gsettings pulseaudio-module-jack pulseaudio-module-lirc pulseaudio-module-zeroconf pulseaudio-qpaeq \
+#   Volume control for PulseAudio
+pavucontrol \
+);
+
+pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+#   streaming MEDIA framework, utilites, ecodet and decoded and RTSP VCR servers and utility
+#
+#   GStreamer streaming media framework runtime
+gstreamer1 gstreamer1-libav \
+gstreamer1-plugins-bad-free gstreamer1-plugins-bad-freeworld \
+gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-plugins-good-gtk \
+gstreamer1-plugins-good-qt gstreamer1-plugins-ugly gstreamer1-plugins-ugly-free \
+# gstreamer1-devel gstreamer1-devel-docs gstreamer1-plugins-bad-free-devel \
+# gstreamer1-plugins-base-devel gstreamer1-plugins-base-devel-docs \
+# gstreamer1-plugins-ugly-free-devel \
+gstreamer1-plugins-bad-free-extras gstreamer1-plugins-bad-free-fluidsynth gstreamer1-plugins-bad-free-wildmidi \
+gstreamer1-plugins-base-tools gstreamer1-plugins-good-extras \
+# gstreamer1-rtsp-server \
+# gstreamer1-rtsp-server-devel gstreamer1-rtsp-server-devel-docs \
+gstreamer1-vaapi \
+# gstreamer1-vaapi-devel-docs \
+gstreamer1-plugins-entrans \
+# gstreamer1-plugins-entrans-docs \
+gstreamer1-plugins-fc \
+# gstreamer1-libav-devel-docs \
+
+#   GStreamermm is a C++ wrapper library for the multimedia library
+gstreamermm \
+#   Libavdevice is a complementary library to libavf "libavformat". It provides
+#       : various "special" platform-specific muxers and demuxers, e.g. for grabbing
+#       : devices, audio capture and playback etc.
+libavdevice \
+#   FFmpeg is a complete and free Internet live audio and video
+#        : broadcasting solution for Linux/Unix. It also includes a digital
+#        : VCR. It can encode in real time in many formats including MPEG1 audio
+#        : and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash.
+ffmpeg ffmpeg-libs \
+#   Lightweight video thumbnailer that can be used by file managers
+ffmpegthumbnailer \
+#   KDE ffmpegthumbnailer service
+# ffmpegthumbs \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+#   is a movie player
+#
+#   MPlayer is a movie player that plays most MPEG, VOB, AVI, OGG/OGM,
+#        : VIVO, ASF/WMA/WMV, QT/MOV/MP4, FLI, RM, NuppelVideo, yuv4mpeg, FILM,
+#        : RoQ, and PVA files. You can also use it to watch VCDs, SVCDs, DVDs,
+#        : 3ivx, RealMedia, and DivX movies.
+#        : It supports a wide range of output drivers including X11, XVideo, DGA,
+#        : OpenGL, SVGAlib, fbdev, AAlib, DirectFB etc. There are also nice
+#        : antialiased shaded subtitles and OSD.
+mplayer mplayer-common mplayer-gui mplayer-tools \
+#   This package contains the MPlayer movie encoder.
+mencoder \
+# Описание                   : Qt5 client for the music player daemon (MPD)
+# URL                        : https://github.com/CDrummond/cantata
+# Лицензии                   : GPL
+# Зависит от                 : libmtp libmusicbrainz5 mpg123 qt5-multimedia qt5-svg taglib media-player-info libcdio-paranoia udisks2
+# Необязательные зависимости : perl-uri: dynamic playlist [Установленные]
+#                              mpd: playback [Установленные]
+#                              ffmpeg: ReplayGain support [Установленные]
+#                              libebur128: ReplayGain support [Установленные]
+#                              sshfs: remote devices support [Установленные]
+# info `pamac info cantata` взято с репозитория manjaro (ARCH base platform)
+cantata \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+main_pkg_media_packs_script_source "$@";

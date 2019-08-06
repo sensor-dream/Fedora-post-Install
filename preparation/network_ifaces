@@ -1,0 +1,263 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : network_ifaces
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 11.03.2019, 5:56:05
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_network_ifaces_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "${main_cfg_script_source}" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "${main_project_path}/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m ${preparation_network_ifaces_script_source})";
+
+
+## Устанавливаем подсети
+function main_network_file_modify_linklocal(){
+  check_root;
+  local linklocal=($(grep "link-local" "/etc/networks"));
+  if [[ -z "${linklocal}"  ]]; then
+    echo "link-local ${link_local}" >> "/etc/networks";
+  elif [[ "${linklocal[1]}" != "$link_local"  ]];  then
+    sed -i "s/link-local.*$/link-local ${link_local}/" "/etc/networks";
+  else
+    echo_m "link-local in networks file already modify and set ${link_local}";
+      return 0;
+  fi
+  echo_w "networks file modify ${link_local}";
+}
+
+function main_network_file_modify_link_ipv6_loop(){
+  local linkipv6loop=($(grep "link-ipv6-loop" "/etc/networks"));
+  if [[ -z "${linkipv6loop}"  ]]; then
+    echo "link-ipv6-loop ${link_ipv6_loop}" >> "/etc/networks"
+  elif [[ "${linkipv6loop[1]}" != "${link_ipv6_loop}"  ]];  then
+    sed -i "s/link-ipv6-loop.*$/link-ipv6-loop ${link_ipv6_loop}/" "/etc/networks";
+  else
+    echo_m "link-ipv6-loop in networks file already modify and set ${link_ipv6_loop}";
+    return 0;
+  fi
+  echo_w "networks file modify ${link_ipv6_loop}";
+}
+
+function main_ip4_interface_configuration(){
+
+  check_root;
+
+  local deviceinterface="${device_interface}";
+  local mainuser="${main_user}";
+  local connectmethod="${connect_method}";
+  local connectautoconnect="${connect_autoconnect}";
+  local ignoreautodns="${ignore_auto_dns}";
+  local ignoreautoroutes="${ignore_auto_routes}";
+  local hostname="${host_name}";
+  local ipdevice="${ip_device}";
+  local ipmask="${ip_mask}";
+  local ipgateway="${ip_gateway}";
+  local ipdnslocal="${ip_dns_local}";
+  local ipdns1="${ip_dns_1}";
+  local ipdns2="${ip_dns_2}";
+  local ipdns3="${ip_dns_3}";
+  local mainpinghost="${main_ping_host}";
+
+  local real_name_interface="$(nmcli d show  ${deviceinterface} | awk -F':[[:space:]]+' '/GENERAL.CONNECTION/ { print $2 }' )";
+  local ifacename='';
+
+  echo_w "Real connection name: ${real_name_interface}";
+
+  if [[ "${real_name_interface}" != "${deviceinterface}" ]]; then
+
+    ifacename="${real_name_interface}";
+
+    echo_w "Modification connection.id: ${real_name_interface} -> ${deviceinterface}";
+
+  else
+
+    ifacename="${deviceinterface}";
+
+  fi
+
+  nmcli device disconnect "${deviceinterface}";
+
+  local macaddress=$(ifconfig "${deviceinterface}" | awk '/ether/ {print $2}');
+
+  nmcli c mod "${ifacename}" connection.id "${deviceinterface}" connection.stable-id "${deviceinterface}" connection.interface-name "${deviceinterface}" connection.autoconnect "${connectautoconnect}" connection.permissions user:$mainuser ethernet.mac-address "${macaddress}" ethernet.cloned-mac-address "${macaddress}" ipv4.method "${connectmethod}" ipv4.ignore-auto-dns "${ignoreautodns}" ipv4.ignore-auto-routes "${ignoreautoroutes}" ipv4.dhcp-hostname "${hostname}" ipv4.addresses "${ipdevice}/${ipmask}" ipv4.gateway "${ipgateway}";
+
+  nmcli c mod "${deviceinterface}" ipv6.addresses '' ipv6.method ignore;
+
+  if [[ -n "${ipdnslocal}" ]]; then
+
+    # nmcli c mod "$nameinterface" ipv4.dns "$ipdnslocal" +ipv4.dns "$ipdns1" +ipv4.dns "$ipdns2";
+
+    nmcli c mod "${deviceinterface}" ipv4.dns "${ipdnslocal}";
+
+  else
+
+    nmcli c mod "${deviceinterface}" ipv4.dns "${ipdns1}" +ipv4.dns "${ipdns2}" +ipv4.dns "${ipdns3}" ;
+
+  fi
+
+  #cat<<EOF > "/etc/NetworkManager/dispatcher.d/del_search_resolv_con" | chmod +x '/etc/NetworkManager/dispatcher.d/del_search_resolv_conf';
+##!/usr/bin/sh
+#[ "\$2" = "up" ] && \$(sed -i '/search/d' '/etc/resolv.conf');
+#exit 0
+#EOF
+
+  # nmcli connection up "${deviceinterface}";
+  nmcli device connect "${deviceinterface}";
+  # nmcli connection show "${deviceinterface}";
+
+  # tmp=<<<$(ping "$mainpinghost" -c 1 2> /dev/null);
+
+  if [[ -n "$(ping "${mainpinghost}" -c 1 2> /dev/null)" ]]; then
+
+    install_packages \
+        "mc" \
+        "tmpwatch" \
+    ;
+        ## "NetworkManager-tui" \
+        ## "NetworkManager-ppp" \
+        ## "lshw" \
+        ## "lookup" \
+  else
+
+    echo_w "Проблемы со shлюзом ???";
+
+  fi
+
+  echo_w "interface $deviceinterface configuration prepared";
+
+}
+
+function ip6_brocker_interface_configuration(){
+
+  check_root;
+
+  local mainuser="${main_user}";
+  local hostname="${host_name}";
+  local deviceinterface="${device_interface}";
+
+  local brockerconnectmethod="${brocker_connect_method}";
+  local brockerconnecttype="${brocker_connect_type}";
+  local brockeraddinterface="${brocker_add_interface}";
+  local brockerupinterface="${brocker_up_interface}";
+  local brockerdeviceinterface="${brocker_device_interface}";
+  local brockerautoconnect="${brocker_autoconnect}";
+  local brockerparentdevice="${brocker_parent_device}";
+  local brockerlocalip="${brocker_local_ip}";
+  local brockerignoreautodns="${brocker_ignore_auto_dns}";
+  local brockerignoreautoroutes="${brocker_ignore_auto_routes}";
+
+  local namebrocker="${name_brocker}";
+
+  local brockerremoteip="${brocker_remote_ip}";
+  local brockeripv6="${brocker_ipv6}";
+  local ipv6mask="${ipv6_mask}";
+  local ipv6maskpull="${ipv6_mask_pull}";
+  local brockergwipv6="${brocker_gw_ipv6}";
+  local brockernetworkpull="${brocker_network_pull}";
+  local localipv6ofbrockernetworkpull="${local_ipv6_of_brocker_network_pull}";
+
+  local ipv6dnslocal="${ipv6_dns_local}";
+  local ipv6dns1="${ipv6_dns_1}";
+  local ipv6dns2="${ipv6_dns_2}";
+  local ipv6dns3="${ipv6_dns_3}";
+
+  nmcli device disconnect "${deviceinterface}";
+
+  if  [[ -n "$(nmcli connection show "${brockerdeviceinterface}" 2> /dev/null)" ]] ; then
+
+    nmcli c mod "${deviceinterface}" ipv6.addresses '' ipv6.method ignore;
+
+    # nmcli device delete "${brockerdeviceinterface}";
+    nmcli c delete "${brockerdeviceinterface}";
+    # exit;
+  fi
+
+  if [[ ${brockeraddinterface} -eq 1 ]]; then
+
+    nmcli c add type "${brockerconnecttype}" connection.permissions user:$mainuser \
+    autoconnect "${brockerautoconnect}" save yes con-name "${brockerdeviceinterface}" ifname "${brockerdeviceinterface}" \
+    mode sit remote "${brockerremoteip}" local "${brockerlocalip}" dev "${brockerparentdevice}" \
+    ip6 "${brockeripv6}/${ipv6mask}" gw6 "${brockergwipv6}" ipv6.method "${brockerconnectmethod}" \
+    ipv6.ignore-auto-dns "${brockerignoreautodns}" ipv6.ignore-auto-routes "${brockerignoreautoroutes}" ipv6.dhcp-hostname "${hostname}" ip-tunnel.ttl 255 ipv4.method disabled;
+
+    if [[ -n "${ipv6dnslocal}" ]]; then
+
+      # nmcli c mod "$brockerdeviceinterface" ipv6.dns "$ipv6dnslocal" +ipv6.dns "$ipv6dns1" +ipv6.dns "$ipv6dns2";
+
+      nmcli c mod "${brockerdeviceinterface}" ipv6.dns "${ipv6dnslocal}";
+
+    else
+
+      nmcli c mod "${brockerdeviceinterface}" ipv6.dns "${ipv6dns1}" +ipv6.dns "${ipv6dns2}" +ipv6.dns "${ipv6dns3}";
+
+    fi
+
+    nmcli c mod "${deviceinterface}" ipv6.method "${brockerconnectmethod}" ipv6.ignore-auto-dns "${brockerignoreautodns}" ipv6.ignore-auto-routes "${brockerignoreautoroutes}" ipv6.dhcp-hostname "${hostname}" ipv6.addresses "${localipv6ofbrockernetworkpull}/${ipv6maskpull}"; ## ipv6.gateway "$brockerGw6";
+
+    nmcli device connect "${deviceinterface}";
+
+    if [[ ${brockerupinterface} -eq 1 ]]; then
+      nmcli c delete "${brockerdeviceinterface}";
+    elif [[ ${brockerupinterface} -eq 0 && ${brockerautoconnect} -eq 1 ]]; then
+      nmcli device disconnect "${brockerdeviceinterface}";
+    fi
+
+  else
+
+    nmcli device connect "${deviceinterface}";
+
+  fi
+
+}
+
+function main_preparation_network_ifaces_script_source(){
+
+  echo_m "Initialise main function";
+
+  main_network_file_modify_linklocal;
+  main_network_file_modify_link_ipv6_loop;
+  main_ip4_interface_configuration;
+  ip6_brocker_interface_configuration;
+
+}
+
+main_preparation_network_ifaces_script_source "$@";

@@ -1,0 +1,1557 @@
+#
+#  Список пакетов для установки
+#
+
+#   Установка MC (консольный файловый менеджер и не только)и соответствующих зависимостей
+mc gdbm gpm-libs gpm-libs python2 python2-libs python2-pip python2-setuptools slang python-unversioned-command
+
+#   A utility for getting files from remote servers (FTP, HTTP, and others)
+curl curlftpfs curlpp curlpp-devel libcurl-devel
+
+#   A utility for retrieving files using the HTTP or FTP protocols
+wget
+
+#   A small text editor
+nano
+
+#   A version of the VIM editor which includes recent enhancements
+#   VIM — Vi IMproved (улучшенный Vi)
+vim-minimal vim-enhanced vim-common vim-filesystem
+
+#   A text-based Web browser
+lynx
+
+#   for kernels
+kernel-devel kernel-headers kernel-cross-headers kernel-modules kernel-modules-extra kernel-tools kernel-tools-libs kernel-tools-libs-devel
+
+#   The Linux Standard Base (LSB) Core module support provides the fundamental
+#            : system interfaces, libraries, and runtime environment upon which all conforming
+#            : applications and libraries depend.
+redhat-lsb-core
+
+#   irqbalance is a daemon that evenly distributes IRQ load across
+irqbalance
+
+#   ПЕРЕСБОРКА и прочее
+    dracut rpmdevtools
+
+#
+#   secure communications library implementing the SSL, TLS and DTLS
+#             : protocols and technologies around them.
+#
+
+openssl openssl-devel openssl-libs openssl-pkcs11 xmlsec1-openssl
+gnutls gnutls-devel xmlsec1-gnutls xmlsec1-gnutls-devel gnutls-guile
+
+#    An open source implementation of SSH protocol version 2
+openssh openssh-clients openssh-server libssh2-devel
+
+#   Command line tool to create/retrieve/delete accounting objects
+nfacct
+
+#   Dynamic Kernel Module Support Framework
+dkms elfutils-libelf-devel zlib-devel
+
+#   Akmods startup script will rebuild akmod packages during system
+#            : boot while its background daemon will build them for kernels right
+#            : after they were installed.
+akmods
+
+#   This package contains tools and list of recent kernels that get used when building kmod-packages.
+kmodtool
+
+#   ACPI Event Daemon
+acpid
+
+#   Various compilers (C, C++, Objective-C, ...)
+gcc cpp gcc-gdb-plugin libgcc glibc libasan libmpx libubsan gmp isl libgomp libmpc mpfr gcc-c++
+
+#   The GNU libc libraries, tools and utilites
+glibc glibc-utils glibc-static glibc-nss-devel glibc-minimal-langpack glibc-locale-source glibc-langpack-eu glibc-langpack-ru glibc-benchtests glibc-headers glibc-devel
+
+#   A library of handy utility functions
+glib
+
+#   Backends for the gio framework in GLib
+gvfs gvfs-fuse gvfs-afc gvfs-afp gvfs-archive gvfs-client gvfs-goa gvfs-gphoto2 gvfs-mtp gvfs-smb gvfs-devel gvfs-nfs gvfs-tests
+
+#   The GNU Portable Library Tool
+libtool
+
+#    The free peer-reviewed portable C++ source libraries
+boost boost-static
+
+#   A GNU tool for automatically configuring source code
+autoconf
+autoconf213
+
+#   The GNU Autoconf Archive is a collection of more than 450 macros for
+#            : GNU Autoconf that have been contributed as free software by friendly
+#            : supporters of the cause from all over the Internet.
+autoconf-archive
+
+#   A GNU tool which simplifies the build process for users
+make
+
+#   A GNU tool for automatically creating Makefiles
+automake
+
+#   Cross-platform make system
+cmake cmake-doc cmake-elementary cmake-fedora cmake-gui
+
+#   C/C++ compiler cache
+ccache
+
+#   General-purpose scalable concurrent malloc implementation
+jemalloc
+
+#   Command line argument parsing
+docopt
+
+#   A GNU collection of binary utilities
+binutils
+
+#   Library for processing UTF-8 encoded Unicode strings
+utf8proc
+
+#   Libraries and header files for file development
+file-devel
+
+#   The GNU macro processor
+m4
+
+#    Linear Algebra over F_2^e
+m4ri m4ri-devel m4ri-static
+
+#   Linear Algebra over F_2^e
+m4rie m4rie-devel m4rie-static
+
+#   Utility for modifying/upgrading files
+patch
+
+#   A collection of programs for manipulating patch files
+patchutils
+
+#   Quick creation of patches against a project source tree
+patcher
+
+#   A utility for patching ELF binaries
+patchelf
+
+#   A daemon to record and keep track of system up times
+uptimed
+
+#
+#   A graphics library for quick creation of PNG or JPEG images
+#
+  gd gd-devel
+#
+# pwgen generates random, meaningless but pronounceable passwords. These
+#            : passwords contain either only lowercase letters, or upper and lower case, or
+#            : upper case, lower case and numeric digits. Upper case letters and numeric
+#            : digits are placed in a way that eases memorizing the password.
+#
+pwgen
+
+#   This package provides the shim links for pkgconf to be automatically
+pkgconf-pkg-config pkgconfig
+
+#
+#   for RPM tool
+#
+  #   rpm tool 1 install
+  rpm-build rpm-devel patch annobin dwz libzstd-devel redhat-rpm-config zstd rpmdevtools rpmspectool rpmrebuild rpm-cron rpmconf rpmconf-base rpmdeplint rpmreaper rpmlint rpm-ostree-devel rpm-ostree-toolbox rpmbuild-order rpm-apidocs rpm-sign rpmemd \
+  #   rpm tool 2 install
+  #efi-srpm-macros fpc-srpm-macros ghc-srpm-macros gnat-srpm-macros go-srpm-macros nim-srpm-macros ocaml-srpm-macros openblas-srpm-macros perl-srpm-macros popt-devel python-srpm-macros qt5-srpm-macros rust-srpm-macros
+  #   rpm tool 3 install
+  #rpm-plugin-ima rpm-plugin-prioreset rpm-mpi-hooks rpmgrill rpmlint-scl-config rpmorphan
+
+#   пакет антивирусного ПО ( Тянется по зависимостям из установки rpm tool 2 install )
+clamav clamav-data clamav-filesystem clamav-lib
+
+#   Debian's Advanced Packaging Tool with RPM support
+apt apt-cacher-ng apt-devel apt-plugins-list apt-plugins-log fedora-package-config-apt
+
+#   Snappy is a modern, cross-distribution, transactional package manager
+#            : designed for working with self-contained, immutable packages.
+snapd snapd-devel snapd-glib snapd-glib-devel snapd-qt snapd-qt-devel snapd-qt-qml
+
+#   Package maintenance system for Debian Linux
+dpkg dpkg-dev dpkg-devel dpkg-perl
+
+#   Utilities based around the yum package manager
+yum yum-utils yum-metadata-parser yum-plugin-versionlock
+
+#   The curses library routines are a terminal-independent method of
+#          : updating character screens with reasonable optimization.  The ncurses
+#          : (new curses) library is a freely distributable replacement for the
+#          : discontinued 4.4 BSD classic curses library.
+#          :
+#          : This package contains support utilities, including a terminfo compiler
+#          : tic, a decompiler infocmp, clear, tput, tset, and a termcap conversion
+#          : tool captoinfo.
+ncurses ncurses-libs ncurses-devel ncurses-static ncurses-c++-libs
+
+#   GNU libraries and utilities for producing multi-langual messages
+gettext
+
+#   File System in Userspace (FUSE) v3 utilitie
+fuse3 fuse3-libs
+
+#   For SSH
+fuse-sshfs libssh libssh-devel libssh2
+
+#  A portable shell tool
+shtool
+
+
+#
+# For TOUCH PAD
+#
+  # Calibration utility for touch screens
+    touchcal
+  # A switchboard plug to configure the behavior of mice and touchpads
+    switchboard-plug-mouse-touchpad
+
+#
+#   askpass
+#
+    #   OpenSSH is a free version of SSH (Secure SHell), a program for logging
+    #        : into and executing commands on a remote machine. This package contains
+    #        : an X11 passphrase dialog for OpenSSH.
+    openssh-askpass
+
+    #   A ssh-add helper that uses kwallet and kpassworddialog
+    ksshaskpass
+
+    #   Askpass openssh transition dialog for LXQt desktop suite.
+    lxqt-openssh-askpass
+
+    #   This package provides translations for the lxqt-openssh-askpass package.
+    lxqt-openssh-askpass-l10n
+
+    #    x11-ssh-askpass is a lightweight passphrase dialog for OpenSSH or
+    #        : other open variants of SSH. In particular, x11-ssh-askpass is useful
+    #        : with the Unix port of OpenSSH by Damien Miller and others, and Damien
+    #        : includes it in his RPM packages of OpenSSH.
+    #        :
+    #        : x11-ssh-askpass uses only the stock X11 libraries (libX11, libXt) for
+    #        : its user interface. This reduces its dependencies on external libraries
+    #        : (such as GNOME or Perl/Tk). See the README for further information.
+    x11-ssh-askpass
+
+#
+#   tools to compute hashes
+#
+
+    #   This is md5deep, a set of cross-platform tools to compute hashes, or
+    #        : message digests, for any number of files while optionally recursively
+    #        : digging through the directory structure.  It can also take a list of known
+    #        : hashes and display the filenames of input files whose hashes either do or
+    #        : do not match any of the known hashes. This version supports MD5, SHA-1,
+    #        : SHA-256, Tiger, and Whirlpool hashes.
+    md5deep
+
+    #   file hashing utility that uses the
+    #         : SHA-1, SHA-256, SHA-384, & SHA-512 hash algorithms.
+    #         : It can be used for file integrity checking,
+    #         : remote file comparisons, etc.
+    #         : The portable algorithm implementations
+    #         : can be useful in other projects too
+    sha sha-devel
+
+    #   The library implements the SHA-256, SHA-384, and SHA-512 hash algorithms. The
+    #        : interface is similar to the interface to SHA-1 found in the OpenSSL library.
+    #        : sha2 is a simple program that accepts input from either STDIN or reads one or
+    #        : more files specified on the command line, and then generates the specified hash
+    #        : (either SHA-256, SHA-384, SHA-512, or any combination thereof, including all
+    #        : three at once).
+    sha2 sha2-devel
+
+    #   This script will compute and check the SHA3 message digest of a file
+    sha3sum
+
+    #   cfv is a utility to both test and create .sfv, .csv, .crc, .md5(sfv-like),
+    #        : md5sum, bsd md5, sha1sum, and .torrent files. These files are commonly used to
+    #        : ensure the correct retrieval or storage of data. It also has test-only support
+    #        : for PAR and PAR2 files
+    cfv
+
+#
+#   file archiving program and tools, utility and library and encoding
+#
+
+    zlib zziplib zip unzip p7zip p7zip-plugins p7zip-gui p7zip-doc unar tar bzip2 lha lzma lzma-libs lzma-devel getdata-lzma libknet1-compress-lzma-plugin lzma-sdk lzma-sdk-devel lzma-sdk457-devel lzma-sdk457 pyliblzma xz-lzma-compat unace unrar zlib-devel zlib-static zlibrary zlibrary-devel xz-devel arj
+
+    #   cabextract is a program which can extract files from cabinet (.cab) archives.
+    cabextract
+
+    #   The GNU shar utilities for packaging and unpackaging shell archives
+    sharutils
+
+    #   Universally Unique Identifier library
+    uuid
+
+    #   Handles uuencoding, xxencoding, yEnc, and base-64 encoding (MIME). Can do
+    #        : automatic splitting of large encodes, automatic posting.  A must for
+    #        : anyone serious encoding/decoding.
+    uudeview
+
+    #   File Roller is an application for creating and viewing archives files, uch as tar or zip files.
+    file-roller
+
+#
+#   compare and merge tool
+#
+    #   The diff command compares files line by line.  Diffstat reads the
+    #        : output of the diff command and displays a histogram of the insertions,
+    #        : deletions and modifications in each file.  Diffstat is commonly used
+    #        : to provide a summary of the changes in large, complex patch files.
+    diffstat
+
+    #   xxdiff is a graphical browser for viewing the differences between two or three
+    #        : files, or between two directories, and can be used to produce a merged version.
+    xxdiff xxdiff-tools
+
+    #   KDiff3 is a program that
+    #        : - compares and merges two or three input files or directories,
+    #        : - shows the differences line by line and character by character (!),
+    #        : - provides an automatic merge-facility and
+    #        : - an integrated editor for comfortable solving of merge-conflicts
+    #        : - has support for KDE-KIO (ftp, sftp, http, fish, smb)
+    #         : - and has an intuitive graphical user interface.
+    kdiff3
+
+    #   kdiff3-qt is a Qt-only program that
+    #        : - compares and merges two or three input files or directories,
+    #        : - shows the differences line by line and character by character (!),
+    #        : - provides an automatic merge-facility and
+    #        : - an integrated editor for comfortable solving of merge-conflicts
+    #        : - and has an intuitive graphical user interface.
+    kdiff3-qt
+
+    #   tool to visualize changes between two versions of a file
+    kompare kompare-libs kompare-devel
+
+#
+#   MAIL utilites and tools
+#
+    #   A widely used Mail Transport Agent (MTA)
+    sendmail
+
+    #   Procmail can be used to create mail-servers, mailing lists, sort your
+    #        : incoming mail into separate folders/files (real convenient when subscribing
+    #        : to one or more mailing lists or for prioritising your mail), preprocess
+    #        : your mail, start any programs upon mail arrival (e.g. to generate different
+    #        : chimes on your workstation for different types of mail) or selectively
+    #        : forward certain incoming mail automatically to someone
+    procmail
+
+#
+#   Hesiod is a system which uses existing DNS functionality to provide access
+#            : to databases of information that changes infrequently.  It is often used to
+#            : distribute information kept in the /etc/passwd, /etc/group, and /etc/printcap
+#            : files, among others.
+#
+    hesiod
+
+#
+#   The sysstat package contains the sar, sadf, mpstat, iostat, tapestat,
+#            : pidstat, cifsiostat and sa tools for Linux.
+#            : The sar command collects and reports system activity information.
+#            : The information collected by sar can be saved in a file in a binary
+#            : format for future inspection. The statistics reported by sar concern
+#            : I/O transfer rates, paging activity, process-related activities,
+#            : interrupts, network activity, memory and swap space utilization, CPU
+#            : utilization, kernel activities and TTY statistics, among others. Both
+#            : UP and SMP machines are fully supported.
+#            : The sadf command may  be used to display data collected by sar in
+#            : various formats (CSV, XML, etc.).
+#            : The iostat command reports CPU utilization and I/O statistics for disks.
+#            : The tapestat command reports statistics for tapes connected to the system.
+#            : The mpstat command reports global and per-processor statistics.
+#            : The pidstat command reports statistics for Linux tasks (processes).
+#            : The cifsiostat command reports I/O statistics for CIFS file systems.
+#
+    sysstat libsysstat libsysstat-devel
+
+#
+#   The smartmontools package contains two utility programs (smartctl
+#            : and smartd) to control and monitor storage systems using the Self-
+#            : Monitoring, Analysis and Reporting Technology System (SMART) built
+#            : into most modern ATA and SCSI hard disks. In many cases, these
+#            : utilities will provide advanced warning of disk degradation and
+#            : failure.
+#
+    smartmontools
+
+#
+#   Hardware monitoring tools
+#
+    #
+    #   The lm_sensors package includes a collection of modules for general SMBus
+    #
+    #        : access and hardware monitoring.
+    #
+        lm_sensors-libs lm_sensors
+
+    #
+    #   hddtemp is a tool that gives you the temperature of your hard drive by
+    #            : reading S.M.A.R.T. information.
+        hddtemp
+
+    #
+    #   Hdparm is a useful system utility for setting (E)IDE hard drive
+    #        : parameters.  For example, hdparm can be used to tweak hard drive
+    #        : performance and to spin down hard drives for power conservation.
+    #
+        hdparm
+
+##############################################
+#                                            #
+#   https://www.gnu.org/software/coreutils   #
+#                                            #
+##############################################
+
+
+#
+#   Like text utility
+#
+    #
+    #   Grep-like text finder
+    #   Ack is designed as a replacement for grep.
+    #
+    ack
+
+    #   Line oriented search tool using Rust's regex library. Combines (rg)
+    #        : the raw performance of grep with the usability of the silver searcher.
+    #   rg --help
+    ripgrep
+
+    #
+    #   Super-fast text searching tool (ag)
+    #   The Silver Searcher is a code searching tool similar to ack,
+    #        : with a focus on speed.
+    #   ag --help
+    the_silver_searcher
+
+#
+#   Like utility
+#
+    #   Top like utility for I/O
+    iotop
+    #   Interactive process viewer
+    htop
+    #   An advanced interactive monitor for Linux-systems to view the load on system-level and process-level
+    atop
+    #   Bandwidth monitor and rate estimator
+    bmon
+    #   Traces the route taken by packets over an IPv4/IPv6 network
+    traceroute
+    #   A utility for removing files based on when they were last accessed
+    tmpwatch
+    #   Displays where a particular program in your path is located
+    which
+    #   Display information about users currently logged on
+    whowatch
+    #   Hardware lister
+    lshw
+    #   Scriptable, parallelized ping-like utility
+    fping
+    #   A top-like display of Apache logs
+    apachetop
+    #   A top clone for MySQL
+    mytop
+
+#   The vconfig program configures and adjusts 802.1q VLAN parameters. This tool is deprecated in favor of "ip link" command.
+vconfig
+
+#   The screen utility allows you to have multiple logins on just one terminal. Screen is useful for users who telnet into a machine or are connected via a dumb terminal, but want to use more than just one login.
+screen
+
+# View one or multiple files like tail but with multiple windows
+multitail
+
+#   A log file analysis program
+logwatch
+
+#   Statistics collection daemon for filling RRD files
+collectd
+
+#   udisks provides a daemon, D-Bus API and command line tools for managing disks and storage devices
+udisks udisks-devel udisks2 udisks2-iscsi udisks2-bcache udisks2-btrfs udisks2-lsm udisks2-lvm2 udisks2-zram libstoragemgmt python3-libstoragemgmt python3-libstoragemgmt-clibs
+
+#   monit is a utility for managing and monitoring, processes, files, directories
+#            : and devices on a UNIX system. Monit conducts automatic maintenance and repair
+#            : and can execute meaningful causal actions in error situations.
+monit
+
+#   The psacct package contains several utilities for monitoring process
+#            : activities, including ac, lastcomm, accton and sa. The ac command
+#            : displays statistics about how long users have been logged on. The
+#            : lastcomm command displays information about previous executed
+#            : commands. The accton command turns process accounting on or off. The
+#            : sa command summarizes information about previously executed
+#            : commands.
+psacct
+
+#   This is a short perl script to colorize your logs. You can use your
+#        : own colors, you can simply modify your config file in your home
+#        : directory, or system-wide (/etc/colorize).
+colorize
+
+#
+#   FOR DNF PACKAGER UTILITES
+#
+    #   Systemd units that can periodically download package upgrades and apply them.
+    dnf-automatic
+    #   Dbus daemon for performing package actions with the dnf package manager
+    dnfdaemon
+    #   Metapackage customizing the SELinux policy to make the dnf-daemon work with SELinux enabled in enforcing mode
+    dnfdaemon-selinux
+
+    python2-dnf-plugin-versionlock python3-dnf-plugin-versionlock
+
+#
+#   PRINT SYSTEMS
+#
+    #
+    #   CUPS print system
+    #
+        cups cups-pdf
+        cups-lpd cups-bjnp cups-x2go
+        cups-devel cups-filters-devel
+#
+# FONTS and utilites for
+#
+    #   Utility to create fonts.scale files for truetype fonts
+    ttmkfdir
+
+    # fonts
+    xorg-x11-fonts-ISO8859-1-100dpi xorg-x11-fonts-ISO8859-1-75dpi xorg-x11-fonts-ISO8859-15-100dpi xorg-x11-fonts-ISO8859-15-75dpi xorg-x11-fonts-ISO8859-2-100dpi xorg-x11-fonts-ISO8859-2-75dpi
+
+#
+#   The graphical toolkit
+#
+    #   The graphical toolkit for the Tcl scripting language
+    tk
+
+    #   The turbojpeg package contains the TurboJPEG shared library.
+    turbojpeg turbojpeg-devel
+
+    #   ImageMagick is an image display and manipulation tool for the X
+    #   : Window System. ImageMagick can read and write JPEG, TIFF, PNM, GIF,
+    #   : and Photo CD image formats. It can resize, rotate, sharpen, color
+    #   : reduce, or add special effects to an image, and when finished you can
+    #   : either save the completed work in the original format or a different
+    #   : one. ImageMagick also includes command line programs for creating
+    #   : animated or transparent .gifs, creating composite images, creating
+    #   : thumbnail images, and more.
+    ImageMagick
+
+    #   GraphicsMagick is a comprehensive image processing package which is initially
+    #        : based on ImageMagick 5.5.2, but which has undergone significant re-work by
+    #        : the GraphicsMagick Group to significantly improve the quality and performance
+    #        : of the software.
+    GraphicsMagick
+
+#
+#   streaming MEDIA framework, utilites, ecodet and decoded and RTSP VCR servers and utility
+#
+
+    #   GStreamer streaming media framework runtime
+    gstreamer gstreamer-ffmpeg gstreamer-plugins gstreamer-plugins-bad-free gstreamer-plugins-bad-nonfree gstreamer-plugins-base gstreamer-plugins-espeak gstreamer-plugins-good gstreamer-plugins-ugly gstreamer-tools gstreamer1 gstreamer1-libav gstreamer1-plugins-bad-free gstreamer1-plugins-bad-freeworld gstreamer1-plugins-base gstreamer1-plugins-good gstreamer1-plugins-good-gtk gstreamer1-plugins-ugly gstreamer1-plugins-ugly-free
+
+    gstreamer-plugin-crystalhd gstreamer-plugins-bad-free-extras gstreamer-plugins-base-tool gstreamer-plugins-fc gstreamer-plugins-good-extras gstreamer-rtsp gstreamer-rtsp-vala gstreamer1-plugins-bad-free-extras gstreamer1-plugins-bad-free-fluidsynth gstreamer1-plugins-bad-free-wildmidi gstreamer1-plugins-base-tools gstreamer1-plugins-entrans gstreamer1-plugins-fc gstreamer1-plugins-good-extras gstreamer1-rtsp-server gstreamer1-vaapi gstreamer1-plugins-bad-nonfree
+
+    #   GStreamermm is a C++ wrapper library for the multimedia library
+    gstreamermm
+
+    #   Libavdevice is a complementary library to libavf "libavformat". It provides
+    #       : various "special" platform-specific muxers and demuxers, e.g. for grabbing
+    #       : devices, audio capture and playback etc.
+    libavdevice
+
+    #   FFmpeg is a complete and free Internet live audio and video
+    #        : broadcasting solution for Linux/Unix. It also includes a digital
+    #        : VCR. It can encode in real time in many formats including MPEG1 audio
+    #        : and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash.
+    ffmpeg ffmpeg-libs
+
+    #   Lightweight video thumbnailer that can be used by file managers
+    ffmpegthumbnailer
+    #   KDE ffmpegthumbnailer service
+    # ffmpegthumbs
+
+#
+#   is a movie player
+#
+    #   MPlayer is a movie player that plays most MPEG, VOB, AVI, OGG/OGM,
+    #        : VIVO, ASF/WMA/WMV, QT/MOV/MP4, FLI, RM, NuppelVideo, yuv4mpeg, FILM,
+    #        : RoQ, and PVA files. You can also use it to watch VCDs, SVCDs, DVDs,
+    #        : 3ivx, RealMedia, and DivX movies.
+    #        : It supports a wide range of output drivers including X11, XVideo, DGA,
+    #        : OpenGL, SVGAlib, fbdev, AAlib, DirectFB etc. There are also nice
+    #        : antialiased shaded subtitles and OSD.
+    mplayer mplayer-common mplayer-gui mplayer-tools
+
+    #   This package contains the MPlayer movie encoder.
+    mencoder
+
+#
+#   programming language
+#
+
+    #   A modern programming language for GNOME
+    vala
+
+    #
+    # Ruby is the interpreted scripting language for quick and easy
+    #        : object-oriented programming.  It has many features to process text
+    #        : files and to do system management tasks (as in Perl).  It is simple,
+    #        : straight-forward, and extensible.
+    #
+        ruby ruby-devel ruby-irb ruby-libs
+      # и докучи dnf install --skipbroken ruby-*
+
+        rubygem-bigdecimal rubygem-did_you_mean rubygem-io-console rubygem-json rubygem-openssl rubygem-psych rubygem-rack rubygem-rdoc rubygems rubypick
+      # и докучи dnf install --skipbroken rubygem-*
+
+    #
+    # The Go Programming Language
+    #
+      golang golang-bin golang-src golang-github-oschwald-maxminddb-golang-devel
+
+    #
+    # Lua is a powerful light-weight programming language designed for
+    #        : extending applications. Lua is also frequently used as a
+    #        : general-purpose, stand-alone language. Lua is free software.
+    #        : Lua combines simple procedural syntax with powerful data description
+    #        : constructs based on associative arrays and extensible semantics. Lua
+    #        : is dynamically typed, interpreted from bytecodes, and has automatic
+    #        : memory management with garbage collection, making it ideal for
+    #         : configuration, scripting, and rapid prototyping.
+    #
+      lua luajit lua-guestfs lua-alt-getopt lua-argparse  lua-argparse-doc lua-copas lua-coxpcall lua-cyrussasl lua-dbi lua-dbi-compat lua-devel lua-event lua-event-doc lua-expat-compat lua-filesystem lua-filesystem-compat lua-fun lua-inotify lua-ldap lua-ldap-compat lua-ldoc lua-ldoc-doc lua-lgi lua-lgi-compat lua-lgi-samples lua-librs232 lua-logging lua-loop lua-loop-doc lua-lunit lua-lxc lua-markdown lua-md5 lua-moonscript lua-mosquitto lua-mpack lua-penlight lua-penlight-doc lua-penlight-examples lua-prelude lua-rex lua-sec lua-sec-compat lua-shogun lua-socket-compat lua-socket-devel lua-sql lua-sql-doc lua-sql-mysql lua-sql-postgresql lua-sql-sqlite lua-static lua-term lua-wsapi lua-xmlrpc luabind luabind-devel luadoc luajit-devel luarocks
+
+#
+# DEBUGERS
+#
+        # A debugger based on the ptrace API and Qt
+        edb \
+        # A powerful D-Bus Debugger
+        d-feet \
+        # Draw sequence diagrams of D-Bus traffic
+        bustle \
+        # A GNOME C/C++ Debugger
+        nemiver \
+
+
+#
+#   A collection of SNMP protocol tools and libraries
+#   SNMP (Simple Network Management Protocol) is a protocol used for network management.
+#
+    net-snmp net-snmp-libs net-snmp-utils net-snmp-perl net-snmp-devel net-snmp-gui
+
+
+#
+#   COMPIZ EMERALD
+#
+    #
+    #   COMPIZ
+    #
+        compiz compiz-manager compiz-manager marco-libs compiz-bcop  compiz-plugins-experimental compiz-plugins-experimental-devel compiz-plugins-extra compizconfig-python libcompizconfig-devel
+
+        fedora-release compiz-plugins-extra-devel compiz-plugins-main compiz-plugins-main-devel
+
+        rfremix-release-matecompiz
+        -x fedora-release-matecompiz
+    #
+    #   EMERALD
+    #
+        emerald emerald-devel emerald-themes compiz-devel libXres-devel libwnck3-devel startup-notification-devel
+
+
+#
+#   runing in GNOME and others window manager ( for X system )
+#
+
+    #
+    # OpenAL Soft is a cross-platform software implementation of the OpenAL 3D
+    #            : audio API. It's built off of the open-sourced Windows version available
+    #            : originally from the SVN repository at openal.org. OpenAL provides
+    #            : capabilities for playing audio in a virtual 3d environment. Distance
+    #            : attenuation, doppler shift, and directional sound emitters are among
+    #            : the features handled by the API. More advanced effects, including air
+    #            : absorption, low-pass filters, and reverb, are available through the
+    #            : EFX extension. It also facilitates streaming audio, multi-channel buffers,
+    #            : and audio capture.
+    #
+      openal-soft openal-soft-qt openal-soft-examples openal-soft-devel
+
+    #
+    #   for sh tool and other
+    #
+        #  A portable shell tool
+        shtool
+        #   shUnit2 is a xUnit unit test framework for Bourne based shell scripts,
+        #        : and it is designed to work in a similar manner to JUnit, PyUnit, etc.
+        #        : If you have ever had the desire to write a unit test for a shell script,
+        #        : shUnit2 can do the job.
+        shunit2
+
+    #
+    # FONTS and utilites for
+    #
+        #   X.Org X11 font utilities required for font installation, conversion, and generation.
+        xorg-x11-font-utils
+
+        #   A collection of Type1 fonts which are part of the core X Window System distribution.
+        xorg-x11-fonts-Type1
+
+        #   A free and portable font rendering engine
+        freetype-freeworld
+
+    #
+    #   System utility and tools
+    #
+        #   BAMF removes the headache of applications matching into a simple DBus
+        #    : daemon and C wrapper library. Currently features application matching
+        #    : at amazing levels of accuracy (covering nearly every corner case). This
+        #    : package contains the bamf daemon and supporting data.
+        bafm bamf-daemon
+
+        #   Valgrind is an instrumentation framework for building dynamic analysis
+        #    : tools. There are Valgrind tools that can automatically detect many
+        #    : memory management and threading bugs, and profile your programs in
+        #    : detail. You can also use Valgrind to build new tools. The Valgrind
+        #    : distribution currently includes six production-quality tools: a memory
+        #    : error detector (memcheck, the default tool), two thread error
+        #    : detectors (helgrind and drd), a cache and branch-prediction profiler
+        #    : (cachegrind), a call-graph generating cache and branch-prediction
+        #    : profiler (callgrind), and a heap profiler (massif).
+        valgrind valgrind-devel valgrind-openmpi valgrind-tools-devel
+
+        #   Command line tool to interact with an X Window Manager
+        wmctrl
+
+        # X.Org X11 xkb gadgets
+        xorg-x11-xkb-extras
+
+        #   Latency Logging and Graphing System
+        smokeping
+
+        #   dconf is a low-level configuration system. Its main purpose is to provide a backend to the GSettings API in GLib.
+        dconf
+        dconf-devel
+        dconf-editor
+        #   Customize advanced GNOME 3 options
+        gnome-tweaks
+        #   Shell script analysis tool
+        ShellCheck
+
+        #   Customize advanced GNOME 3 options
+        gnome-tweaks gnome-tweak-tool
+
+        #   Shell script analysis tool
+        ShellCheck
+
+    #
+    #   terminal emulators in one window
+    #
+
+        #   Store and run multiple GNOME terminals in one window
+        # terminator
+
+        #   EFL based terminal emulator
+        # terminology
+
+        #   Tilix is a tiling terminal emulator
+        # tilix tilix-nautilus
+
+        #   ouR XVT, a VT102 emulator for the X window system
+        # rxvt rxvt-unicode rxvt-unicode-256color rxvt-unicode-256color-ml perl-Text-Bidi-urxvt
+
+        #   A lightweight multi-tabbed terminal emulator for X
+        # mrxvt
+
+        #   Drop-down terminal for GNOME
+        guake
+
+        #   Terminal emulator for the X Window System
+        # xterm
+
+        #   KDE Terminal emulator.
+        konsole5
+
+    #
+    #   for AUDIO system
+    #
+        #   The Advanced Linux Sound Architecture (ALSA) library
+        alsa-lib alsa-plugins-pulseaudio alsa-ucm alsa-utils alsa-lib-devel alsa-plugins-arcamav alsa-plugins-jack alsa-plugins-maemo alsa-plugins-oss alsa-plugins-samplerate alsa-plugins-speex alsa-plugins-upmix alsa-plugins-usbstream alsa-plugins-vdownmix alsa-tools alsa-tools-firmware alsa-topology alsa-topology-utils alsa-ucm-utils alsa-utils-alsabat alsa-firmware alsa-plugins-freeworld-a52 alsa-plugins-freeworld-lavrate alsamixergui
+
+        #   Real-time Audio Synthesizer
+        terminatorX
+
+        #
+        #   Improved Linux Sound Server
+        #
+            pulseaudio pulseaudio-libs pulseaudio-libs-devel pulseaudio-libs-glib2 pulseaudio-module-bluetooth pulseaudio-module-x11 pulseaudio-utils
+
+            pulseaudio-equalizer pulseaudio-esound-compat pulseaudio-module-gconf pulseaudio-module-gsettings pulseaudio-module-jack pulseaudio-module-lirc pulseaudio-module-zeroconf pulseaudio-qpaeq
+
+        #   Volume control for PulseAudio
+        pavucontrol
+
+    #
+    #   EDITORS
+    #
+        #   Binary editor for GNOME
+        ghex
+
+        #   GTK+ based simple text editor
+        leafpad
+
+    #
+    #   The GRAPHIKALS redaktors and STUDIOS. TOOLkit and OTHER
+    #
+        #
+        #    GIMP (GNU Image Manipulation Program) is a powerful image composition and
+        #    : editing program, which can be extremely useful for creating logos and other
+        #    : graphics for web pages. GIMP has many of the tools and filters you would expect
+        #    : to find in similar commercial offerings, and some interesting extras as well.
+        #    : GIMP provides a large image manipulation toolbox, including channel operations
+        #    : and layers, effects, sub-pixel imaging and anti-aliasing, and conversions, all
+        #    : with multi-level undo.
+        #
+            gimp gimp-devel GREYCstoration-gimp gimp-data-extras gimp-dbp gimp-dds-plugin gimp-elsamuko gimp-focusblur-plugin gimp-fourier-plugin gimp-gap gimp-help gimp-help-ru gimp-high-pass-filter gimp-layer-via-copy-cut gimp-lensfun gimp-lqr-plugin gimp-luminosity-masks gimp-normalmap gimp-paint-studio gimp-resynthesizer gimp-save-for-web gimp-separate+ gimp-wavelet-decompose gimp-wavelet-denoise-plugin gimpfx-foundry gimp-bimp-plugin
+
+        #
+        #   Inkscape is a vector graphics editor, with capabilities similar to
+        #    : Illustrator, CorelDraw, or Xara X, using the W3C standard Scalable Vector
+        #    : Graphics (SVG) file format.  It is therefore a very useful tool for web
+        #    : designers and as an interchange format for desktop publishing.
+        #    :
+        #    : Inkscape supports many advanced SVG features (markers, clones, alpha
+        #    : blending, etc.) and great care is taken in designing a streamlined
+        #    : interface. It is very easy to edit nodes, perform complex path operations,
+        #    : trace bitmaps and much more.
+        #
+            inkscape inkscape-docs inkscape-psd inkscape-sozi inkscape-table inkscape-view
+
+    #
+    #   The graphical toolkit
+    #
+        #   A very simple dock written in Vala.
+        plank plank-docklets plank-devel
+
+        #   Rawtherapee is a RAW image processing software. It gives full control over many parameters to enhance the raw picture before finally exporting it to some common image format.
+        rawtherapee
+
+        #   Shutter is a GTK+ 2.x based screenshot application written in Perl.
+        #    : Shutter covers all features of common command line tools like
+        #    : scrot or import and adds reasonable new features combined
+        #    : with a comfortable GUI using the GTK+ 2.x framework.
+        shutter
+
+    #
+    #   File manager and tools
+    #
+        #   KRename is a powerful batch renamer for KDE. It allows you to easily rename
+        #    : hundreds or even more files in one go. The filenames can be created by parts
+        #    : of the original filename, numbering the files or accessing hundreds of
+        #    : informations about the file, like creation date or Exif informations of an
+        #    : image.
+        krename
+
+        #    Krusader is an advanced twin panel (commander style) file manager for KDE and
+        #    : other desktops in the *nix world, similar to Midnight or Total Commander.
+        #    : It provides all the file management features you could possibly want.
+        #    : Plus: extensive archive handling, mounted filesystem support, FTP, advanced
+        #    : search module, an internal viewer/editor, directory synchronisation,
+        #    : file content comparisons, powerful batch renaming and much much more.
+        #    : It supports a wide variety of archive formats and can handle other KIO slaves
+        #    : such as smb or fish. It is (almost) completely customizable, very user
+        #    : friendly, fast and looks great on your desktop! You should give it a try.
+        #
+        # Для него надо поставить 'tools to compute hashes' 'compare and merge tool' 'file archiving program and tools, utility and library and encoding' 'KDE Terminal emulator - konsole5'.
+        #
+        krusader
+
+
+#
+#   utilities to create a distribution
+#
+
+    #   Tools for generating live CDs on Fedora based systems including
+    #        : derived distributions such as RHEL, CentOS and others.
+    livecd-tools
+
+    #   Kickstarts used to compose the official Fedora Spins (see
+    #        : http://spins.fedoraproject.org/ for a full list)
+    fedora-kickstarts
+
+    #   Kickstart Configurator is a graphical tool for creating kickstart files
+    system-config-kickstart
+
+    #
+    # Graphical system installer
+    #
+        #   ANACONDA
+        anaconda anaconda-core anaconda-gui anaconda-install-env-deps anaconda-tui anaconda-user-help anaconda-widgets anaconda-realmd anaconda-dracut anaconda-widgets-devel
+
+#
+#   Tools for network auditing and penetration testing
+#
+    #   This is a collection of programs to facilitate TCP programming in
+    #        : shell-scripts. There is also a small library which makes it somewhat
+    #        : easier to create TCP/IP sockets.
+    tcputils
+
+    #   Описание     : A collection of tools for network auditing and penetration testing. Dsniff,
+    #        : filesnarf, mailsnarf, msgsnarf, urlsnarf and webspy allow to passively monitor
+    #        : a network for interesting data (passwords, e-mail, files). Arpspoof, dnsspoof
+    #        : and macof facilitate the interception of network traffic normally unavailable
+    #        : to an attacker (e.g, due to layer-2 switching). Sshmitm and webmitm implement
+    #        : active monkey-in-the-middle attacks against redirected SSH and HTTPS sessions
+    #        : by exploiting weak bindings in ad-hoc PKI.
+    dsniff
+
+    #   A network traffic monitoring tool
+    tcpdump
+
+    #    Network exploration tool and security scanner
+    nmap
+
+    #    A tool resembling top for network traffic
+    nethogs
+
+    #   A console-based network monitoring utility
+    iptraf-ng
+
+    #    Network traffic tracker
+    jnettop
+
+    #   A system-independent interface for user-level packet capture
+    libpcap libpcap-devel
+
+    #   Libpcapnav is a libpcap wrapper library that allows navigation to arbitrary packets in a tcpdump trace file between reads, using timestamps or percentage offsets. It was originally based on Vern Paxson's tcpslice tool.
+    libpcapnav libpcapnav-devel
+
+    #   Python module for the libpcap packet capture library, based on the original python libpcap module by Aaron Rhodes.
+    pylibpcap
+
+    #   Wireshark allows you to examine protocol data stored in files or as it is captured from wired or wireless (WiFi or Bluetooth) networks, USB devices, and many other sources.  It supports dozens of protocol capture file formats and understands more than a thousand protocols
+    wireshark wireshark-devel wireshark-cli
+
+#
+# Meld — это программа для визуального сравнения различий, предназначенная для разработчиков
+#
+  meld
+
+#
+#   системы управления версиями
+#
+
+    #   Meta-package to pull in all git tools
+    # git-all
+
+    #   Fast Version Control System
+    git git-core git-all git-lfs git-daemon git-extras git-instaweb  git-merge-changelog git-subrepo git-subtree  git-archive-all git-bugzilla git-crypt git-evtag git-fame git-publish git-review git-tools git-xcleaner
+
+
+    #   GitKraken - The legendary Git GUI client for Windows, Mac and Linux.
+    #   перед установкой gitkraken выполнить ./rpm/compat_libcurl_gnutls
+    gitkraken
+
+    #   Mercurial is a fast, lightweight source control management system designed for efficient handling of very large istributed projects
+    mercurial mercurial-chg mercurial-hgk qct-mercurial trac-mercurial-plugin
+
+    #   A Modern Concurrent Version Control System
+    # subversion subversion-api-docs subversion-devel subversion-gnome subversion-javahl subversion-kde subversion-perl subversion-ruby subversion-tools
+
+#
+#   Docker`изация
+#
+    # Docker
+
+    docker docker-compose docker-anaconda-addon docker-devel docker-distribution docker-fish-completion docker-logrotate docker-lvm-plugin docker-novolume-plugin docker-unit-test docker-vim docker-zsh-completion
+
+    docker-client-java
+
+    docker-latest docker-latest-devel docker-latest-fish-completion docker-latest-logrotate docker-latest-rhsubscription docker-latest-unit-test docker-latest-v1.10-migrator docker-latest-vim docker-latest-zsh-completion
+
+    #  Для Создания docker image на основе deb
+    debootstrap
+
+    # для создания docker image na osnove yum https://github.com/dozzie/yumbootstrap
+    # https://linux-notes.org/sozdanie-base-image-dlya-docker-v-unix-linux/
+
+    #  пустой docker image
+    tar cv --files-from /dev/null | docker import - scratch
+
+#
+#   Виртуализация
+#
+
+    # LIBVIRT
+
+        #   Library providing a simple virtualization API
+
+        libvirt libvirt-devel libvirt-docs
+
+        #   Server side daemon and supporting files for libvirt library
+        libvirt-daemon libvirt-daemon-config-network libvirt-daemon-driver-interface libvirt-daemon-driver-network libvirt-daemon-driver-nodedev libvirt-daemon-driver-nwfilter libvirt-daemon-driver-qemu libvirt-daemon-driver-secret libvirt-daemon-driver-storage libvirt-daemon-driver-storage-core libvirt-daemon-driver-storage-disk libvirt-daemon-driver-storage-gluster libvirt-daemon-driver-storage-iscsi libvirt-daemon-driver-storage-iscsi-direct libvirt-daemon-driver-storage-logical libvirt-daemon-driver-storage-mpath libvirt-daemon-driver-storage-rbd libvirt-daemon-driver-storage-scsi libvirt-daemon-driver-storage-sheepdog libvirt-daemon-driver-storage-zfs libvirt-daemon-kvm libvirt-daemon-qemu libvirt-gconfig libvirt-glib libvirt-gobject libvirt-libs
+
+        libvirt-daemon-config-nwfilter libvirt-daemon-driver-libxl libvirt-daemon-driver-lxc libvirt-daemon-driver-uml libvirt-daemon-driver-vbox libvirt-daemon-lxc libvirt-daemon-uml libvirt-daemon-vbox libvirt-daemon-xen
+
+        libvirt-admin libvirt-bash-completion  libvirt-cim libvirt-client
+        libvirt-dbus
+        libvirt-designer libvirt-designer-devel libvirt-designer-devel-doc libvirt-designer-vala
+        libvirt-gconfig-devel libvirt-glib-devel libvirt-gobject-devel
+        libvirt-java libvirt-java-devel libvirt-java-javadoc
+        libvirt-sandbox libvirt-sandbox-devel
+        libvirt-lock-sanlock
+        libvirt-login-shell
+        libvirt-nss
+        libvirt-wireshark
+
+    #   Desktop tool for managing virtual machines via libvirt
+    virt-manager
+
+#
+#   For Java
+#
+    java-1.8.0-openjdk-headless dialog javapackages-tools java-1.8.0-oracle java-1.8.0-oracle-headless
+
+    #   Java Compiler Compiler (JavaCC) is the most popular parser generator for use
+    #        : with Java applications. A parser generator is a tool that reads a grammar
+    #        : specification and converts it to a Java program that can recognize matches to
+    #        : the grammar. In addition to the parser generator itself, JavaCC provides other
+    #        : standard capabilities related to parser generation such as tree building (via
+    #        : a tool called JJTree included with JavaCC), actions, debugging, etc.
+
+    javacc javacc-demo javacc-javadoc javacc-manual
+
+#
+#   Google's Protocol Buffers
+#
+    protobuf protobuf-c protobuf-c-compiler protobuf-c-devel protobuf-devel protobuf-emacs protobuf-emacs-el protobuf-java protobuf-java-format protobuf-java-format-javadoc protobuf-java-util protobuf-javadoc protobuf-javanano protobuf-lite protobuf-lite-devel protobuf-lite-static protobuf-parent protobuf-static protobuf-vim
+
+#
+#   A cross-platform multimedia library
+#
+    SDL SDL2 SDL2-devel SDL2-static SDL2_image SDL2_image-devel SDL2_mixer SDL2_mixer-devel SDL-devel SDL-static SDL2_gfx SDL2_gfx-devel SDL2_gfx-docs SDL2_net SDL2_net-devel SDL2_ttf SDL2_ttf-devel SDL_Pango SDL_Pango-devel SDL_gfx SDL_gfx-devel SDL_image SDL_image-devel SDL_mixer SDL_mixer-devel SDL_mng SDL_mng-devel SDL_net SDL_net-devel SDL_sound SDL_sound-devel SDL_ttf SDL_ttf-devel
+
+#
+#   Graphics Layout Engine
+#
+    GLee GLee-devel
+
+#
+#   FOR GL
+#
+
+    #
+    #   MESA SYSTEM AND LIBRARY
+    #
+        mesa-dri-drivers mesa-filesystem mesa-libEGL mesa-libEGL-devel mesa-libGL mesa-libGL-devel mesa-libGLES mesa-libGLES-devel mesa-libGLU mesa-libGLU-devel mesa-libOpenCL mesa-libgbm mesa-libglapi mesa-libxatracker mesa-vulkan-drivers mesa-libOSMesa mesa-libOSMesa-devel mesa-libOpenCL-devel mesa-libd3d mesa-libd3d-devel mesa-libgbm-devel mesa-libxatracker-devel mesa-omx-drivers mesa-vdpau-drivers mesa-vulkan-devel mesa-demos mesa-libGLw mesa-libGLw-devel
+
+    #
+    #   The GL Vendor-Neutral Dispatch library
+    #
+    libglvnd libglvnd-opengl libglvnd-egl libglvnd-gles libglvnd-glx libglvnd-devel libglvnd-core-devel
+
+    #   EGL utilities
+    egl-utils
+
+    #   Wayland EGL External Platform library development package
+    egl-wayland egl-wayland-devel
+
+#
+#   libGLEW
+#
+    libGLEW
+
+#
+#    FOR NVIDIA CARD
+#
+
+    #   Akmod package for nvidia-340xx kernel module(s)
+    akmod-nvidia-340xx
+
+    #   Metapackage which tracks in nvidia-340xx kernel module for newest kernel
+    kmod-nvidia-340xx
+
+    #   NVIDIA's 340xx series proprietary display driver for NVIDIA graphic cards
+    xorg-x11-drv-nvidia-340xx
+
+    #   CUDA libraries for xorg-x11-drv-nvidia-340xx
+    xorg-x11-drv-nvidia-340xx-cuda
+
+    #   Development files for xorg-x11-drv-nvidia-340xx
+    xorg-x11-drv-nvidia-340xx-devel
+
+    #   xorg-x11-drv-nvidia-340xx kernel module source code
+    xorg-x11-drv-nvidia-340xx-kmodsrc
+
+    #   Libraries for xorg-x11-drv-nvidia-340xx
+    xorg-x11-drv-nvidia-340xx-libs
+
+    #   Querying OpenGL resource usage of applications using the NVIDIA OpenGL driver
+    nvidia-query-resource-opengl nvidia-query-resource-opengl-lib
+
+
+#
+#   Tools for managing Linux kernel packet filtering capabilities. Network Library and utilites. Network security library and utilites
+#
+    #
+    #   The iptables utility controls the network packet filtering code in the
+    #        : Linux kernel. If you need to set up firewalls and/or IP masquerading,
+    #        : you should install this package.
+    #
+        iptables iptables-devel iptables-libs iptables-nft iptables-services iptables-utils
+
+        #   Extensions targets and matches for iptables
+        akmod-xtables-addons kmod-xtables-addons xtables-addons
+
+
+        #   Iptables plugin for collectd
+        collectd-iptables
+
+        #   Go wrapper around iptables utility
+        #        : go-iptables wraps invokation of iptables utility with functions
+        #        : to append and delete rules; create, clear and delete chains.
+        golang-github-coreos-go-iptables-devel
+
+        #   python-iptables is a library for doing iptables manipulations from Python 3 and 2.
+        python2-iptables python3-iptables
+
+        # Manipulate netfilter connection tracking table and run High Availability
+        conntrack-tools
+
+        #   Text::CSV provides facilities for the composition and decomposition of
+        #     : comma-separated values.  An instance of the Text::CSV class can combine
+        #     : fields into a CSV string and parse a CSV string into fields.
+        perl-Text-CSV_XS
+
+        #   Manipulate IPv4/IPv6 netblocks in CIDR notation
+        perl-Net-CIDR
+
+        #   Perl extension for merging IPv4 or IPv6 CIDR addresses
+        perl-Net-CIDR-Lite
+
+        #   Regexp::Common - Provide commonly requested regular expressions
+        perl-Regexp-Common
+
+        #   Provide patterns for CIDR block
+        perl-Regexp-Common-net-CIDR
+
+        #
+        #   IP sets are a framework inside the Linux kernel since version 2.4.x, which can
+        #        : be administered by the ipset utility. Depending on the type, currently an IP
+        #        : set may store IP addresses, (TCP/UDP) port numbers or IP addresses with MAC
+        #        : addresses in a way, which ensures lightning speed when matching an entry
+        #        : against a set.
+        #        :
+        #        : If you want to:
+        #        :  - store multiple IP addresses or port numbers and match against the collection
+        #        :    by iptables at one swoop;
+        #        :  - dynamically update iptables rules against IP addresses or ports without
+        #        :    performance penalty;
+        #        :  - express complex IP address and ports based rulesets with one single iptables
+        #        :    rule and benefit from the speed of IP sets
+        #        : then ipset may be the proper tool for you.
+        #
+            ipset ipset-libs ipset-service ipset-devel
+
+    #
+    #   User space tool to set up tables of ARP rules in kernel
+    #
+        arptables
+
+    #
+    #   Ethernet Bridge frame table administration tool
+    #
+        ebtables
+
+    #
+    #   Netfilter Tables userspace utilities.
+    #
+        nftables nftables-devel
+
+        #
+        #   A library for low-level interaction with nftables Netlink's API over libmnl
+        #
+            libnftnl libnftnl-devel libnfnetlink
+
+    #
+    #   libnetfilter_queue is a userspace library providing an API to packets that have
+    #        : been queued by the kernel packet filter. It is is part of a system that
+    #        : deprecates the old ip_queue / libipq mechanism.
+    #
+        libnetfilter_queue libnetfilter_queue-devel libnetfilter_log libnetfilter_conntrack libnetfilter_cttimeout libnetfilter_cthelper libnetfilter_acct
+
+
+    #
+    #   libmnl is a minimalistic user-space library oriented to Netlink developers.
+    #        : There are a lot of common tasks in parsing, validating, constructing of both
+    #        : the Netlink header and TLVs that are repetitive and easy to get wrong.
+    #        : This library aims to provide simple helpers that allows you to re-use code and
+    #        : to avoid re-inventing the wheel.
+    #
+        libmnl libmnl-devel libmnl-static
+
+    #
+    #   ENet is a relatively thin, simple and robust network communication layer on
+    #            : top of UDP (User Datagram Protocol). The primary feature it provides is
+    #            : optional reliable, in-order delivery of packets.
+    #
+        enet enet-devel
+
+    #
+    #   Network Security Services (NSS) is a set of libraries designed to
+    #        : support cross-platform development of security-enabled client and
+    #        : server applications. Applications built with NSS can support SSL v2
+    #        : and v3, TLS, PKCS #5, PKCS #7, PKCS #11, PKCS #12, S/MIME, X.509
+    #        : v3 certificates, and other security standards.
+    #
+        nss nss-mdns nss-softokn nss-softokn-freebl nss-sysinit nss-tools nss-util nss_db nss_hesiod
+
+        nss_wrapper nss-altfiles nss-devel nss-pam-ldapd nss-pem nss-pkcs11-devel nss-softokn-devel nss-util-devel nss_nis nss_updatedb
+
+#
+#   GGROUP INSTALATION PACKAGES FOR DEVELOPMENT AND SECURITY PENTESTING
+#
+    #
+    #   "C Development Tools and Libraries"
+    #   состав: "ccache valgrind  autoconf automake bison  byacc cscope ctags flex indent libtool ltrace oprofile strace m4 perl-Thread-Queue xemacs-filesystem"
+    #
+
+    #
+    #   "Development Tools"
+    #   состав: "patch subversion systemtap diffstat doxygen  patchutils kernel-devel subversion-libs systemtap-client systemtap-devel systemtap-runtime boost-atomic dyninst libdwarf  libserf utf8proc xapian-core-libs
+    #
+
+    #
+    #   "Security Lab"
+    #   состав: "inxi lynis netsniff-ng openscap-scanner  scap-security-guide scap-workbench swaks vim-enhanced wireshark  wireshark-cli yum-utils  ArpON afftools aide aircrack-ng airsnort argus argus-clients arp-scan  bannergrab binwalk bkhive bmon bonesi bro captcp chkrootkit ciphertest cmospwd cowpatty dc3dd dcfldd ddrescue dhcping dislocker dnsenum dnsmap dnstop dnstracer driftnet dsniff echoping etherape ettercap ewftools examiner extundelete firewalk flawfinder foremost fpdns fping goaccess halberd hans hexedit hfsutils horst hping3 ht htop httpie httping httpress httpry httrack hunt hydra iftop ike-scan inception iperf iptraf-ng irssi john kismet kismon labrea lbd lnav macchanger masscan mcabber medusa mutt nano nbtscan ncrack nebula net-snmp net-snmp-utils nethogs netsed nfspy nfswatch ngrep nicstat nikto nload nmap nmbscan ntp nwipe onesixtyone openvas-cli openvas-gsa openvas-scanner ophcrack p0f packETH pads paris-traceroute pcapdiff pcapfix pcp-system-tools pdfcrack powertop proxychains-ng psad pscan pwgen pyrit python3-scapy raddump ratproxy rats reaver rkhunter safecopy samdump2 scalpel scamper scanmem screen scrub security-menus setools-gui siege sing sipp sipsak skipfish sleuthkit slowhttptest snmpcheck socat sockperf splint sqlninja srm ssldump sslscan sslsplit sslstrip subnetcalc sucrack sysstat tcpcrypt tcpflow tcpick tcpjunk tcpreen tcpreplay tcptrack tcpxtract testdisk thc-ipv6 tlssled trafshow tripwire unhide unicornscan uperf usbsniff vnstat wavemon wbox weplab whois wipe yersinia zmap"
+    #
+    #   большая частьзависимостей: "uriparser wmctrl trace-summary tre tre-common pprof pcp pcp-conf pcp-libs pcp-selinux netcdf netpbm mailx mac-robber loudmouth openscap openscap-utils openssh-askpass gnutls-dane gnutls-utils graphviz rpm-build ruby rubygems SuperLU Xaw3d afflib afpfs-ng armadillo arpack autogen-libopts blas bro-core broccoli broctl capstats cfitsio compat-lua-libs dislocker-libs fakeroot freeipmi freexl geos ghostscript-x11 gnuplot  goocanvas2 gperftools gtksourceview2 gts gv hans-client  hans-server hddtemp hiredis  ipmitool lapack lasi lm_sensors lm_sensors-libs mariadb-connector-c mariadb-connector-c-config mbedtls ogdi openblas-openmp openblas-threads64_  openvas-libraries osm-gps-map  osm-gps-map-gobject portaudio  pyliblzma pysubnettree rarian rpmdevtools rrdtool-perl rubygem-json rubygem-snmp rubypick tokyocabinet tomsfastmath unixODBC xerces-c xfce4-terminal xfconf yum yum-metadata-parser zstd mtd-utils ntpstat pixiewps"
+    #
+    #   библиотеки большая часть: "libXaw libcli libconfuse libdap libdbi libewf libforensic1394 libgeotiff libgta libjoedog  libkml libmaxminddb libmicrohttpd libnet10 libnetfilter_queue libnids libotr libsmi libsodium libspatialite libxfce4ui libxfce4util ncurses-compat-libs net-snmp-agent-libs scanmem-libs sleuthkit-libs tcpcrypt-libs"
+    #
+
+    #
+    #   "Python Classroom"
+    #   состав: "python3 python3-devel python3-idle libyaml libyaml-devel mu pipenv pypy pypy-libs pypy3 pypy3-libs pypy3-devel python3-docs python3-ipykernel python3-ipython python3-notebook python3-tox python3-virtualenv thonny redhat-rpm-config rust-srpm-macros tk  uflash  zeromq python34  python36" и куча других зависимостей.
+    #
+
+    python2-devel python3-maxminddb python-maxminddb-doc python3-setuptools python2-setuptools python2-memcached python3-memcached
+
+#
+#   WWW-SERVERS, TCP/HTTP PROXY
+#
+
+    #
+    #   HAProxy is a TCP/HTTP reverse proxy which is particularly suited for high
+    #
+        haproxy
+
+    #
+    #   HTTP accelerator
+    #
+        #
+        #    This is Varnish Cache, a high-performance HTTP accelerator.
+        #
+            varnish
+
+    #
+    #   LetsenCrypt
+    #   certbot is a free, automated certificate authority that aims
+    #        : to lower the barriers to entry for encrypting all HTTP traffic on the internet.
+    #
+        certbot
+
+    #
+    #   NGINX
+    #
+        nginx nginx-filesystem nginx-all-modules nginx-mimetypes nginx-mod-http-image-filter nginx-mod-http-perl nginx-mod-http-xslt-filter nginx-mod-mail nginx-mod-stream python2-certbot-nginx python3-certbot-nginx
+
+        #
+        # для сборки из src потребуются
+        #
+        libxslt libxslt-devel gd gd-devel
+        gperftools gperftools-libs gperftools-devel
+
+    #
+    # FastCGI is a language independent, scalable, open extension to CGI that
+    #        : provides high performance without the limitations of server specific APIs.
+    #
+      fcgi fcgi-devel
+      # Simple FastCGI wrapper for CGI scripts
+      fcgiwrap
+
+    #  uWSGI is a fast (pure C), self-healing, developer/sysadmin-friendly
+    #        : application container server.  Born as a WSGI-only server, over time it has
+    #        : evolved in a complete stack for networked/clustered web applications,
+    #        : implementing message/object passing, caching, RPC and process management.
+    #        : It uses the uwsgi (all lowercase, already included by default in the Nginx
+    #        : and Cherokee releases) protocol for all the networking/interprocess
+    #        : asynchronous/evented and supports various form of green threads/co-routine
+    #        : (like uGreen and Fiber).  Sysadmin will love it as it can be configured via
+    #        : command line, environment variables, xml, .ini and yaml files and via LDAP.
+    #        : Being fully modular can use tons of different technology on top of the same
+    #        : core.
+
+        uwsgi uwsgi-alarm-curl uwsgi-alarm-xmpp uwsgi-devel uwsgi-docs uwsgi-log-encoder-msgpack uwsgi-logger-crypto uwsgi-logger-file uwsgi-logger-graylog2 uwsgi-logger-mongodb uwsgi-logger-pipe uwsgi-logger-redis uwsgi-logger-rsyslog uwsgi-logger-socket uwsgi-logger-syslog uwsgi-logger-systemd uwsgi-logger-zeromq uwsgi-plugin-airbrake uwsgi-plugin-cache uwsgi-plugin-carbon uwsgi-plugin-cheaper-busyness uwsgi-plugin-common uwsgi-plugin-coroae uwsgi-plugin-cplusplus uwsgi-plugin-curl-cron uwsgi-plugin-dumbloop uwsgi-plugin-dummy uwsgi-plugin-fiber uwsgi-plugin-gccgo uwsgi-plugin-geoip uwsgi-plugin-glusterfs uwsgi-plugin-gridfs uwsgi-plugin-jvm  uwsgi-plugin-jwsgi uwsgi-plugin-ldap uwsgi-plugin-lua uwsgi-plugin-mongrel2 uwsgi-plugin-mono uwsgi-plugin-nagios uwsgi-plugin-notfound uwsgi-plugin-pam uwsgi-plugin-php uwsgi-plugin-psgi uwsgi-plugin-pty uwsgi-plugin-python2 uwsgi-plugin-python2-gevent uwsgi-plugin-python2-greenlet uwsgi-plugin-python2-tornado uwsgi-plugin-python3 uwsgi-plugin-python3-gevent uwsgi-plugin-python3-greenlet uwsgi-plugin-python3-tornado uwsgi-plugin-rack uwsgi-plugin-rbthreads uwsgi-plugin-ring uwsgi-plugin-rpc uwsgi-plugin-rrdtool uwsgi-plugin-ruby uwsgi-plugin-spooler uwsgi-plugin-sqlite3 uwsgi-plugin-ssi uwsgi-plugin-ugreen uwsgi-plugin-v8 uwsgi-plugin-webdav uwsgi-plugin-xattr uwsgi-plugin-xslt uwsgi-plugin-zergpool uwsgi-router-basicauth uwsgi-router-cache uwsgi-router-expires uwsgi-router-fast uwsgi-router-forkpty uwsgi-router-hash uwsgi-router-http uwsgi-router-memcached uwsgi-router-metrics uwsgi-router-radius uwsgi-router-raw uwsgi-router-redirect uwsgi-router-redis uwsgi-router-rewrite uwsgi-router-spnego uwsgi-router-ssl uwsgi-router-static uwsgi-router-tuntap uwsgi-router-uwsgi uwsgi-router-xmldir uwsgi-stats-pusher-file uwsgi-stats-pusher-mongodb uwsgi-stats-pusher-socket uwsgi-stats-pusher-statsd uwsgi-stats-pusher-zabbix uwsgi-transformation-chunked uwsgi-transformation-gzip uwsgi-transformation-offload uwsgi-transformation-template uwsgi-transformation-tofile uwsgi-transformation-toupper
+
+    #
+    #   HTTPD (APACHE2)
+    #
+        httpd mod_gnutls mod_ssl xmlsec1-gnutls xmlsec1-gnutls-devel mod_md mod_http2 mod_security mod_perl mod_geoip
+
+    #
+    #   PHP
+    #
+        php php-fpm php-pear php-pear-MDB2 php-pear-MDB2-Driver-mysqli php-pecl-memcache php-pecl-memcached php-pecl-apcu php-pecl-apcu-bc php-devel php-pecl-apcu-devel phpcs composer php-embedded
+        php-domxml-php4-php5 php-masterminds-html5 php-pecl-krb5 php-pecl-krb5-devel php-phpunit-mock-objects5 php-phpunit-php-code-coverage5 php-sabre-event5 php-whitehat101-apr1-md5
+
+    #
+    #   PERL
+    #
+        perl perl-libs perl-devel perl-Attribute-Handlers perl-DB_File perl-Devel-Peek perl-Devel-SelfStubber perl-ExtUtils-Embed perl-ExtUtils-Miniperl perl-IO-Zlib perl-Locale-Maketext-Simple perl-Memoize perl-Module-CoreList perl-Module-CoreList-tools perl-Module-Loaded perl-Net-Ping perl-Pod-Html perl-Test perl-bignum perl-libnetcfg perl-utils perl-Algorithm-Diff perl-Archive-Tar perl-Archive-Zip perl-B-Debug perl-CPAN perl-Compress-Bzip2 perl-Config-Perl-V perl-Devel-Size perl-Env perl-ExtUtils-CBuilder perl-ExtUtils-MM-Utils perl-File-Fetch perl-File-HomeDir perl-Filter-Simple perl-IPC-Cmd perl-IPC-SysV perl-IPC-System-Simple perl-Locale-Codes perl-Math-BigInt-FastCalc perl-Math-BigRat perl-Module-Build perl-Module-Load-Conditional perl-Module-Metadata perl-Params-Check perl-PerlIO-via-QuotedPrint perl-Pod-Checker perl-Pod-Parser perl-Text-Diff perl-Text-Glob perl-Unicode-Collate perl-autodie perl-experimental perl-inc-latest perl-local-lib perl-perlfaq
+
+        perl-GD perl-GD-Barcode perl-GD-SVG perl-GD-SecurityImage perl-GDGraph perl-GDGraph3d perl-GDTextUtil perl-Template-GD perl-Test-Image-GD
+
+    #
+    #   MODEJS and OTHER
+    #
+        #
+        #   Node.js is a platform built on Chrome's JavaScript runtime
+        #    : for easily building fast, scalable network applications.
+        #    : Node.js uses an event-driven, non-blocking I/O model that
+        #    : makes it lightweight and efficient, perfect for data-intensive
+        #    : real-time applications that run across distributed devices.
+        #
+            nodejs
+        #
+        #   npm is a package manager for node.js. You can use it to install and publish
+        #    : your node programs. It manages dependencies and does other cool stuff.
+        #
+            npm
+#
+# GeographicLib is a small set of C++ classes for performing conversions
+#            : between geographic, UTM, UPS, MGRS, geocentric, and local Cartesian
+#            : coordinates, for gravity (e.g., EGM2008), geoid height and geomagnetic
+#            : field (e.g., WMM2010) calculations, and for solving geodesic problems.
+#            : The emphasis is on returning accurate results with errors close to round-off
+#            : (about 5–15 nanometers). New accurate algorithms for Geodesics on an
+#            : ellipsoid of revolution and Transverse Mercator projection have been
+#            : developed for this library. The functionality of the library can be accessed
+#            : from user code, from the Utility programs provided, or via the
+#            : Implementations in other languages.
+#
+    GeographicLib GeographicLib-devel GeographicLib-doc
+#
+#   GEOIP
+#
+    GeoIP GeoIP-devel GeoIP-GeoLite-data GeoIP-GeoLite-data-extra
+
+    #   geoIP module for the Apache HTTP Server
+    mod_geoip
+
+    #   The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP. Legacy binary databases.
+    geoipupdate geoipupdate-cron geoipupdate-cron6
+
+#
+#   C library for the MaxMind DB file format
+#
+    libmaxminddb libmaxminddb-devel
+#
+#   Memory Object Cache
+#
+    #
+    #   High Performance, Distributed Memory Object Cache
+    #
+        memcached
+
+#
+#   БАЗЫ ДАННЫХ
+#
+
+    #   A complete ODBC driver manager for Linux
+    #   Install unixODBC if you want to access databases through ODBC.
+    #        : You will also need the mariadb-connector-odbc package if you want to access
+    #        : a MySQL or MariaDB database, and/or the postgresql-odbc package for PostgreSQL.
+        unixODBC unixODBC-devel
+        unixODBC-gui-qt qt-assistant-adp
+
+    #
+    #   MariaDB is a community developed branch of MySQL - a multi-user, multi-threaded
+    #        : SQL database server. It is a client/server implementation consisting of
+    #        : a server daemon (mysqld) and many different client programs and libraries.
+    #        : The base package contains the standard MariaDB/MySQL client programs and
+    #        : generic MySQL files.
+    #
+        mariadb mariadb-server mariadb-server-utils mariadb-common mariadb-backup mariadb-errmsg
+        community-mysql-libs mysql++ mariadb-connector-c mariadb-connector-c-config mariadb-connector-odbc
+
+        mariadb-devel mariadb-connector-c-devel
+
+        mariadb-bench
+        mariadb-embedded-devel mariadb-embedded
+
+        mariadb-java-client mariadb-java-client-javadoc mariadb-java-client-tests
+
+        mariadb-connect-engine mariadb-cracklib-password-check
+
+        mariadb-gssapi-server mariadb-oqgraph-engine mariadb-rocksdb-engine mariadb-server-galera mariadb-sphinx-engine mariadb-test mariadb-tokudb-engine
+
+    #
+    #   Mongo (from "humongous") is a high-performance, open source, schema-free
+    #        : document-oriented database. MongoDB is written in C++ and offers the following
+    #        : features:
+    #        :     * Collection oriented storage: easy storage of object/JSON-style data
+    #        :     * Dynamic queries
+    #        :     * Full index support, including on inner objects and embedded arrays
+    #        :     * Query profiling
+    #        :     * Replication and fail-over support
+    #        :     * Efficient storage of binary data including large objects (e.g. photos
+    #        :     and videos)
+    #        :     * Auto-sharding for cloud-level scalability (currently in early alpha)
+    #        :     * Commercial Support Available
+    #        :
+    #        : A key goal of MongoDB is to bridge the gap between key/value stores (which are
+    #        : fast and highly scalable) and traditional RDBMS systems (which are deep in
+    #        : functionality).
+    #
+        mongodb mongodb-server mongodb-test rsyslog-mongodb syslog-ng-mongodb
+
+    #
+    #   Neo4j server is a database that stores data as graphs rather than tables.
+    #   Neo4j is a highly scalable, native graph database purpose-built to
+    #        : leverage not only data but also its relationships.
+    #
+        neo4j java-1.8.0-openjdk-headless dialog javapackages-tools cypher-shell java-1.8.0-oracle java-1.8.0-oracle-headless
+
+
+    #
+    #   OrientDB — открытая СУБД, которая объединяет в себе возможности документо-ориентированной и графо-ориентированной БД. Также поддерживается интерфейс объектно-ориентированной БД, который работает поверх документо-ориентированного слоя.[1]
+    #
+    #   Код OrientDB написан на языке Java и распространяется под лицензией Apache.
+    #
+    #   Эта база данных на основе документов, но отношения управляются как в графовых базах с прямым подключением между записями. Она поддерживает схемы: less (слабоструктурированные данные), full (строго задает обязательные поля) и mixed (смешанная: обязательные + необязательные поля). Имеет мощную систему профилирования безопасности, основанную на пользователях и ролях. Поддерживает SQL в качестве языка запросов (newSQL, как называют её разработчики). OrientDB использует новый алгоритм индексации под названием RB+Tree, сочетающий в себе особенности Red-Black Tree и B+-Tree, что позволяет добиться преимущества перед этими двумя алгоритмами за счёт балансировки операций добавления и обновления данных.
+    #
+    #   Можно вставлять документы, как и любой другой базе данных, основанной на документах, но также поддерживает отношения. Он не использует дорогостоящее JOIN. Вместо этого, OrientDB использует супер-быстрые, постоянные указатели между записями, взятые из мира графовых баз данных. Можно пройти часть или целые деревья и графы записей в течение нескольких миллисекунд.
+    #
+
+#
+#   СИСТЕМЫ МОНИТОРИНГА УПРАВЛЕНИЯ И ПР... (Systems Administration, Monitoring, Logging ...)
+#
+    #
+    #   https://www.zabbix.com/ru
+    #   https://www.zabbix.com/documentation/4.0/ru/manual
+    #
+    #   Zabbix is software that monitors numerous parameters of a network and the
+    #        : health and integrity of servers. Zabbix uses a flexible notification mechanism
+    #        : that allows users to configure e-mail based alerts for virtually any event.
+    #        : This allows a fast reaction to server problems. Zabbix offers excellent
+    #        : reporting and data visualization features based on the stored data.
+    #        : This makes Zabbix ideal for capacity planning.
+    #        :
+    #        : Zabbix supports both polling and trapping. All Zabbix reports and statistics,
+    #        : as well as configuration parameters are accessed through a web-based front end.
+    #        : A web-based front end ensures that the status of your network and the health of
+    #        : your servers can be assessed from any location. Properly configured, Zabbix can
+    #        : play an important role in monitoring IT infrastructure. This is equally true
+    #        : for small organizations with a few servers and for large companies with a
+    #        : multitude of servers.
+    #
+    #   Zabbix-это решение распределенного мониторинга корпоративного класса с открытым исходным кодом,
+    #   предназначенное для мониторинга и отслеживания производительности и доступности сетевых серверов,
+    #   устройств и других ИТ-ресурсов.
+    #   Он поддерживает распределенный и веб-мониторинг, автоматическое обнаружение и многое другое.
+    #
+    #   Repository fedora
+    #
+        zabbix
+        zabbix-dbfiles-mysql zabbix-dbfiles-pgsql zabbix-dbfiles-sqlite3
+        zabbix-agent
+        zabbix-server
+        zabbix-server-mysql zabbix-server-pgsql
+        zabbix-web zabbix-web-mysql zabbix-web-pgsql
+        zabbix-proxy
+        zabbix-proxy-mysql zabbix-proxy-pgsql zabbix-proxy-sqlite3
+        zabbix-java-gateway
+
+        python3-zabbix-api-erigones python3-pyzabbix python2-zabbix-api-erigones python2-pyzabbix pcp-export-zabbix-agent pcp-export-pcp2zabbix uwsgi-stats-pusher-zabbix
+
+
+    #
+    #   GRAFANA The analytics platform for all your metrics
+    #   Grafana allows you to query, visualize, alert on and understand your metrics no matter where they are stored.
+    #   Create, explore, and share dashboards with your team and foster a data driven culture.
+    #   https://grafana.com/grafana
+    #
+        grafana
+
+    #
+    #   Grafana web application for Performance Co-Pilot (PCP)
+    #   Grafana is an open source, feature rich metrics dashboard and graph
+    #        : editor.  This package provides a Grafana that uses the Performance
+    #        : Co-Pilot (PCP) as the data repository.  Other Grafana backends are
+    #        : not used.
+    #        :
+    #        : Grafana can render time series dashboards at the browser via flot.js
+    #        : (more interactive, slower, for beefy browsers) or alternately at the
+    #        : server via png (less interactive, faster).
+    #
+        pcp-webapp-grafana
+
+    #
+    #   Nagios is a program that will monitor hosts and services on your
+    #        : network.  It has the ability to send email or page alerts when a
+    #        : problem arises and when a problem is resolved.  Nagios is written
+    #        : variants) as a background process, intermittently running checks
+    #        : on various services that you specify.
+    #        :
+    #        : The actual service checks are performed by separate "plugin" programs
+    #        : which return the status of the checks to Nagios. The plugins are
+    #        : available at https://github.com/nagios-plugins/nagios-plugins
+    #        :
+    #        : This package provides the core program, web interface, and documentation
+    #        : files for Nagios. Development files are built as a separate package.
+        nagios nagios-common
+        nagios-contrib nagios-devel nagios-lcgdm nagios-plugins nagios-plugins-all nagios-plugins-apt nagios-plugins-bacula nagios-plugins-bdii nagios-plugins-bonding nagios-plugins-breeze nagios-plugins-by_ssh nagios-plugins-check-updates nagios-plugins-cluster nagios-plugins-dbi nagios-plugins-dhcp nagios-plugins-dig nagios-plugins-disk nagios-plugins-disk_smb nagios-plugins-dns nagios-plugins-dpm-disk nagios-plugins-dpm-head nagios-plugins-dummy nagios-plugins-file_age nagios-plugins-flexlm nagios-plugins-fping nagios-plugins-fts nagios-plugins-game nagios-plugins-hpjd nagios-plugins-http nagios-plugins-icmp nagios-plugins-ide_smart nagios-plugins-ifoperstatus nagios-plugins-ifstatus nagios-plugins-ircd nagios-plugins-lcgdm nagios-plugins-lcgdm-common nagios-plugins-ldap nagios-plugins-lfc nagios-plugins-load nagios-plugins-log nagios-plugins-mailq nagios-plugins-mrtg nagios-plugins-mrtgtraf nagios-plugins-mysql nagios-plugins-nagios nagios-plugins-nrpe nagios-plugins-nt nagios-plugins-ntp nagios-plugins-ntp-perl nagios-plugins-nwstat nagios-plugins-openmanage nagios-plugins-oracle nagios-plugins-overcr nagios-plugins-perl nagios-plugins-pgsql nagios-plugins-ping nagios-plugins-procs nagios-plugins-radius nagios-plugins-real nagios-plugins-remove_perfdata nagios-plugins-rpc nagios-plugins-sensors nagios-plugins-smtp nagios-plugins-snmp nagios-plugins-snmp-disk-proc nagios-plugins-ssh nagios-plugins-swap nagios-plugins-tcp nagios-plugins-time nagios-plugins-ups nagios-plugins-uptime nagios-plugins-users nagios-plugins-wave
+
+    #
+    #   influxdata  The modern engine for Metrics and Events
+    #
+        #
+        #   Open sources
+        #
+            #
+            #   influxdb  Distributed time-series database.
+            #
+                influxdb
+            #
+            #   Telegraf Plugin-driven server agent for reporting metrics into InfluxDB.
+            #
+                telegraf
+            #
+            #   Chronograf is the Complete Interface for the InfluxData Platform
+            #
+                chronograf
+            #
+            #   Kapacitor is a Real-Time Streaming Data Processing Engine
+            #
+                kapacitor
+
+#
+#   Wndow Managers и все что с ними идет
+#
+    #
+    #   MATE Desktop групповаф установка и...
+    #
+        "MATE Desktop"

@@ -1,0 +1,276 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : local_json
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 03.08.2019, 21:47:54
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx version_control_system_phabricator_local_json_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $version_control_system_phabricator_local_json_script_source)";
+
+  #
+  # exclude options
+  #
+  ### "sourcegraph.url": "${domain}",
+
+cat << EOF > "${phabricator_www_path}/phabricator/conf/local/local.json";
+{
+  "environment.append-paths": [
+    "/sbin",
+    "/bin",
+    "/usr/sbin",
+    "/usr/bin",
+    "/usr/local/sbin",
+    "/usr/local/bin",
+    "/usr/libexec/git-core",
+    "/usr/libexec/git-core/mergetools",
+    "/var/lib/snapd/snap/bin"
+  ],
+  "mysql.port": "${mysql_port}",
+  "mysql.host": "${mysql_host}",
+  "mysql.user": "${mysql_user}",
+  "mysql.pass": "${mysql_pass}",
+  "phabricator.base-uri": "https://${domain}",
+  "security.alternate-file-domain": "https://${domain}",
+  "log.access.path": "${domain_root_path}/phabricator/logs/phd/acess.log",
+  "phd.log-directory": "${domain_root_path}/phabricator/logs/phd",
+  "phd.user": "${phd_user}",
+  "diffusion.allow-git-lfs": true,
+  "diffusion.ssh-port": ${ph_sshd_port},
+  "diffusion.ssh-user": "${vcs_user}",
+  "log.ssh.path": "${domain_root_path}/phabricator/logs/ssh/daemon.log",
+  "diffusion.allow-http-auth": true,
+  "storage.local-disk.path": "${phabricator_share_path}/${storage_local_disk_path}",
+  "repository.default-local-path": "${phabricator_share_path}/${repository_default_local_path}",
+  "phabricator.production-uri": "https://${domain}",
+  "phabricator.timezone": "${local_zone}",
+  "recaptcha.enabled": true,
+  "recaptcha.public-key": "${recaptcha_pub}",
+  "recaptcha.private-key": "${recaptcha_priv}",
+  "security.require-https": true,
+  "security.strict-transport-security": true,
+  "files.enable-imagemagick": true,
+  "pygments.enabled": true,
+  "auth.lock-config": false,
+  "account.minimum-password-length": 12,
+  "auth.require-email-verification": true,
+  "auth.require-approval": true,
+  "metamta.default-address": "${main_email}",
+  "ui.footer-items": [
+    {
+      "name" : "Copyright 2009 sensor-dream (SDBS)"
+    },
+    {
+      "name" : "Privacy Policy",
+      "href" : "https://www.sensor-dream.ru/privacy/"
+    },
+    {
+      "name" : "Terms and Conditions",
+      "href" : "https://www.sensor-dream.ru/terms/"
+    }
+  ],
+  "notification.servers": [
+    {
+      "type": "client",
+      "host": "127.0.0.1",
+      "port": 22280,
+      "protocol": "http"
+    },
+    {
+      "type": "admin",
+      "host": "127.0.0.1",
+      "port": 22281,
+      "protocol": "http"
+    }
+  ],
+  "maniphest.priorities": {
+    "100": {
+      "name": "Сделать прямо сейчас!",
+      "keywords": [
+        "unbreak"
+      ],
+      "short": "Нужно вчера!",
+      "color": "pink"
+    },
+    "90": {
+      "name": "Нужно определить приоритет",
+      "keywords": [
+        "triage"
+      ],
+      "short": "Определиться",
+      "color": "violet"
+    },
+    "80": {
+      "name": "Высокий",
+      "keywords": [
+        "high"
+      ],
+      "short": "Высокий",
+      "color": "red"
+    },
+    "50": {
+      "name": "Средний",
+      "keywords": [
+        "normal"
+      ],
+      "short": "Средний",
+      "color": "orange"
+    },
+    "25": {
+      "name": "Низкий",
+      "keywords": [
+        "low"
+      ],
+      "short": "Низкий",
+      "color": "yellow"
+    },
+    "0": {
+      "name": "Мечты и желания",
+      "keywords": [
+        "wish",
+        "wishlist"
+      ],
+      "short": "Мечты",
+      "color": "sky"
+    }
+  },
+  "maniphest.statuses": {
+    "open": {
+      "name": "Открыта",
+      "special": "default",
+      "prefixes": [
+        "открываю",
+        "открыл",
+        "открытие",
+        "переоткрытие",
+        "переоткрываю",
+        "переоткрыл"
+      ]
+    },
+    "resolved": {
+      "name": "Завершена",
+      "name.full": "Закрыта, завершена",
+      "closed": true,
+      "special": "closed",
+      "transaction.icon": "fa-check-circle",
+      "prefixes": [
+        "закрыл",
+        "закрываю",
+        "исправил",
+        "закрытие",
+        "исправил",
+        "исправление",
+        "исправляю",
+        "разрешил",
+        "разрешаю",
+        "разрешение"
+      ],
+      "suffixes": [
+        "как завершённая",
+        "как завершённую",
+        "как завершённой",
+        "как исправленной",
+        "как завершённую",
+        "как исправленная"
+      ],
+      "keywords": [
+        "закрыто",
+        "исправлено",
+        "разрешено"
+      ]
+    },
+    "wontfix": {
+      "name": "Нет желания делать",
+      "name.full": "Закрыта, нет желания делать",
+      "transaction.icon": "fa-ban",
+      "closed": true,
+      "prefixes": [
+        "нет желания делать"
+      ],
+      "suffixes": [
+        "как нежеланная"
+      ]
+    },
+    "invalid": {
+      "name": "Некорректная",
+      "name.full": "Закрыта, некорректная",
+      "transaction.icon": "fa-minus-circle",
+      "closed": true,
+      "claim": false,
+      "prefixes": [
+        "invalidate",
+        "invalidates",
+        "invalidated"
+      ],
+      "suffixes": [
+        "как некорректную",
+        "как некорректное"
+      ]
+    },
+    "duplicate": {
+      "name": "Дубликат",
+      "name.full": "Закрыто, дубликат",
+      "transaction.icon": "fa-files-o",
+      "special": "duplicate",
+      "closed": true,
+      "claim": false
+    },
+    "spite": {
+      "name": "Недовольство",
+      "name.full": "Закрыто, недовольство",
+      "name.action": "Закрыто с недовольством",
+      "transaction.icon": "fa-thumbs-o-down",
+      "silly": true,
+      "closed": true,
+      "prefixes": [
+        "недоволен",
+        "недовольство"
+      ],
+      "suffixes": [
+        "с недовольством"
+      ]
+    }
+  }
+}
+
+EOF

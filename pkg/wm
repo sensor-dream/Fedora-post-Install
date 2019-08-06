@@ -1,0 +1,94 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: Pavel M. Teslenko
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © Pavel M. Teslenko. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: wm
+## @Creation date file: 08.05.2020, 00:55:02
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx wm_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo -e '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${wm_script_source})";
+
+function install_wm(){
+  
+  local install_pkg=(\
+    # Краткое опис : Very small and fast Window Manager
+    # URL          : https://github.com/bbidulock/blackboxwm
+    # Лицензия     : MIT
+    # Описание     : Blackbox is a window manager for the X Window environment, which is
+    #              : almost completely compliant with ICCCM specified operation policies.
+    #              : It features nice and fast interface with multiple workspaces and
+    #              : simple menus. Fast built-in graphics code that can render solids,
+    #              : gradients and bevels is used to draw window decorations. Remaining
+    #              : small in size, blackbox preserves memory and CPU.
+    # Краткое опис : A highly configurable and standards-compliant X11 window manager
+    # URL          : http://openbox.org
+    # Лицензия     : GPLv2+
+    # Описание     : Openbox is a window manager designed explicity for standards-compliance and
+    #              : speed. It is fast, lightweight, and heavily configurable (using XML for its
+    #              : configuration data). It has many features that make it unique among window
+    #              : managers: window resistance, chainable key bindings, customizable mouse
+    #              : actions, multi-head/Xinerama support, and dynamically generated "pipe menus."
+    #              :
+    #              : For a full list of the FreeDesktop.org standards with which it is compliant,
+    #              : please see the COMPLIANCE file in the included documentation of this package.
+    #              : For a graphical configuration editor, you'll need to install the obconf
+    #              : package.
+    'blackbox blackbox-devel' \
+    'openbox openbox-devel openbox-theme-mistral-thin openbox-theme-mistral-thin-dark imlib2-devel openbox-libs' \
+  );
+  
+  pkg -a "$@" -- "${install_pkg[*]}";
+  
+}
+
+function main_wm_script_source(){
+  
+  echo_m "Initialise main function of wm script source";
+  
+  install_wm "$@";
+  
+}
+
+main_wm_script_source "$@";

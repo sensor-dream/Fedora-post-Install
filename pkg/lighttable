@@ -1,0 +1,105 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : lighttable
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 10.05.2019, 15:55:11
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_lighttable_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_lighttable_script_source)";
+
+
+function pkg_install_lighttable(){
+
+  local path="/mnt/sda/opt/lighttable";
+
+  if [[ ! -f ~/bin/lein ]]; then
+    mkdir -p ~/bin;
+    curl 'https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein' -o ~/bin/lein;
+    chmod +x ~/bin/lein;
+  fi
+
+  if [[ ! -d "${path}" ]]; then
+    mkdir -m 0775 -p "${path}";
+    git clone 'https://github.com/LightTable/LightTable.git' "${path}";
+  fi
+
+  if [[ ! -d "${path}/builds" ]]; then
+    npm audit fix;
+    . "${path}/script/build.sh";
+  fi
+
+  if [[ ! -f '/usr/share/applications/lighttable.desktop' ]]; then
+    path=${path}/builds/$(ls ${path}/builds);
+    cat << ROF > 'lighttable.desktop';
+[Desktop Entry]
+Name=LightTable
+Comment=Code Editing. Redefined.
+GenericName=Text Editor
+Exec=${path}/LightTable
+Icon=${path}/resources/app/core/img/lticon.png
+Type=Application
+StartupNotify=true
+StartupWMClass=LightTable
+Categories=Utility;TextEditor;Development;IDE;
+MimeType=text/plain;inode/directory;
+Actions=new-empty-window;
+Keywords=lighttable;
+ROF
+    sudo mv 'lighttable.desktop' '/usr/share/applications/lighttable.desktop';
+  fi
+  # . "${path}/lein;
+
+}
+
+function main_pkg_lighttable_script_source(){
+
+  check_user;
+
+  echo_m "Initialise main function";
+
+  pkg_install_lighttable;
+
+}
+
+main_pkg_lighttable_script_source "$@";

@@ -1,0 +1,368 @@
+#!/bin/env bash
+
+declare -rx elk_run_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $elk_run_script_source";
+
+check_root;
+
+declare -r elasticsearch_user="elasticsearch";
+declare -r elasticsearch_cluster_name="home.sensor-dream.ru";
+declare -r elasticsearch_node_name="${HOSTNAME}";
+declare -r elasticsearch_node_attr_rack="r4";
+declare -r elasticsearch_network_host="localhost";
+declare -r elasticsearch_http_port="9200";
+declare -r elasticsearch_path_data="/mnt/sda/System/db/elasticsearch";
+declare -r elasticsearch_path_logs="/var/log/elasticsearch";
+
+declare -r logstash_user="logstash";
+declare -r logstash_path_data="/mnt/sda/System/db/logstash";
+declare -r logstash_path_logs="/var/log/logstash";
+
+declare -r kibana_server_host="\"$elasticsearch_network_host\"";
+declare -r kibana_server_port="5601";
+declare -r kibana_server_name="\"$elasticsearch_node_name\"";
+declare -r kibana_elasticsearch_url="\"http://$elasticsearch_network_host:$elasticsearch_http_port\"";
+declare -r kibana_elasticsearch_pingTimeout="1500";
+declare -r kibana_elasticsearch_requestTimeout="30000";
+declare -r kibana_i18n_defaultLocale="\"en\"";
+
+declare -r filebeat_path_data="/mnt/sda/System/db/filebeat";
+declare -r filebeat_path_logs="/var/log/filebeat";
+
+#
+#   Подключение репозитория
+#
+
+preparate_elastic_repository() {
+
+    if [  -z "$( find  /etc/yum.repos.d/elastic* 2> /dev/null )" ]; then
+        rpm --import 'https://artifacts.elastic.co/GPG-KEY-elasticsearch';
+cat << EOF > '/etc/yum.repos.d/elastic.repo';
+[elasticsearch-6.x]
+name=Elasticsearch repository for 6.x packages
+baseurl=https://artifacts.elastic.co/packages/6.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+EOF
+    fi
+
+}
+
+#
+#   Установка и настройка Elasticsearch
+#
+
+preparate_elasticsearch(){
+
+    install_packages "elasticsearch";
+
+    if [[ ! -f "/etc/elasticsearch/elasticsearch.yml.back" ]];then
+        cp "/etc/elasticsearch/elasticsearch.yml" "/etc/elasticsearch/elasticsearch.yml.back";
+    fi
+
+    if [[ ! -f "/etc/sysconfig/elasticsearch.back" ]];then
+        cp "/etc/sysconfig/elasticsearch" "/etc/sysconfig/elasticsearch.back";
+    fi
+
+    if [[ ! -d "$elasticsearch_path_data" ]]; then
+        mkdir -m 0755 "$elasticsearch_path_data";
+        chown -R "$elasticsearch_user"."$elasticsearch_user" "$elasticsearch_path_data";
+    fi
+
+    if [[ ! -d "$elasticsearch_path_logs" ]]; then
+        mkdir -m 0755 "$elasticsearch_path_logs";
+        chown -R "$elasticsearch_user"."$elasticsearch_user" "$elasticsearch_path_logs";
+    fi
+
+    if ! grep -q "path.data:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "path.data: $elasticsearch_path_data" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*path.data:.*$|path.data: $elasticsearch_path_data|g" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "path.logs:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "path.logs: $elasticsearch_path_logs" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*path.logs:.*$|path.logs: $elasticsearch_path_logs|g" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "network.host:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "network.host: $elasticsearch_network_host" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*network.host:.*$|network.host: $elasticsearch_network_host|g" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "http.port:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "http.port: $elasticsearch_http_port" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*http.port:.*$|http.port: $elasticsearch_http_port|g" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "cluster.name:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "cluster.name: $elasticsearch_cluster_name" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*cluster.name:.*$|cluster.name: $elasticsearch_cluster_name|g" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "node.name:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "node.name: $elasticsearch_node_name" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*node.name:.*$|node.name: $elasticsearch_node_name|g" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "node.attr.rack:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "node.attr.rack: $elasticsearch_node_attr_rack" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*node.attr.rack:.*$|node.attr.rack: $elasticsearch_node_attr_rack|g" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "action.auto_create_index:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "action.auto_create_index: .*" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*action.auto_create_index:.*$|action.auto_create_index: .*|" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "http.cors.enabled:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "http.cors.enabled: true" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*http.cors.enabled:.*$|http.cors.enabled: true|" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "bootstrap.memory_lock:" "/etc/elasticsearch/elasticsearch.yml"; then
+        echo "bootstrap.memory_lock: true" | tee -a "/etc/elasticsearch/elasticsearch.yml";
+    else
+        sed -i "s|^.*bootstrap.memory_lock:.*$|bootstrap.memory_lock: true|" "/etc/elasticsearch/elasticsearch.yml";
+    fi
+
+    if ! grep -q "MAX_LOCKED_MEMORY=" "/etc/sysconfig/elasticsearch"; then
+        echo "MAX_LOCKED_MEMORY=unlimited" | tee -a "/etc/sysconfig/elasticsearch";
+    else
+        sed -i "s|^.*MAX_LOCKED_MEMORY=.*$|MAX_LOCKED_MEMORY=unlimited|" "/etc/sysconfig/elasticsearch";
+    fi
+
+    #
+    #   Install plugins
+    #
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/analysis-icu" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-icu;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/discovery-file" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install discovery-file;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/ingest-attachment" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install ingest-attachment;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/ingest-geoip" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install ingest-geoip;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/ingest-user-agent" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install ingest-user-agent;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/ingest-csv" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install https://oss.sonatype.org/service/local/repositories/releases/content/info/johtani/elasticsearch/plugin/ingest/ingest-csv/6.4.3.0/ingest-csv-6.4.3.0.zip;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/mapper-size" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install mapper-size;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/mapper-murmur3" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install mapper-murmur3;
+    fi
+
+    if [[ ! -d "/usr/share/elasticsearch/plugins/store-smb" ]]; then
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install store-smb;
+    fi
+
+    systemctl_activate_service "elasticsearch";
+
+
+}
+
+#
+#   Установка и настройка Kibana
+#
+
+preparate_kibana(){
+
+    install_packages "kibana";
+
+    if [[ ! -f "/etc/kibana/kibana.yml.back" ]];then
+        cp "/etc/kibana/kibana.yml" "/etc/kibana/kibana.yml.back";
+    fi
+
+    if ! grep -q "server.port:" "/etc/kibana/kibana.yml"; then
+        echo "server.port: $kibana_server_port" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*server.port:.*$|server.port: $kibana_server_port|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "server.host:" "/etc/kibana/kibana.yml"; then
+        echo "server.host: $kibana_server_host" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*server.host:.*$|server.host: $kibana_server_host|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "server.name:" "/etc/kibana/kibana.yml"; then
+        echo "server.name: $kibana_server_name" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*server.name:.*$|server.name: $kibana_server_name|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "elasticsearch.url:" "/etc/kibana/kibana.yml"; then
+        echo "elasticsearch.url: $kibana_elasticsearch_url" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*elasticsearch.url:.*$|elasticsearch.url: $kibana_elasticsearch_url|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "elasticsearch.pingTimeout:" "/etc/kibana/kibana.yml"; then
+        echo "elasticsearch.pingTimeout: $kibana_elasticsearch_pingTimeout" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*elasticsearch.pingTimeout:.*$|elasticsearch.pingTimeout: $kibana_elasticsearch_pingTimeout|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "elasticsearch.requestTimeout:" "/etc/kibana/kibana.yml"; then
+        echo "elasticsearch.requestTimeout: $kibana_elasticsearch_requestTimeout" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*elasticsearch.requestTimeout:.*$|elasticsearch.requestTimeout: $kibana_elasticsearch_requestTimeout|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "i18n.defaultLocale:" "/etc/kibana/kibana.yml"; then
+        echo "i18n.defaultLocale: $kibana_i18n_defaultLocale" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*i18n.defaultLocale:.*$|i18n.defaultLocale: $kibana_i18n_defaultLocale|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "kibana.index:" "/etc/kibana/kibana.yml"; then
+        echo "kibana.index: \".kibana\"" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*kibana.index:.*$|kibana.index: \".kibana\"|g" "/etc/kibana/kibana.yml";
+    fi
+
+    if ! grep -q "kibana.defaultAppId:" "/etc/kibana/kibana.yml"; then
+        echo "kibana.defaultAppId: \"kibana-$elasticsearch_node_attr_rack\"" | tee -a "/etc/kibana/kibana.yml";
+    else
+        sed -i "s|^.*kibana.defaultAppId:.*$|kibana.defaultAppId: \"kibana-$elasticsearch_node_attr_rack\"|g" "/etc/kibana/kibana.yml";
+    fi
+
+    systemctl_activate_service "kibana";
+
+}
+
+preparate_logstash(){
+
+    install_packages "logstash";
+
+    if [[ ! -f "/etc/logstash/logstash.yml.back" ]];then
+        cp "/etc/logstash/logstash.yml" "/etc/logstash/logstash.yml.back";
+    fi
+
+    if [[ ! -d "$logstash_path_data" ]]; then
+        mkdir -m 0755 "$logstash_path_data";
+        chown -R "$logstash_user"."$logstash_user" "$logstash_path_data";
+    fi
+
+    if [[ ! -d "$logstash_path_logs" ]]; then
+        mkdir -m 0755 "$logstash_path_logs";
+        chown -R "$logstash_user"."$logstash_user" "$logstash_path_logs";
+    fi
+
+    if ! grep -q "path.data:" "/etc/logstash/logstash.yml"; then
+        echo "path.data: $logstash_path_data" | tee -a "/etc/logstash/logstash.yml";
+    else
+        sed -i "s|^.*path.data:.*$|path.data: $logstash_path_data|g" "/etc/logstash/logstash.yml";
+    fi
+
+    if ! grep -q "path.logs:" "/etc/logstash/logstash.yml"; then
+        echo "path.logs: $logstash_path_logs" | tee -a "/etc/logstash/logstash.yml";
+    else
+        sed -i "s|^.*path.logs:.*$|path.logs: $logstash_path_logs|g" "/etc/logstash/logstash.yml";
+    fi
+
+    systemctl_activate_service "logstash";
+
+}
+
+preparate_filebeat(){
+
+    install_packages "filebeat";
+
+    if [[ ! -f "/etc/filebeat/filebeat.yml.back" ]];then
+        cp "/etc/filebeat/filebeat.yml" "/etc/filebeat/filebeat.yml.back";
+    fi
+
+    # enable modules filebeat
+    filebeat modules enable mysql;
+    filebeat modules enable kibana;
+    filebeat modules enable elasticsearch;
+    filebeat modules enable system;
+    filebeat modules enable apache2;
+    filebeat modules enable osquery;
+    sleep 5;
+    systemctl_activate_service "filebeat";
+
+}
+
+
+#
+#   Application Performance Monitoring (APM) collects in-depth performance metrics and errors from inside your application. It allows you to monitor the performance of thousands of applications in real time
+#
+
+preparate_apm_server(){
+
+    install_packages "apm-server";
+    systemctl_activate_service "apm-server";
+
+}
+
+preparate_elastic_repository;
+preparate_elasticsearch;
+# preparate_logstash;
+preparate_kibana;
+preparate_filebeat;
+preparate_apm_server;
+
+echo "End preparation ELK";

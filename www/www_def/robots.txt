@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /tmp
+Crawl-delay: 2
+# Sitemap: https://sensor-dream.ru/sitemap.xml

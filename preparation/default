@@ -1,0 +1,392 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : default.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-13 04:20:09
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_default_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $preparation_default_script_source";
+
+## отключаем отправку писем с результатами выполнения cron
+
+function disable_mailto_cron() {
+
+  check_root;
+
+  if ! grep "^CRONDARGS=.*-m off\"" "/etc/sysconfig/crond"; then
+
+    echo_w "отключаем отправку писем с результатами выполнения cron ГЛОБАЛЬНО в /etc/sysconfig/crond";
+
+    if ! grep "^CRONDARGS=.*\"" "/etc/sysconfig/crond"; then
+      sed -i -e 's/^CRONDARGS=/CRONDARGS="-m off"/' "/etc/sysconfig/crond";
+    else
+      sed -i -e '/^CRONDARGS=*/s/"$/ -m off"/' "/etc/sysconfig/crond";
+    fi
+
+    systemctl restart crond;
+
+  fi
+
+  add_cron_job "MAILTO=\"\"" '';
+  add_cron_job "MAILTO=\"\"" '' "$main_user";
+
+  echo_w "отключаем отправку писем с результатами выполнения cron"
+
+}
+
+##  Отключаем tracker
+function tracker_stop() {
+
+    check_root;
+
+  if [[ -n "$( find  /etc/xdg/autostart/tracker* 2> /dev/null )" ]]; then
+      sed -i 's/X-GNOME-Autostart-enabled.*/X-GNOME-Autostart-enabled=false/' "/etc/xdg/autostart/tracker"*;
+    if [ ! -d "/root/.config/autostart" ]; then
+      mkdir -p "/root/.config/autostart";
+    fi
+    if [[ -z "$( find  /root/.config/autostart/tracker* 2> /dev/null )" ]]; then
+      cp -f "/etc/xdg/autostart/tracker"* "/root/.config/autostart/";
+    else
+      sed -i 's/X-GNOME-Autostart-enabled.*/X-GNOME-Autostart-enabled=false/' "/root/.config/autostart/tracker"*;
+    fi
+    if [[ ! -d "/home/$main_user/.config/autostart" ]]; then
+      mkdir -p "/home/$main_user/.config/autostart";
+      chown "$main_user"."$main_user" "/home/$main_user/.config/autostart/";
+    fi
+    if [[ -z "$( find  "/home/$main_user/.config/autostart/tracker"* 2> /dev/null )" ]]; then
+      cp -f "/etc/xdg/autostart/tracker"* "/home/$main_user/.config/autostart/";
+      chown "$main_user"."$main_user" "/home/$main_user/.config/autostart/tracker"*;
+    else
+      sed -i 's/X-GNOME-Autostart-enabled.*/X-GNOME-Autostart-enabled=false/' "/home/$main_user/.config/autostart/tracker"*;
+    fi
+
+    ## На всякий случай
+
+    systemctl_activate_and_start_or_restart_service "crond";
+
+    ## Прибиваем все что есть
+    tracker daemon -t all 2> /dev/null
+
+    add_cron_job "* * * * *" "/bin/bash <<< 'tracker daemon -t all' > /dev/null 2>&1";
+    # add_cron_job "* * * * *" "/bin/bash <<< 'tracker daemon -t all' > /dev/null 2>&1" "$main_user";
+    add_cron_job "* * * * *" "pkill tracker > /dev/null 2>&1";
+    add_cron_job "* * * * *" "pkill tracker > /dev/null 2>&1" "$main_user";
+
+    echo_m "tracker stop done";
+
+  fi
+}
+
+##  Отключаем 
+function preparation_xdg_autostart_desktop() {
+
+  check_root;
+
+  stop_xdg_autostart_desktop 'org.gnome.Evolution-alarm-notify.desktop';
+  stop_xdg_autostart_desktop 'gnome-software-service.desktop';
+  stop_xdg_autostart_desktop 'org.mageia.dnfdragora-updater.desktop';
+
+}
+
+#
+# Отключаем Selinux
+#
+
+function selinux_disable(){
+
+    check_root;
+
+    sed -i 's/^SELINUX=.*$/SELINUX=disabled/' "/etc/selinux/config";
+
+    if ! grep -q "selinux" /etc/default/grub; then
+      create_back_file "/etc/default/grub";
+      sed -i -e '/rhgb quiet/s/rhgb quiet/selinux=0 rhgb quiet/' /etc/default/grub;
+      ## Реконфигурем загрузчик
+      grub2-mkconfig -o /boot/grub2/grub.cfg;
+    fi
+
+    echo_m "selinux disable done" ;
+
+}
+
+#
+# Запрещаем входящий логин для root по ssh
+#
+
+function configured_sshd(){
+
+    check_root;
+
+    if ! grep -q -E "^[#]?Port\s.*$" '/etc/ssh/sshd_config'; then
+        echo "Port ${main_sshd_port}" >> '/etc/ssh/sshd_config';
+    else
+        sed -i -r "s/^[#]?Port\s.*$/Port ${main_sshd_port}/" '/etc/ssh/sshd_config';
+    fi
+
+    if ! grep -q -E "^[#]?PermitRootLogin\s.*$" '/etc/ssh/sshd_config'; then
+        echo "PermitRootLogin ${main_sshd_permit_root_login}" >> '/etc/ssh/sshd_config';
+    else
+        sed -i -r "s/^[#]?PermitRootLogin\s.*$/PermitRootLogin ${main_sshd_permit_root_login}/" '/etc/ssh/sshd_config';
+    fi
+
+    if ! grep -q -E "^[#]?Banner\s.*$" '/etc/ssh/sshd_config'; then
+        echo "Banner ${main_sshd_show_banner}" >> '/etc/ssh/sshd_config';
+    else
+        sed -i -r "s/^[#]?Banner\s.*$/Banner ${main_sshd_show_banner}/" '/etc/ssh/sshd_config';
+    fi
+
+    systemctl_activate_and_start_or_restart_service "sshd";
+
+    echo_m "${main_msg_data[65]} sshd ${main_msg_data[101]}" ;
+
+}
+
+#
+# Русифицируем консоль
+#
+
+function vconsole_rus_lang(){
+
+    check_root;
+
+    if [ ! -f "/etc/vconsole.conf" ]; then
+        touch "/etc/vconsole.conf";
+    fi
+    if ! grep -q "KEYMAP" "/etc/vconsole.conf"; then
+        echo "KEYMAP=\"us\"" >> "/etc/vconsole.conf";
+    fi
+    if ! grep -q "FONT=\"UniCyr_8x16\""  "/etc/vconsole.conf"; then
+        sed -i '/^FONT/s/FONT/# FONT/' "/etc/vconsole.conf";
+        ## echo "# FONT=\"UniCyrExt_8x16\"" >> "/etc/vconsole.conf";
+        echo "FONT=\"UniCyr_8x16\"" >> "/etc/vconsole.conf";
+    fi
+
+    echo_m "Russian language vconsole prepared";
+
+}
+
+#
+# улучшение отображение шрифтов в Fedora
+# https://russianfedora.github.io/FAQ/installation.html
+#
+
+function improved_font_display() {
+
+    ln -s /usr/share/fontconfig/conf.avail/11-lcdfilter-default.conf /etc/fonts/conf.d/
+
+}
+
+#
+# Конфигурируем раскладку прерывание scroll led при переключении раскладки в xorg и включение numlock при логине
+#
+
+function keyboard_conf(){
+
+    check_root;
+
+    ## ,grp_led:scroll
+    sed -i "s/XkbOptions.*/XkbOptions\" \"grp:alt_shift_toggle,terminate:ctrl_alt_bksp\"/" "/etc/X11/xorg.conf.d/"*"keyboard.conf";
+
+    echo_m "keyboard conf prepared";
+
+}
+
+#
+# Конфигурируем поиск хостов
+#
+
+function host_conf(){
+
+    check_root;
+
+    cat << EOF > "/etc/host.conf"
+order hosts,bind
+multi on
+EOF
+
+    echo_m "host conf prepared";
+
+}
+
+#
+# Устанавливаем имя хоста
+#
+
+function host_name(){
+
+    check_root;
+
+    if [[ "$(hostname)" != "$main_hostname"  ]]; then
+        echo_m "$main_hostname  prepared";
+        echo "$main_hostname" > "/etc/hostname";
+    else
+        echo_m "$main_hostname already prepared";
+    fi
+
+}
+
+#
+# Устанавливаем резолв хостов для себя родимого для своих нужд
+#
+
+function link_ip_host_name(){
+
+    check_root;
+
+    create_name_in_hosts_file "$main_hostname";
+
+}
+
+#
+#  Ограничение максимального объема файла системного журнала
+#
+
+function max_file_journald(){
+
+    check_root;
+
+    local use=$(grep "SystemMaxUse" "/etc/systemd/journald.conf");
+
+    if [[ -n "$use" ]]; then
+        if [[ "$use" != "SystemMaxUse=128M" ]]; then
+            sed -i "s/^.*SystemMaxUse=.*/SystemMaxUse=128M/" '/etc/systemd/journald.conf';
+            exec -c 'journalctl' '--vacuum-size=128M';
+        else
+            echo_m "journald.conf already prepared";
+        fi
+    else
+        insert_after_found_text_file "\[Journal\]" "SystemMaxUse=128M"  '/etc/systemd/journald.conf';
+        exec -c 'journalctl' '--vacuum-size=128M';
+    fi
+
+    echo_m "journald.conf prepared";
+
+}
+
+function stop_unnecessary_units(){
+
+  check_root;
+
+  local mask_srv=(\
+'livesys-late' \
+'bluetooth' \
+'ModemManager' \
+### 'vboxservice' \
+### 'vmtoolsd' \
+### 'vmtoolsd-init' \
+### 'qemu-guest-agent' \
+'packagekit' \
+### 'libvirtd' \
+### 'spice-vdagentd' \
+);
+
+  systemctl_disabled_services  "${mask_srv[*]}";
+
+  systemctl daemon-reload;
+
+  echo_m "stop unnecessary units";
+
+}
+
+function init_systemd_resolved(){
+
+  if [[ -n "$@" && "$1" == "disable" ]]
+  then
+    systemctl_disabled_services "systemd-resolved";
+  else
+  if [[ -f "/etc/systemd/resolved.conf" ]]; then
+
+    if ! grep "^DNS=" "/etc/systemd/resolved.conf"; then
+      cat << EOF >> "/etc/systemd/resolved.conf";
+#
+# Main configurations
+#
+# DNS=127.0.0.1
+DNS=$ip_dns_1 $ip_dns_2 $ip_dns_3 $ipv6_dns_1 $ipv6_dns_2 $ipv6_dns_3
+# FallbackDNS=$ip_dns_1 $ip_dns_2 $ip_dns_3 $ipv6_dns_1 $ipv6_dns_2 $ipv6_dns_3
+Domains=$main_local_group_domain
+LLMNR=no
+MulticastDNS=no
+DNSSEC=no
+Cache=yes
+DNSStubListener=no
+ReadEtcHosts=yes
+EOF
+      fi
+
+    fi
+
+    systemctl_activate_and_start_or_restart_service systemd-resolved;
+
+  fi
+
+}
+
+#
+# Выносим sendmail
+#
+
+function kill_sendmail(){
+
+  check_root;
+
+  add_cron_job "* * * * *" "pkill sendmail > /dev/null 2>&1";
+
+  echo_m "Add killing of sendmail in cron done.";
+
+}
+
+#tracker_stop;
+preparation_xdg_autostart_desktop;
+selinux_disable;
+configured_sshd;
+vconsole_rus_lang;
+improved_font_display;
+host_conf;
+host_name;
+link_ip_host_name;
+max_file_journald;
+### stop_unnecessary_units;
+# disable_mailto_cron;
+keyboard_conf;
+### init_systemd_resolved disable;
+###  kill_sendmail;

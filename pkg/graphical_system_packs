@@ -1,0 +1,120 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : graphical_system_packs
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 12.05.2019, 2:37:44
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_graphical_system_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_graphical_system_packs_script_source)";
+
+
+function main_pkg_graphical_system_packs_script_source(){
+
+  echo_m "Initialise main function of graphical_system_packs script source";
+
+  check_root;
+
+  local install_pkg=(\
+kernel-devel kernel-headers gcc make dkms acpid pkgconf-pkg-config libdrm libdrm-devel drm-utils \
+#
+#   The GL Vendor-Neutral Dispatch library
+#
+libglvnd libglvnd-devel libglvnd-core-devel libglvnd-glx libglvnd-opengl libglvnd-egl libglvnd-gles \
+# libglvnd-opengl.i686 libglvnd-egl.i686 libglvnd-gles.i686 \
+# Tool to query the capabilities of a VDPAU implementation.
+vdpauinfo \
+# VDPAU Backend for Video Acceleration (VA) API.
+libva-vdpau-driver \
+# Tools for VAAPI (including vainfo)
+libva-utils \
+#   MESA SYSTEM AND LIBRARY
+#
+mesa-dri-drivers mesa-filesystem mesa-libEGL mesa-libEGL-devel mesa-libGL mesa-libGL-devel mesa-libGLES mesa-libGLES-devel mesa-libGLU mesa-libGLU-devel mesa-libOpenCL mesa-libgbm mesa-libglapi mesa-libxatracker mesa-vulkan-drivers mesa-libOSMesa mesa-libOSMesa-devel mesa-libOpenCL-devel mesa-libd3d mesa-libd3d-devel mesa-libgbm-devel mesa-libxatracker-devel mesa-omx-drivers mesa-vdpau-drivers mesa-vulkan-devel mesa-demos mesa-libGLw mesa-libGLw-devel \
+# mesa-libEGL.i686 mesa-libGLES.i686 mesa-libgbm.i686 \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+#   Graphics Layout Engine
+#
+GLee GLee-devel \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+#   EGL utilities
+egl-utils \
+#   Wayland EGL External Platform library development package
+egl-wayland egl-wayland-devel \
+# libwayland-server.i686 egl-wayland.i686 
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+libgle \
+libglpng \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+#   libGLEW
+#
+libGLEW \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+freeglut freeglut-devel \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+main_pkg_graphical_system_packs_script_source "$@";

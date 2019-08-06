@@ -1,0 +1,235 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : initial_certbot
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-10 17:28:19
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx www_initial_certbot_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $www_initial_certbot_script_source";
+
+function initial_certbot(){
+
+  check_root;
+
+  local install_pkg=(\
+certbot \
+python3-acme \
+python3-certbot \
+python3-configargparse \
+python3-configobj \
+python3-future \
+python3-josepy \
+python3-ndg_httpsclient \
+python3-parsedatetime \
+python3-pyasn1 \
+python3-pyrfc3339 \
+python3-requests-toolbelt \
+python3-zope-component \
+python3-zope-event \
+python3-zope-interface \
+python3-certbot-apache \
+python3-certbot-nginx \
+python3-certbot-dns-cloudflare \
+python3-certbot-dns-cloudxns \
+python3-certbot-dns-digitalocean \
+python3-certbot-dns-dnsimple \
+python3-certbot-dns-dnsmadeeasy \
+python3-certbot-dns-gehirn \
+python3-certbot-dns-google \
+python3-certbot-dns-linode \
+python3-certbot-dns-luadns \
+python3-certbot-dns-nsone \
+python3-certbot-dns-ovh \
+python3-certbot-dns-rfc2136 \
+python3-certbot-dns-route53 \
+python3-certbot-dns-sakuracloud \
+);
+
+  pkg -a "${install_pkg[@]}" "$@";
+
+}
+
+function generate_certificate_for_one_domain_or_subdomains(){
+
+  local domain="$1";
+
+  if [[ ! -f "$letsencrypt_base_path/$domain/fullchain.pem" || ! -f "$letsencrypt_base_path/$domain/privkey.pem" ]]; then
+
+    echo_m "Generate SSLCertificate files for $domain";
+    ## count="$(grep -o '\.' <<< ${DOMAIN[$index]} |wc -l)";
+    if [[ $(get_count_dot "$domain") -eq 1 ]]; then
+      certbot certonly --standalone --force-renewal --rsa-key-size $letsencrypt_rsa_key_size --agree-tos -n --expand -m "$main_email" --eff-email -d "$domain" -d "www.$domain";
+    else
+      certbot certonly --standalone --force-renewal --rsa-key-size $letsencrypt_rsa_key_size --agree-tos -n --expand -m "$main_email" --eff-email -d "$domain";
+    fi
+    [[  -f "$letsencrypt_base_path/$domain/fullchain.pem" ]] && echo_m "Generate SSLCertificate files for $domain is OK";
+
+  fi
+
+}
+
+function generate_wildcard_certificate_for_main_domain(){
+
+    local test='';
+    local domain='';
+
+    OPTIND=1
+
+    while getopts "t" OPT
+    do
+      case $OPT in
+        # --test-cert or --staging
+        t   ) test='--staging'; ;;
+        *   ) ;;
+      esac
+    done
+    shift $(($OPTIND - 1));
+    # shift `expr $OPTIND - 1`
+    [ "${1:-}" = "--" ] && shift;
+
+  domain="$@";
+
+  [[ -z "${domain}" ]] && domain="${main_domain}";
+
+#  certbot certonly --manual $test --preferred-challenges dns --force-renewal --rsa-key-size $letsencrypt_rsa_key_size --agree-tos \
+#    --expand -m "$main_email" --eff-email -d "*.${domain}" -d "${domain}";
+
+  certbot certonly --manual $test \
+    --manual-public-ip-logging-ok \
+    --preferred-challenges dns-01 \
+    --force-renewal \
+    --rsa-key-size $letsencrypt_rsa_key_size \
+    --agree-tos \
+    --expand -m "$main_email" \
+    --eff-email \
+    --server https://acme-v02.api.letsencrypt.org/directory \
+    -d "*.${domain}" -d "${domain}";
+
+}
+
+function generate_certivecate_for_main_domain_and_also_using_csr() {
+
+    local test='';
+    local domain='';
+
+    OPTIND=1
+
+    while getopts "t" OPT
+    do
+      case $OPT in
+        # --test-cert or --staging
+        t   ) test='--staging'; ;;
+        *   ) ;;
+      esac
+    done
+    shift $(($OPTIND - 1));
+    # shift `expr $OPTIND - 1`
+    [ "${1:-}" = "--" ] && shift;
+
+  domain="$@";
+
+  [[ -z "${domain}" ]] && domain="${main_domain}";
+
+  [[ -f "${main_project_path}/security_file/private.key" ]] || openssl genrsa -out "${main_project_path}/security_file/private.key" 4096;
+  # [[ -f ${main_project_path}/security_file/${domain}.csr ]] || openssl req -new -key "${main_project_path}/security_file/private.key" -out "${main_project_path}/security_file/${domain}.csr" -sha256;
+
+  [[ -f ${main_project_path}/security_file/${domain}.csr ]] || openssl req -new -sha256 -key "${main_project_path}/security_file/private.key" -subj "/CN=${domain}" -reqexts SAN -config <(printf "[SAN]\nsubjectAltName=DNS:*.${domain},DNS:${domain}") -out "${main_project_path}/security_file/${domain}.csr"
+
+  certbot certonly --manual $test --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory --rsa-key-size $letsencrypt_rsa_key_size --agree-tos \
+    --expand -m "$main_email"  --eff-email \
+    --csr "${main_project_path}/security_file/${domain}.csr" \
+    --manual-public-ip-logging-ok;
+}
+
+function revoke_certificate(){
+
+  certbot revoke --cert-path "$letsencrypt_base_path/$1/cert.pem" --reason keycompromise
+
+}
+
+function delete_certificate(){
+
+  certbot delete --cert-name "$1";
+
+}
+
+cat << TXT > /dev/null
+function set_cron_renewals_certificates(){
+
+  local base_path="$main_www_base_path";
+  [[ -z "$base_path" ]] && base_path="/var/www/html/renewals";
+
+  if [[ ! -d "$base_path" ]]; then
+    mkdir -p 0775 "$pase_path";
+    chown apache.apache "$base_path";
+  fi
+
+  echo_m "Set cron job for renew SSLCertificate file for domains";
+  add_cron_job '0 4 * * 2' "certbot -q --authenticator webroot -w $base_path renew --no-self-upgrade --allow-subset-of-names --force-renewal 2>&1 > /dev/null &" 'root';
+
+}
+TXT
+
+function chk_status_OCSP_Stapling(){
+
+  local connect="$@";
+
+  [[ -z "${connect}" ]] && connect='localhost:443';
+
+  #openssl s_client -connect "$@":443 -tls1  -tlsextdebug  -status < /dev/null | head -30;
+  #openssl s_client -connect "$@":443 -tls1  -tlsextdebug  -status < /dev/null | grep -A 20 'OCSP response:' | grep -B 20 'Next Update';
+  echo QUIT | openssl s_client -connect ${connect} -status 2> /dev/null | grep -A 17 'OCSP response:' | grep -B 17 'Next Update'
+
+}
+
+function main_www_initial_certbot_script_source(){
+
+  echo_m "Initialise main function";
+
+  initial_certbot;
+
+  # generate_wildcard_certificate_for_main_domain -t -- "$main_domain";
+  # generate_wildcard_certificate_for_main_domain -- "$main_domain";
+
+}
+
+main_www_initial_certbot_script_source "$@";

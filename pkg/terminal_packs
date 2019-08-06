@@ -1,0 +1,93 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : terminal_packs
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 06.05.2019, 7:57:43
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_terminal_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_terminal_packs_script_source)";
+
+
+function main_pkg_terminal_packs_script_source(){
+
+  echo_m "Initialise main function";
+
+  install_pkg=(\
+#   terminal emulators in one window
+#
+#   Store and run multiple GNOME terminals in one window
+#terminator \
+#   EFL based terminal emulator
+#terminology \
+#   Tilix is a tiling terminal emulator
+#tilix tilix-nautilus \
+#   ouR XVT, a VT102 emulator for the X window system
+# rxvt rxvt-unicode rxvt-unicode-256color rxvt-unicode-256color-ml perl-Text-Bidi-urxvt \
+#   A lightweight multi-tabbed terminal emulator for X
+#mrxvt \
+#   Drop-down terminal for GNOME
+guake \
+#   Terminal emulator for the X Window System
+#xterm \
+#   KDE Terminal emulator.
+konsole5 \
+# cool-retro-term is a terminal emulator which tries to mimic the look and feel
+# : of the old cathode tube screens. It has been designed to be eye-candy,
+# : customizable, and reasonably lightweight.
+'cool-retro-term' \
+# A Qt-based multiplexing terminal emulator client
+# : implementing the TermySequence protocol
+# 'termy-qt' \
+# A multiplexing terminal emulator server implementing
+# : the TermySequence protocol
+# 'termy-server' \
+# Описание     : Yakuake is a drop-down terminal emulator.
+#'yakuake' \
+);
+
+  install_packages -a "${install_pkg[*]}";
+
+}
+
+main_pkg_terminal_packs_script_source "$@";

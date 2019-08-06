@@ -1,0 +1,358 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : unbound
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 09.05.2019, 18:30:05
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx dns_unbound_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $dns_unbound_script_source)";
+
+function dns_write_unbound_main_conf(){
+
+  local unbound_path='/etc/unbound';
+  local unbound_lib_path='/var/lib/unbound';
+  local unbound_log_path='/var/log/unbound';
+  local pid_path="/var/run/unbound";
+  local cfg_file='unbound.conf';
+  local cfg_file_backup='unbound.conf.backup';
+  local main_cfg_file='unbound.conf';
+  local num_core=$(nproc);
+  local msg_cache_size=10;
+  local SO_REUSEPORT=1;
+  local unbound_username='unbound';
+  local linkLocal="${link_local}";
+  local linkLoop="${link_loop}";
+  local ipMaskLoop="${ip_mask_loop}";
+  local ipLoop="${ip_loop}";
+  local ipMask="${ip_mask}";
+  local ipDevice="${ip_device}";
+  local brockerIpv6="${brocker_ipv6}";
+  local ipv6loop="${ipv6_loop}";
+  local linkIpv6loop="${link_ipv6_loop}";
+  local brockerNetworkPull="${brocker_network_pull}";
+  local ipv6maskLoop="${ipv6_mask_loop}";
+  local localIpv6ofBrockerNetworkPull="${local_ipv6_of_brocker_network_pull}";
+  local ipDns1="${ip_dns_1}";
+  local ipDns2="${ip_dns_2}";
+  local ipDns3="${ip_dns_3}";
+  local ipDns4="${ip_dns_4}";
+  local ipDns5="${ip_dns_5}";
+  local ipDns6="${ip_dns_6}";
+  local ipv6dns1="${ipv6_dns_1}";
+  local ipv6dns2="${ipv6_dns_2}";
+  local ipv6dns3="${ipv6_dns_3}";
+  local ipv6dns4="${ipv6_dns_4}";
+  local ipv6dns5="${ipv6_dns_5}";
+  local ipv6dns6="${ipv6_dns_6}";
+
+  if [[ ! -d "${unbound_log_path}" ]]; then
+    mkdir -p -m 0775 "${unbound_log_path}";
+    chown "${unbound_username}" "${unbound_log_path}";
+  fi
+
+  if [[ ! -f "${unbound_path}/named.cache" ]]; then
+    curl "https://www.internic.net/domain/named.cache" -o "${unbound_path}/named.cache";
+  fi
+
+  if [[ ! -f "${unbound_path}/root-anchors.xml" ]]; then
+
+    curl "https://data.iana.org/root-anchors/root-anchors.xml" -o "${unbound_path}/root-anchors.xml";
+
+  fi
+
+  if [[ ! -f "${unbound_path}/root.key" ]]; then
+
+    rm -f "${unbound_path}/root.key";
+
+    unbound-anchor -a "${unbound_path}/root.key" -4 -r "${unbound_path}/named.cache";
+
+    chown ${unbound_username} "${unbound_path}/root.key";
+
+  fi
+
+cat << MESS > /dev/null
+  if [[ ! -f "${unbound_lib_path}/root.key" ]]; then
+
+    rm -f "${unbound_lib_path}/root.key";
+
+    unbound-anchor -a "${unbound_lib_path}/root.key" -4 -r "${unbound_lib_path}/named.cache";
+
+    chown ${unbound_username} "${unbound_lib_path}/root.key";
+
+  fi
+MESS
+
+cat << MESS > /dev/nul
+  if ! grep -q "include:[[:space:]]\"${unbound_path}/${main_cfg_file}\"" "${unbound_path}/${cfg_file}"; then
+
+    # insert_after_found_text_one_file "Use this to include other text into the file" "include: \"${unbound_path}/${main_cfg_file}\"" "${unbound_path}/${cfg_file}";
+
+    echo -e "\ninclude: \"${unbound_path}/${main_cfg_file}\"" >> "${unbound_path}/${cfg_file}"
+  fi
+MESS
+
+  if [[ ! -f "${unbound_path}/${cfg_file_backup}" ]]; then
+
+    mv -f "${unbound_path}/${cfg_file}" "${unbound_path}/${cfg_file_backup}";
+
+  fi
+
+  cat << EOF > "${unbound_path}/${main_cfg_file}";
+#
+#   Main configuration files for unbound dns recursive server
+#   ${unbound_path}/${main_cfg_file}
+#   $(date);
+#
+
+server:
+
+    username: "${unbound_username}"
+    # directory: "${unbound_path}"
+    directory: ""
+    # chroot: "${unbound_path}"
+    chroot: ""
+
+    root-hints: "${unbound_path}/named.cache"
+    logfile: "${unbound_log_path}/unbound.log"
+    log-time-ascii: yes
+    use-syslog: no
+    pidfile: "${unbound_path}/unbound.pid"
+
+    identity: "SDBS"
+    version: "$(date)"
+    hide-identity: no
+    hide-version: no
+
+    verbosity: 1
+    val-log-level: 1
+    statistics-cumulative: no
+    extended-statistics: yes
+    num-threads: ${num_core}
+
+    do-ip4: yes
+    do-ip6: yes
+    do-udp: yes
+    # включает хождение наружу по tcp. Я пытался использовать её совместно с "do-udp no", но без форварда вместе они работать не будут. Но для примера пусть полежит.
+    do-tcp: yes
+
+    # включаем эту опцию, если собираемся форвардить dns через TLS
+    ssl-upstream: no
+
+    interface: ${ipLoop}
+    interface: ${ipDevice}
+    interface: ${ipv6loop}
+    interface: ${localIpv6ofBrockerNetworkPull}
+    interface-automatic: yes
+
+    port: 53
+
+    access-control: 0.0.0.0/0 refuse
+    access-control: ::0/0 refuse
+    access-control: ${linkLocal}/${ipMask} allow
+    access-control: ${linkLoop}/${ipMaskLoop} allow_snoop
+    access-control: ::ffff:${ipLoop} allow
+    access-control: ${linkIpv6loop}/${ipv6maskLoop} allow_snoop
+    access-control: ${brockerNetworkPull}/${ipv6maskLoop} allow
+
+    outgoing-interface: ${ipDevice}
+    outgoing-interface: ${brockerIpv6}
+
+    outgoing-port-permit: 32768-60999
+    outgoing-port-avoid: 0-32767
+
+    so-reuseport: yes
+
+    ip-transparent: yes
+
+    max-udp-size: 3072
+
+    edns-tcp-keepalive: yes
+
+    harden-glue: yes
+    harden-dnssec-stripped: yes
+    harden-below-nxdomain: yes
+    harden-referral-path: yes
+
+    # Do not query the given IP address. Can be  IP4  or  IP6.  Append /num  to indicate  a classless delegation netblock, for example like 10.2.3.4/24 or 2001::11/64.
+    do-not-query-address: ${linkLoop}/${ipMaskLoop}
+    do-not-query-address: ${linkIpv6loop}/${ipv6maskLoop}
+
+    #If yes, localhost is added to the do-not-query-address  entries, both  IP6 :1 and IP4 127.0.0.1/8. If no, then localhost can be used to send queries to. Default is yes.
+    do-not-query-localhost: yes
+
+    prefetch: yes
+    prefetch-key: yes
+    # снижаем количество информации, которую unbound отправляет на чужие NS в своих исходящих запросах.
+    qname-minimisation: yes
+    aggressive-nsec: yes
+    # unbound будет отдавать записи одного типа (если их несколько, т.н. round-robin) в случайном порядке.
+    rrset-roundrobin: yes
+    # если в них нет необходимости, то unbound убирает из своего ответа информацию о NS-серверах домена. Чуть увеличивает скорость и уменьшает трафик (если в unbound ходим по сети).
+    minimal-responses: yes
+    # приводит все ответы сервера (и записи в кэше) к нижнему регистру
+    use-caps-for-id: yes
+
+    unwanted-reply-threshold: 10000000
+
+    trust-anchor-signaling: yes
+    root-key-sentinel: yes
+
+    trusted-keys-file: ${unbound_path}/keys.d/*.key
+##    root key file, automatically updated
+    auto-trust-anchor-file: "${unbound_lib_path}/root.key"
+
+#    val-permissive-mode: yes
+#    module-config: "validator iterator"
+#    module-config: "ipsecmod validator iterator"
+    module-config: "validator iterator"
+#    module-config: "iterator"
+
+    msg-cache-slabs: $(((${num_core}*2)))
+    rrset-cache-slabs: $(((${num_core}*2)))
+    infra-cache-slabs: $(((${num_core}*2)))
+    key-cache-slabs: $(((${num_core}*2)))
+
+#    msg-cache-slabs: 1
+#    rrset-cache-slabs: 1
+#    infra-cache-slabs: 1
+#    key-cache-slabs: 1
+
+##    more cache memory, rrset-cache-size=msg-cache-size*2
+##    total usage is (rrset-cache-size+msg-cache-size)*cores
+    rrset-cache-size: $(((${msg_cache_size}*2)))m
+    msg-cache-size: ${msg_cache_size}m
+
+    val-clean-additional: yes
+    val-permissive-mode: no
+
+    serve-expired: yes
+    # serve-expired-ttl: 14400
+    serve-expired-ttl: 0
+
+    so-rcvbuf: 0
+
+    deny-any: yes
+
+    statistics-interval: 0
+    extended-statistics: yes
+    # set to yes if graphing tool needs it
+    statistics-cumulative: no
+
+    # Эта опция включает обновление записей в кэше в фоне
+    prefetch: yes
+
+    # запись с ttl больше 14400 секунд в кеш записываем с ttl равным 14400
+    cache-max-ttl: 14400
+    # запись с ttl меньше 60 секунд записываем в кэш с ttl равным 60 секунду
+    cache-min-ttl: 60
+
+remote-control:
+    control-enable: yes
+    control-use-cert: "no"
+    control-interface: ${ipLoop}
+    control-interface: ${ipv6loop}
+    # control-interface: ${ipDevice}
+    # control-interface: ${localIpv6ofBrockerNetworkPull}
+    control-port: 8953
+    server-key-file: "${unbound_path}/unbound_server.key"
+    server-cert-file: "${unbound_path}/unbound_server.pem"
+    control-key-file: "${unbound_path}/unbound_control.key"
+    control-cert-file: "${unbound_path}/unbound_control.pem"
+
+forward-zone:
+    name: "."
+    forward-addr: ${ipDns1}
+    forward-addr: ${ipDns2}
+    forward-addr: ${ipDns3}
+    forward-addr: ${ipDns4}
+    forward-addr: ${ipDns5}
+    forward-addr: ${ipDns6}
+    forward-addr: ${ipv6dns1}
+    forward-addr: ${ipv6dns2}
+    forward-addr: ${ipv6dns3}
+    forward-addr: ${ipv6dns4}
+    forward-addr: ${ipv6dns5}
+    forward-addr: ${ipv6dns6}
+
+# auth-zone:
+#     name: "."
+#     for-downstream: no
+#     for-upstream: yes
+#     fallback-enabled: yes
+#     master: 199.9.14.201         # b.root-servers.net
+#     master: 192.33.4.12          # c.root-servers.net
+#     master: 199.7.91.13          # d.root-servers.net
+#     master: 192.5.5.241          # f.root-servers.net
+#     master: 192.112.36.4         # g.root-servers.net
+#     master: 193.0.14.129         # k.root-servers.net
+#     master: 192.0.47.132         # xfr.cjr.dns.icann.org
+#     master: 192.0.32.132         # xfr.lax.dns.icann.org
+#     master: 2001:500:200::b      # b.root-servers.net
+#     master: 2001:500:2::c        # c.root-servers.net
+#     master: 2001:500:2d::d       # d.root-servers.net
+#     master: 2001:500:2f::f       # f.root-servers.net
+#     master: 2001:500:12::d0d     # g.root-servers.net
+#     master: 2001:7fd::1          # k.root-servers.net
+#     master: 2620:0:2830:202::132 # xfr.cjr.dns.icann.org
+#     master: 2620:0:2d0:202::132  # xfr.lax.dns.icann.org
+
+EOF
+
+}
+
+function main_dns_unbound_script_source(){
+
+  check_root;
+
+  echo_n "Initialise main function";
+
+  . "${main_project_path}/pkg/unbound" "$@";
+
+  dns_write_unbound_main_conf;
+
+  systemctl_activate_and_start_or_restart_service unbound;
+
+}
+
+main_dns_unbound_script_source "$@";

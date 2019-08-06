@@ -1,0 +1,188 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : phone_managers
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 21.08.2019, 20:37:37
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_phone_managers_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_phone_managers_script_source})";
+
+function install_pkg_phone_managers(){
+
+  local install_pkg=(\
+# Repository   : updates
+# Summary      : Phone anywhere in the whole world by using the Internet
+# URL          : http://www.linphone.org/
+# Лицензия     : GPLv2+
+# Description  : Linphone is mostly sip compliant. It works successfully with these
+# : implementations:
+# :     * eStara softphone (commercial software for windows)
+# :     * Pingtel phones (with DNS enabled and VLAN QOS support disabled).
+# :     * Hotsip, a free of charge phone for Windows.
+# :     * Vocal, an open source SIP stack from Vovida that includes a SIP proxy
+# :         that works with linphone since version 0.7.1.
+# :     * Siproxd is a free sip proxy being developed by Thomas Ries because he
+# :         would like to have linphone working behind his firewall. Siproxd is
+# :         simple to setup and works perfectly with linphone.
+# :     * Partysip aims at being a generic and fully functionnal SIP proxy. Visit
+# :         the web page for more details on its functionalities.
+# :
+# : Linphone may work also with other sip phones, but this has not been tested yet.
+'linphone' \
+'linphone-devel' \
+'linphone-mediastreamer' \
+'libeXosip2' \
+'libosip2' \
+'ortp' \
+'spandsp' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Repository   : updates
+# Summary      : Common files for SFLPhone
+# URL          : https://gitlab.savoirfairelinux.com/sfl-ports/sflphone
+# Лицензия     : GPLv3+
+# Description  : SFLphone is a robust standards-compliant enterprise software phone,
+# : for desktop and embedded systems. It is designed to handle
+# : several hundreds of calls a day. It supports both SIP and IAX2
+# : protocols.
+# :
+# : This package includes common files for SFLPhone.
+'sflphone-common' \
+'sflphone-daemon' \
+'ccrtp' \
+'dbus-c++' \
+'iaxclient-libiax' \
+'ilbc' \
+'libzrtpcpp' \
+'pjproject' \
+'ucommon' \
+# Repository   : updates
+# Summary      : Plugins (address book) for SFLphone
+# URL          : https://gitlab.savoirfairelinux.com/sfl-ports/sflphone
+# Лицензия     : GPLv3+
+# Description  : SFLphone is a robust standards-compliant enterprise software phone,
+# : for desktop and embedded systems. It is designed to handle
+# : several hundreds of calls a day. It supports both SIP and IAX2
+# : protocols.
+# :
+# : This package includes the address book plugin.
+'sflphone-gnome-plugins' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Repository   : fedora
+# Summary      : Gnome Phone Manager
+# URL          : https://wiki.gnome.org/PhoneManager/
+# Лицензия     : GPLv2+
+# Description  : This program will connect to your mobile phone over a serial port,
+# : either via a cable, infrared (IrDA) or Bluetooth connection.
+# :
+# : For example it listens for text messages, and when they arrive,
+# : displays them on the desktop. A visual indicator is displayed in
+# : the notification area, if one is presently added to the panel.
+'gnome-phone-manager' \
+# Repository   : fedora
+# Summary      : Telepathy connection manager to send and receive SMSes
+# URL          : https://wiki.gnome.org/PhoneManager/
+# Лицензия     : GPLv2+
+# Description  : This program will connect to your mobile phone over a serial port,
+# : either via a cable, infrared (IrDA) or Bluetooth connection.
+# :
+# : This plugin to Telepathy allows you to send and receive messages using any
+# : Instant Messaging application that uses Telepathy, such as Empathy.
+'gnome-phone-manager-telepathy' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+ install_pkg=(\
+# Repository   : fedora
+# Summary      : Mobile Phone Manager - Gammu GUI
+# URL          : http://wammu.eu/
+# Лицензия     : GPL-2.0
+# Description  : Wammu is mobile phone manager running on Linux,
+# : Windows and possibly other platforms,where Gammu and wxPython works.
+# : It works with any phone that Gammu supports, including many models from
+# : Nokia, Siemens, and Alcatel. It has complete support (read, edit,
+# : delete, copy) for contacts, todo, and calendar. It can read, save, and
+# : send SMS. It includes an SMS composer for multi-part SMS messages, and
+# : it can display SMS messages that include pictures. Currently, only text
+# : and predefined bitmaps or sounds can be edited in the SMS composer. It
+# : can export messages to an IMAP4 server (or other email storage).
+# :
+# : This program does not support browsing files in phone, use gMobileMedia
+# : instead.
+# :
+# : Other features:
+# : * sending files to phone (OBEX and Sony Ericsson phones only)
+# : * support for backup and import in various formats (vCard, iCalendar,...)
+# : * searching for phone
+# : * translated into several languages
+# : * rated as best on many software servers
+'wammu' \
+'gammu' \
+'gammu-libs' \
+'python2-gammu' \
+'libdbi-dbd-sqlite' \
+'libdbi-drivers' \
+'python2-wxpython' \
+'wxGTK3-media' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_phone_managers_script_source(){
+
+  echo_m "Initialise main function of phone_managers script source";
+
+  install_pkg_phone_managers "$@";
+
+}
+
+main_pkg_phone_managers_script_source "$@";

@@ -1,0 +1,67 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : spyder
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 11.05.2019, 2:11:52
+
+# Spyder — open-source IDE для Python, оптимизированная для data science.
+# https://github.com/spyder-ide/spyder
+# https://fedoraproject.org/wiki/Spyder
+# https://docs.spyder-ide.org/index.html
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_spyder_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_spyder_script_source)";
+
+
+function main_pkg_spyder_script_source(){
+
+  check_root;
+
+  echo_m "Initialise main function of spyder script source";
+
+  pkg -a "$@" -- 'python3-spyder';
+
+}
+
+main_pkg_spyder_script_source "$@";

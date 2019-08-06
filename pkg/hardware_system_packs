@@ -1,0 +1,113 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : hardware_system_packs
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 24.10.2019, 2:09:15
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_hardware_system_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_hardware_system_packs_script_source})";
+
+function install_pkg_hardware_system_packs(){
+
+  local install_pkg=(\
+#   The smartmontools package contains two utility programs (smartctl
+#            : and smartd) to control and monitor storage systems using the Self-
+#            : Monitoring, Analysis and Reporting Technology System (SMART) built
+#            : into most modern ATA and SCSI hard disks. In many cases, these
+#            : utilities will provide advanced warning of disk degradation and
+#            : failure.
+#
+smartmontools \
+#   Hardware monitoring tools
+#
+#   The lm_sensors package includes a collection of modules for general SMBus
+#        : access and hardware monitoring.
+#
+lm_sensors-libs lm_sensors \
+#
+#   hddtemp is a tool that gives you the temperature of your hard drive by
+#            : reading S.M.A.R.T. information.
+hddtemp \
+#
+#   Hdparm is a useful system utility for setting (E)IDE hard drive
+#        : parameters.  For example, hdparm can be used to tweak hard drive
+#        : performance and to spin down hard drives for power conservation.
+#
+hdparm \
+# A simple fan control program. Works with any Linux hwmon driver, especially
+# : with thinkpad_acpi. It is designed to eat as little CPU power as possible.
+thinkfan \
+# HDD Fan control is a command line tool to dynamically control fan speed
+# : according to hard drive temperature on Linux.
+hddfancontrol \
+# Neofetch is a command-line system information tool written in bash 3.2+.
+# Neofetch displays information about your operating system,
+# software and hardware in an aesthetic and visually pleasing way.
+neofetch \
+# Краткое опис : A "Bash Screenshot Information Tool"
+# URL          : https://github.com/KittyKatt/screenFetch
+# Лицензия     : GPLv3+
+# Описание     : This handy Bash script can be used to generate one of
+#              : those nifty terminal theme information + ASCII distribution
+#              : logos you see in everyone's screen-shots nowadays. It will
+#              : auto-detect your distribution and display an ASCII version
+#              : of that distribution's logo and some valuable information
+#              : to the right. There are options to specify no ASCII art,
+#              : colors, taking a screen-shot upon displaying info, and even
+#              : customizing the screen-shot command! This script is very easy
+#              : to add to and can easily be extended.
+'screenfetch' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_hardware_system_packs_script_source(){
+
+  echo_m "Initialise main function of hardware_system_packs script source";
+
+  install_pkg_hardware_system_packs "$@";
+
+}
+
+main_pkg_hardware_system_packs_script_source "$@";

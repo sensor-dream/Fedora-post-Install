@@ -1,0 +1,89 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : iptables_configure
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 11.05.2019, 19:35:03
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx firewall_iptables_configure_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $firewall_iptables_configure_script_source)";
+
+
+function main_firewall_iptables_configure_script_source(){
+
+  echo_m "Initialise main function of iptables_configure script source";
+
+
+  if [[ -f "/etc/sysconfig/iptables-config" ]]; then
+
+    if ! grep -q "^net.ipv4.ip_forward.*1$" "/etc/sysctl.conf"; then
+
+      . "${main_project_path}/preparation/sysctl";
+
+    fi
+
+    ### . "${main_project_path}/firewall/xtables_addons";
+
+    local cfg_modules+=(\
+iptable_mangle iptable_filter iptable_nat \
+ip_tables ip_conntrack ip_nat_ftp ip_nat_irc ip_conntrack_ftp ip_conntrack_irc \
+ipt_limit ipt_state ipt_owner ipt_REJECT ipt_MASQUERADE ipt_ah \
+ipt_DNAT ipt_ECN ipt_realm ipt_REDIRECT ipt_SNAT ipt_ttl ipt_TTL \
+);
+
+# PATH-OF-MATIC
+#   cfg_modules=(${cfg_modules[*]} \
+#xt_CHAOS xt_DELUDE xt_TARPIT
+#)
+
+#    cfg_modules+=(xt_CHAOS xt_DELUDE xt_TARPIT);
+
+    sed -i -e "s%IPTABLES_MODULES=.*$%IPTABLES_MODULES=\"${cfg_modules[*]}\"%; s%IPTABLES_SAVE_ON_STOP=.*$%IPTABLES_SAVE_ON_STOP=\"yes\"%; s%IPTABLES_SAVE_ON_RESTART=.*$%IPTABLES_SAVE_ON_RESTART=\"yes\"%" "/etc/sysconfig/iptables-config";
+
+    systemctl_activate_and_start_or_restart_service iptables;
+
+  fi
+
+}
+
+main_firewall_iptables_configure_script_source "$@";

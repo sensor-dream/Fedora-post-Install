@@ -1,0 +1,672 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : workstation_a_lot_of_packages.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-8 19:13:49
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_workstation_a_lot_of_packages_script_source="$BASH_SOURCE"
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)"
+  echo "Скрипт запускается из ${main_run_script_path}"
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../
+      else
+        cd "${main_run_script_path}"
+        check=0
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m"
+        tput sgr0
+        exit 1
+      fi
+    else
+      check=0
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)"
+        . "$main_project_path/main.cfg"
+      fi
+      cd "${main_run_script_path}"
+    fi
+  done
+fi
+
+echo_w "Подключаем $pkg_workstation_a_lot_of_packages_script_source"
+
+function workstation_a_lot_of_packages_install_packages() {
+
+  check_root
+
+  #
+  # An open source implementation of SSH protocol version 2
+  #
+
+  . ${main_project_path}/pkg/openssh
+
+  install_pkg=(
+    # dcfldd is an enhanced version of GNU dd with features useful for forensics
+    # : and security. dcfldd has the following additional features:
+    # :    * Hashing on-the-fly - dcfldd can hash the input data as it is being
+    # :      transferred, helping to ensure data integrity.
+    # :    * Status output - dcfldd can update the user of its progress in terms of
+    # :      the amount of data transferred and how much longer operation will take.
+    # :    * Flexible disk wipes - dcfldd can be used to wipe disks quickly
+    # :      and with a known pattern if desired.
+    # :    * Image/wipe Verify - dcfldd can verify that a target drive is a
+    # :      bit-for-bit match of the specified input file or pattern.
+    # :    * Multiple outputs - dcfldd can output to multiple files or disks at
+    # :      the same time.
+    # :    * Split output - dcfldd can split output to multiple files with more
+    # :      configuration possibilities than the split command.
+    # :    * Piped output and logs - dcfldd can send all its log data and output
+    # :      to commands as well as files.
+    'dcfldd'
+  )
+
+  install_packages ${install_pkg[*]}
+
+  install_pkg=(
+    #   Like text utility
+    #
+    #
+    #   Grep-like text finder
+    #   Ack is designed as a replacement for grep.
+    #
+    ack
+    #   Line oriented search tool using Rust's regex library. Combines (rg)
+    #        : the raw performance of grep with the usability of the silver searcher.
+    #   rg --help
+    ripgrep
+    #
+    #   Super-fast text searching tool (ag)
+    #   The Silver Searcher is a code searching tool similar to ack,
+    #        : with a focus on speed.
+    #   ag --help
+    the_silver_searcher
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    # syslog-ng is an enhanced log daemon, supporting a wide range of input and
+    # : output methods: syslog, unstructured text, message queues, databases (SQL
+    # : and NoSQL alike) and more.
+    #
+    # : Key features:
+    # :
+    # :  * receive and send RFC3164 and RFC5424 style syslog messages
+    # :  * work with any kind of unstructured data
+    # :  * receive and send JSON formatted messages
+    # :  * classify and structure logs with builtin parsers (csv-parser(),
+    # :    db-parser(), ...)
+    # :  * normalize, crunch and process logs as they flow through the system
+    # :  * hand on messages for further processing using message queues (like
+    # :    AMQP), files or databases (like PostgreSQL or MongoDB).
+    syslog-ng
+    #   monit is a utility for managing and monitoring, processes, files, directories
+    #            : and devices on a UNIX system. Monit conducts automatic maintenance and repair
+    #            : and can execute meaningful causal actions in error situations.
+    monit
+    #   The psacct package contains several utilities for monitoring process
+    #            : activities, including ac, lastcomm, accton and sa. The ac command
+    #            : displays statistics about how long users have been logged on. The
+    #            : lastcomm command displays information about previous executed
+    #            : commands. The accton command turns process accounting on or off. The
+    #            : sa command summarizes information about previously executed
+    #            : commands.
+    psacct
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #
+    #   FOR DNF PACKAGER UTILITES
+    #
+    #   Systemd units that can periodically download package upgrades and apply them.
+    dnf-automatic
+    #   Dbus daemon for performing package actions with the dnf package manager
+    dnfdaemon
+    #   Metapackage customizing the SELinux policy to make the dnf-daemon work with SELinux enabled in enforcing mode
+    dnfdaemon-selinux
+    python2-dnf-plugin-versionlock python3-dnf-plugin-versionlock
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  #
+  # GRAPHIKAL SYSTEM PACKS
+  #
+
+  install_pkg=(
+    # Bats is a TAP-compliant testing framework for Bash. It provides a simple way to
+    # : verify that the UNIX programs you write behave as expected. Bats is most useful
+    # : when testing software written in Bash, but you can use it to test any UNIX
+    # : program.
+    bats
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   for sh tool and other
+    #  A portable shell tool
+    shtool
+    #   shUnit2 is a xUnit unit test framework for Bourne based shell scripts,
+    #        : and it is designed to work in a similar manner to JUnit, PyUnit, etc.
+    #        : If you have ever had the desire to write a unit test for a shell script,
+    #        : shUnit2 can do the job.
+    shunit2
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   System utility and tools
+    #
+    #   BAMF removes the headache of applications matching into a simple DBus
+    #    : daemon and C wrapper library. Currently features application matching
+    #    : at amazing levels of accuracy (covering nearly every corner case). This
+    #    : package contains the bamf daemon and supporting data.
+    bamf bamf-daemon
+    #   Valgrind is an instrumentation framework for building dynamic analysis
+    #    : tools. There are Valgrind tools that can automatically detect many
+    #    : memory management and threading bugs, and profile your programs in
+    #    : detail. You can also use Valgrind to build new tools. The Valgrind
+    #    : distribution currently includes six production-quality tools: a memory
+    #    : error detector (memcheck, the default tool), two thread error
+    #    : detectors (helgrind and drd), a cache and branch-prediction profiler
+    #    : (cachegrind), a call-graph generating cache and branch-prediction
+    #    : profiler (callgrind), and a heap profiler (massif).
+    valgrind valgrind-devel valgrind-openmpi valgrind-tools-devel
+    #   Command line tool to interact with an X Window Manager
+    wmctrl
+    # X.Org X11 xkb gadgets
+    xorg-x11-xkb-extras
+    #   Latency Logging and Graphing System
+    smokeping
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  #
+  # Display login managers
+  #
+  install_pkg=(
+    # Dialog is a utility that allows you to show dialog boxes (containing
+    # : questions or messages) in TTY (text mode) interfaces.  Dialog is called
+    # : from within a shell script.  The following dialog boxes are implemented:
+    # : yes/no, menu, input, message, text, info, checklist, radiolist, and
+    # : gauge.
+    # :
+    # : Install dialog if you would like to create TTY dialog boxes.
+    dialog
+    # CDM is a minimalistic, yet full-featured replacement for login-managers
+    # : like slim, kdm, gdm and qingy that provides a fast, dialog-based login
+    # : system without the overhead of the X Window System. Written in pure bash.
+    cdm
+    # The default Fedora wallpaper for less common DEs
+    #  The desktop-backgrounds-compat package contains file-names used
+    # : by less common Desktop Environments such as LXDE to set up the
+    # : default wallpaper.
+    desktop-backgrounds-compat
+    # SDDM is a modern display manager for X11 aiming to be fast, simple and
+    # : beautiful. It uses modern technologies like QtQuick, which in turn gives the
+    # : designer the ability to create smooth, animated user interfaces.
+    sddm
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    glib
+    gnome-libs
+    #   Customize advanced GNOME 3 options
+    gnome-tweaks
+    # KDE and Plasma resources management GUI
+    'plasma-discover'
+    # Plasma Discover flatpak support
+    'plasma-discover-flatpak'
+    # Runtime libraries for plasma-discover
+    'plasma-discover-libs'
+    # Plasma Discover Update Notifier
+    'plasma-discover-notifier'
+    # Plasma Discover snap support
+    'plasma-discover-snap'
+    ## AppCenter is a native Gtk+ app store built on AppStream and Packagekit.
+    ## : This package contains the gnome-shell search provider.
+    ## appcenter-gnome-shell-search-provider \
+    ## appcenter \
+    # gnome-shell-extension-openweather is an extension to display weather information
+    # : from https://openweathermap.org/ or https://darksky.net for (almost) all locations
+    # : of the world in GNOME Shell.
+    gnome-shell-extension-openweather
+    # Gnome shell extension that allows to make simple math operations in
+    # : the search overview
+    gnome-shell-extension-screenshot-window-sizer
+    gnome-shell-extension-windowoverlay-icons
+    # Selene is an "almost dark" theme based on elementary GTK theme,
+    # : inspired by the old Atolm GTK2 theme.
+    gnome-shell-theme-selene
+    # gdesklets: provides an advanced architecture for desktop applets -
+    # : tiny displays that sit on your desktop such as status meters, icon
+    # : bars, weather sensors, news tickers.
+    gdesklets
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    # GTK+ graphical user interface library
+    gtk+ gtk2 gtk3 gtk4 gtkd gtk4
+    # A library of gtk+ widgets
+    gtk+extra
+    # GTK+ widget for fast data display
+    gtkdatabox
+    # gtkglextmm is a C++ wrapper for GtkGlExt, an OpenGL extension to GTK+.
+    gtkglextmm gtkglextmm-devel
+    # GtkHash extension for the nautilus file manger. It adds adds an additional tab
+    # : called "Digests" to the file properties dialog.
+    gtkhash-nautilus
+    # GtkHTML is a lightweight HTML rendering/printing/editing engine.
+    # : It was originally based on KHTMLW, but is now being developed
+    # : independently of it.
+    gtkhtml3 gtkhtml3-devel
+    # GtkMathView is a C++ rendering engine for MathML documents.
+    # : It provides an interactive view that can be used for browsing
+    # : and editing MathML markup.
+    gtkmathview
+    # A GUI debugging tool for GTK+ applications
+    gtkparasite
+    # GtkSourceView is a GNOME library that extends GtkTextView, the standard GTK+
+    # : widget for multiline text editing. GtkSourceView adds support for syntax
+    # : highlighting, undo/redo, file loading and saving, search and replace, a
+    # : completion system, printing, displaying line numbers, and other features
+    # : typical of a source code editor.
+    gtksourceview4
+    # gtksourceviewmm is a C++ wrapper for the gtksourceview widget
+    # : library. It offers all the power of gtksourceview with an interface
+    # : familiar to c++ developers, including users of the gtkmm library
+    gtksourceviewmm
+    # GtkSpell provides word-processor-style highlighting and replacement of
+    # : misspelled words in a GtkTextView widget as you type. Right-clicking a
+    # : misspelled word pops up a menu of suggested replacements.
+    gtkspellmm30 gtkhash
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    libwnck libgtop2 libgtop2-devel geeqie
+    webkit2gtk3 webkit2gtk3-jsc webkit2gtk3-plugin-process-gtk2 webkit2gtk3-devel webkit2gtk3-doc webkit2gtk3-jsc-devel clutter clutter-devel clutter-doc clutter-gtk clutter-gst3 clutter-gtk-devel clutter-gst3-devel clutter-gst3 clutter-tests cluttermm cluttermm-devel cluttermm-doc
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   terminal emulators in one window
+    #
+    #   Store and run multiple GNOME terminals in one window
+    terminator
+    #   EFL based terminal emulator
+    terminology
+    #   Tilix is a tiling terminal emulator
+    tilix tilix-nautilus
+    #   ouR XVT, a VT102 emulator for the X window system
+    rxvt rxvt-unicode rxvt-unicode-256color rxvt-unicode-256color-ml perl-Text-Bidi-urxvt
+    #   A lightweight multi-tabbed terminal emulator for X
+    mrxvt
+    #   Drop-down terminal for GNOME
+    guake
+    #   Terminal emulator for the X Window System
+    xterm
+    #   KDE Terminal emulator.
+    konsole5
+    # cool-retro-term is a terminal emulator which tries to mimic the look and feel
+    # : of the old cathode tube screens. It has been designed to be eye-candy,
+    # : customizable, and reasonably lightweight.
+    cool-retro-term
+    # A Qt-based multiplexing terminal emulator client
+    # : implementing the TermySequence protocol
+    termy-qt
+    # A multiplexing terminal emulator server implementing
+    # : the TermySequence protocol
+    termy-server
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   for AUDIO system
+    #
+    #   The Advanced Linux Sound Architecture (ALSA) library
+    alsa-lib alsa-plugins-pulseaudio alsa-ucm alsa-utils alsa-lib-devel alsa-plugins-arcamav alsa-plugins-jack alsa-plugins-maemo alsa-plugins-oss alsa-plugins-samplerate alsa-plugins-speex alsa-plugins-upmix alsa-plugins-usbstream alsa-plugins-vdownmix alsa-tools alsa-tools-firmware alsa-topology alsa-topology-utils alsa-ucm-utils alsa-utils-alsabat alsa-firmware alsa-plugins-freeworld-a52 alsa-plugins-freeworld-lavrate alsamixergui
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   Real-time Audio Synthesizer
+    terminatorX
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   Improved Linux Sound Server
+    pulseaudio pulseaudio-libs pulseaudio-libs-devel pulseaudio-libs-glib2 pulseaudio-module-bluetooth pulseaudio-module-x11 pulseaudio-utils
+    #
+    pulseaudio-equalizer pulseaudio-esound-compat pulseaudio-module-gconf pulseaudio-module-gsettings pulseaudio-module-jack pulseaudio-module-lirc pulseaudio-module-zeroconf pulseaudio-qpaeq
+    #   Volume control for PulseAudio
+    pavucontrol
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   EDITORS
+    #
+    #   Binary editor for GNOME
+    ghex
+    #   GTK+ based simple text editor
+    leafpad
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    # sK1 is an open source vector graphics editor similar to CorelDRAW,
+    # : Adobe Illustrator, or Freehand. sK1 is mainly oriented for PostScript
+    # : processing. It features CMYK colorspace support, CMYK support in
+    # : Postscript, a Cairo-based engine, color managment, universal CDR
+    # : importer (7-X3 versions), and a modern Ttk based (former Tile widgets)
+    # : user interface.
+    python2-tkinter python3-tkinter python3-pillow-tk tix
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   The graphical toolkit
+    #   Rawtherapee is a RAW image processing software. It gives full control over many parameters to enhance the raw picture before finally exporting it to some common image format.
+    rawtherapee
+    #   Shutter is a GTK+ 2.x based screenshot application written in Perl.
+    #    : Shutter covers all features of common command line tools like
+    #    : scrot or import and adds reasonable new features combined
+    #    : with a comfortable GUI using the GTK+ 2.x framework.
+    shutter
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   File manager and tools
+    #
+    #   KRename is a powerful batch renamer for KDE. It allows you to easily rename
+    #    : hundreds or even more files in one go. The filenames can be created by parts
+    #    : of the original filename, numbering the files or accessing hundreds of
+    #    : informations about the file, like creation date or Exif informations of an
+    #    : image.
+    krename
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  #
+  #   системы управления версиями
+  #
+
+  # GIT
+
+  . ${main_project_path}/version_control_system/git
+
+  install_pkg=(
+    #   Mercurial is a fast, lightweight source control management system designed for efficient handling of very large istributed projects
+    #
+    #mercurial mercurial-chg mercurial-hgk qct-mercurial trac-mercurial-plugin \
+    #
+    #   A Modern Concurrent Version Control System
+    #
+    #subversion subversion-api-docs subversion-devel subversion-gnome subversion-javahl subversion-kde subversion-perl subversion-ruby subversion-tools \
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   Docker`изация
+    #
+    # Docker
+    docker docker-client docker-common docker-compose docker-anaconda-addon docker-devel docker-distribution docker-fish-completion docker-logrotate docker-lvm-plugin docker-novolume-plugin docker-vim docker-zsh-completion docker-selinux docker-rhel-push-plugin oci-register-machine
+    #
+    containerd container-selinux
+    #
+    #
+    # 'docker-engine-selinux docker-engine' \
+    #
+    docker-client-java
+    # latest
+    # 'docker-latest docker-latest-devel docker-latest-fish-completion docker-latest-logrotate docker-latest-rhsubscription docker-latest-unit-test docker-client-latest docker-latest-v1.10-migrator docker-latest-vim docker-latest-zsh-completion' \
+    #
+    # 'docker-latest-unit-tests' \
+    #
+    #  Для Создания docker image на основе deb
+    debootstrap
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #   Виртуализация
+    #
+    # LIBVIRT
+    #
+    #   Library providing a simple virtualization API
+    libvirt libvirt-devel libvirt-docs
+    #   Server side daemon and supporting files for libvirt library
+    libvirt-daemon libvirt-daemon-config-network libvirt-daemon-driver-interface libvirt-daemon-driver-network libvirt-daemon-driver-nodedev libvirt-daemon-driver-nwfilter libvirt-daemon-driver-qemu libvirt-daemon-driver-secret libvirt-daemon-driver-storage libvirt-daemon-driver-storage-core libvirt-daemon-driver-storage-disk libvirt-daemon-driver-storage-gluster libvirt-daemon-driver-storage-iscsi libvirt-daemon-driver-storage-iscsi-direct libvirt-daemon-driver-storage-logical libvirt-daemon-driver-storage-mpath libvirt-daemon-driver-storage-rbd libvirt-daemon-driver-storage-scsi libvirt-daemon-driver-storage-sheepdog libvirt-daemon-driver-storage-zfs libvirt-daemon-kvm libvirt-daemon-qemu libvirt-gconfig libvirt-glib libvirt-gobject libvirt-libs
+    #
+    libvirt-daemon-config-nwfilter libvirt-daemon-driver-libxl libvirt-daemon-driver-lxc libvirt-daemon-driver-uml libvirt-daemon-driver-vbox libvirt-daemon-lxc libvirt-daemon-uml libvirt-daemon-vbox libvirt-daemon-xen
+    #
+    libvirt-admin libvirt-bash-completion libvirt-cim libvirt-client
+    #
+    libvirt-dbus
+    #
+    libvirt-designer libvirt-designer-devel libvirt-designer-devel-doc libvirt-designer-vala
+    #
+    libvirt-gconfig-devel libvirt-glib-devel libvirt-gobject-devel
+    #
+    libvirt-java libvirt-java-devel libvirt-java-javadoc
+    #
+    libvirt-sandbox libvirt-sandbox-devel
+    #
+    libvirt-lock-sanlock
+    #
+    libvirt-login-shell
+    #
+    libvirt-nss
+    #
+    libvirt-wireshark
+    #   Desktop tool for managing virtual machines via libvirt
+    virt-manager virt-dib virt-p2v-maker virt-v2v virt-bootstrap virt-top virt-what virt-who qt-virt-manager qt-remote-viewer 9pfs fuse9p python3-py9p
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  #
+  #  WEB морда для libvirt/KVM
+  #
+
+  install_pkg=(
+    #
+    # https://github.com/retspen/webvirtmgr/wiki/Install-WebVirtMgr
+    #
+    # The supervisor is a client/server system that allows its users to control a
+    # : number of processes on UNIX-like operating systems.
+    'supervisor'
+    # VNC client using HTML5 (Web Sockets, Canvas) with encryption support
+    # noVNC is both a HTML VNC client JavaScript library and an application built on
+    # : top of that library. noVNC runs well in any modern browser including mobile
+    # : browsers (iOS and Android).
+    'novnc'
+    'git python-pip python-virtualenv libvirt-python3 libxml2-python python-websockify supervisor python2-libxml2 python2-bottle'
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    #
+    # https://github.com/kimchi-project/kimchi/blob/master/docs/fedora-deps.md
+    # Find more information about Wok Project at https://github.com/kimchi-project/kimchi/wiki
+    #
+    # Kimchi is an HTML5 based management tool for KVM. It is designed to make it as easy as possible to get started with KVM and create your first guest.
+    # Kimchi runs as a Wok plugin.
+    # Kimchi manages KVM guests through libvirt. The management interface is accessed over the web using a browser that supports HTML5.
+    #
+    # Install for Build Dependencies
+    git python-pip python-virtualenv libvirt-python3 libxml2-python python-websockify supervisor python2-libxml2 python2-bottle gcc make autoconf automake gettext-devel git rpm-build libxslt libvirt-python3 libvirt libvirt-daemon-config-network qemu-kvm python-ethtool sos nfs-utils iscsi-initiator-utils pyparted python3-libguestfs libguestfs-tools novnc spice-html5 python3-configobj python3-magic python3-paramiko python3-pillow python3-yamlordereddictloader gcc-c++ python3-devel python3-pip emacs-cython-mode libsass pyflakes python3-pep8 python3-requests python3-mock rpmlint python3-unittest2
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    # A debugger based on the ptrace API and Qt
+    edb
+    # A powerful D-Bus Debugger
+    d-feet
+    # Draw sequence diagrams of D-Bus traffic
+    bustle
+    # A GNOME C/C++ Debugger
+    nemiver
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    # Devhelp is an API documentation browser for the GNOME desktop.
+    # : It works natively with API documentation generated by gtk-doc.
+    devhelp
+    # A GTK 3 based scientific calculator with ordinary notation, reverse
+    # : polish notation, a formula entry mode, different number bases, and
+    # : different units of angular measure.
+    galculator
+    # A document viewer
+    okular
+    # A full screen, distraction-free writing program
+    focuswriter
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  #
+  # OFFICE
+  #
+  #
+  # LIBRE OFFICE
+  #
+  install_pkg=(
+    libreoffice libreoffice-calc libreoffice-core libreoffice-data libreoffice-draw libreoffice-emailmerge libreoffice-filters libreoffice-graphicfilter libreoffice-gtk3 libreoffice-math libreoffice-opensymbol-fonts libreoffice-pdfimport libreoffice-pyuno libreoffice-ure libreoffice-x11 libreoffice-xsltfilter libreofficekit libreoffice-TexMaths libreoffice-base libreoffice-bsh libreoffice-gallery-vrt-network-equipment libreoffice-gdb-debug-support libreoffice-glade libreoffice-help-ru libreoffice-langpack-ru libreoffice-librelogo libreoffice-nlpsolver libreoffice-officebean libreoffice-officebean-common libreoffice-ogltrans libreoffice-postgresql libreoffice-rhino libreoffice-sdk libreoffice-sdk-doc libreoffice-voikko libreoffice-wiki-publisher libreoffice-writer2latex libreoffice-writer2xhtml libreofficekit-devel
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  #
+  # EMAIL Clients
+  #
+
+  . ${main_project_path}/pkg/email_clients
+
+  install_pkg=(
+    # GnuCash is a personal finance manager. A check-book like register GUI
+    # : allows you to enter and track bank accounts, stocks, income and even
+    # : currency trades. The interface is designed to be simple and easy to ensure
+    # : balanced books.
+    gnucash
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    # Calibre is meant to be a complete e-library solution. It includes library
+    # : management, format conversion, news feeds to ebook conversion as well as
+    # : e-book reader sync features.
+    # :
+    # : Calibre is primarily a ebook cataloging program. It manages your ebook
+    # : collection for you. It is designed around the concept of the logical book,
+    # : i.e. a single entry in the database that may correspond to ebooks in several
+    # : formats. It also supports conversion to and from a dozen different ebook
+    # formats.
+    # :
+    # : Supported input formats are: MOBI, LIT, PRC, EPUB, CHM, ODT, HTML, CBR, CBZ,
+    # : RTF, TXT, PDF and LRS.
+    'calibre'
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
+    # Marble is a Virtual Globe and World Atlas that you can use to learn more
+    # : about Earth: You can pan and zoom around and you can look up places and
+    # : roads. A mouse click on a place label will provide the respective Wikipedia
+    # : article.
+    # :
+    # : Of course it's also possible to measure distances between locations or watch
+    # : the current cloud cover. Marble offers different thematic maps: A classroom-
+    # : style topographic map, a satellite view, street map, earth at night and
+    # : temperature and precipitation maps. All maps include a custom map key, so it
+    # : can also be used as an educational tool for use in class-rooms. For
+    # : educational purposes you can also change date and time and watch how the
+    # : starry sky and the twilight zone on the map change.
+    # :
+    # : In opposite to other virtual globes Marble also features multiple
+    # : projections: Choose between a Flat Map ("Plate carré"), Mercator or the Globe.
+    marble marble-astro marble-common marble-widget-data marble-widget-qt5
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  #
+  # GAMES for GNOME
+  #
+
+  install_pkg=(
+    # Aisleriot is a collection of over 80 card games programmed in scheme.
+    aisleriot
+    # SuperTux is a jump'n run like game, Run and jump through multiple worlds,
+    # : fighting off enemies by jumping on them or bumping them from below.
+    # : Grabbing power-ups
+    supertux
+    # Red Eclipse is a fun-filled new take on the casual first person arena
+    # : shooter, built as a total conversion of Cube Engine 2, which lends
+    # : itself toward a balanced gameplay, with a general theme of agility in a
+    # : variety of environments.
+    # :
+    # : Features:
+    # : * Balanced gameplay, with a general theme of agility in a variety of
+    # :   environments
+    # : * Parkour, impulse boosts, dashing, sliding, and other tricks
+    # : * Favourite gamemodes with tons of mutators and variables
+    # : * Available for Windows, Linux/BSD and Mac OSX
+    # : * Builtin editor lets you create your own maps cooperatively online
+    redeclipse
+  )
+
+  install_packages "${install_pkg[*]}"
+
+}
+
+. "${main_project_path}/pkg/repo/rpmfusion"
+
+workstation_a_lot_of_packages_install_packages

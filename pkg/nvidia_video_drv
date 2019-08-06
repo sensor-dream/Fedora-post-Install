@@ -1,0 +1,155 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : nvidia_video_drv
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 12.05.2019, 2:21:49
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_nvidia_video_drv_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_nvidia_video_drv_script_source)";
+
+
+function main_pkg_nvidia_video_drv_script_source(){
+
+  echo_m "Initialise main function of nvidia script source";
+
+  check_root;
+
+  ### . "${main_project_path}/pkg/repo/fedora_workstation";
+
+  ### enable_nvidia_drv;
+
+  . "${main_project_path}/pkg/repo/rpmfusion";
+
+    local install_pkg=(\
+kernel-devel kernel-headers gcc make dkms acpid libglvnd-glx libglvnd-opengl libglvnd-devel pkgconf-pkg-config libdrm libdrm-devel drm-utils \
+# Tool to query the capabilities of a VDPAU implementation.
+vdpauinfo \
+# VDPAU Backend for Video Acceleration (VA) API.
+libva-vdpau-driver \
+# Tools for VAAPI (including vainfo)
+libva-utils \
+# egl-wayland.i686 mesa-libEGL.i686 mesa-libGLES.i686 mesa-libgbm.i686 libglvnd-egl.i686 libglvnd-gles.i686 libglvnd-opengl.i686 libwayland-server.i686
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  local versionrelease="$(rpm -E %fedora)";
+
+#  if [[ -z $(dnf --releasever=${versionrelease} repository-packages rpmfusion-nonfree info \*nvidia\* | grep 340 ) ]]; then
+
+    ## disable_nvidia_drv;
+
+#    echo_w "Not find driver for GeForce 340.xxx series for Fedora ${versionrelease} version";
+
+#  fi
+
+#  local key='';
+
+#  echo_w -n "Хотите установить драйвер от предидущей версии (n) (y/n): ";
+#  read key;
+        
+#  if [[  $( validate_reply ${key} ) -eq 1  ]]; then
+
+#    echo_w -n "Веедите номер версии Fedora ( et. 29 or 30 or 31 ) ";
+#    read key;
+
+#    versionrelease=${key};
+
+#  else
+
+#    echo_m "Bye";
+#    exit;
+
+# fi
+
+
+  install_pkg=(\
+#    FOR NVIDIA CARD
+#
+#   Akmod package for nvidia-340xx kernel module(s)
+akmod-nvidia-340xx \
+#   Metapackage which tracks in nvidia-340xx kernel module for newest kernel
+kmod-nvidia-340xx \
+#   NVIDIA's 340xx series proprietary display driver for NVIDIA graphic cards
+xorg-x11-drv-nvidia-340xx \
+#   CUDA libraries for xorg-x11-drv-nvidia-340xx
+# optional for cuda up to 6.5 support
+# xorg-x11-drv-nvidia-340xx-cuda \ 
+#   Development files for xorg-x11-drv-nvidia-340xx
+xorg-x11-drv-nvidia-340xx-devel \
+#   xorg-x11-drv-nvidia-340xx kernel module source code
+xorg-x11-drv-nvidia-340xx-kmodsrc \
+#   Libraries for xorg-x11-drv-nvidia-340xx
+xorg-x11-drv-nvidia-340xx-libs \
+#   Querying OpenGL resource usage of applications using the NVIDIA OpenGL driver
+nvidia-query-resource-opengl nvidia-query-resource-opengl-lib \
+#   This package provides the shared libraries for xorg-x11-drv-nvidia xorg-x11-drv-nvidia-libs  \
+xorg-x11-drv-nvidia-340xx-libs.i686 \
+);
+
+    # if ! grep -q "nvidia-drm" /etc/default/grub; then
+      # create_back_file "/etc/default/grub";
+      # sed -i -e '/rhgb quiet/s/rhgb quiet/nvidia-drm.modeset=1 rhgb quiet/' /etc/default/grub;
+      ## Реконфигурем загрузчик
+      # grub2-mkconfig -o /boot/grub2/grub.cfg;
+    # fi
+
+  # pkg -v "${versionrelease}" -- "${install_pkg[*]}";
+  pkg -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_remove_nvidia_video_drv_script_source() {
+  
+  dnf remove xorg-x11-drv-nvidia\* nvidia\*
+  rm -f /usr/lib{,64}/libGL.so.* /usr/lib{,64}/libEGL.so.*
+  rm -f /usr/lib{,64}/xorg/modules/extensions/libglx.so
+  dnf reinstall xorg-x11-server-Xorg mesa-libGL mesa-libEGL libglvnd\*
+  mv /etc/X11/xorg.conf /etc/X11/xorg.conf.saved
+
+}
+
+main_pkg_nvidia_video_drv_script_source "$@";
+
+# main_pkg_remove_nvidia_video_drv_script_source;

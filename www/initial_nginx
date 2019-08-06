@@ -1,0 +1,65 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : initial_nginx
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 10.08.2019, 22:07:31
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx www_initial_nginx_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${www_initial_nginx_script_source})";
+
+function install_www_initial_nginx(){
+
+  . "${main_project_path}/pkg/nginx";
+
+}
+
+function main_www_initial_nginx_script_source(){
+
+  echo_m "Initialise main function of initial_nginx script source";
+
+  install_www_initial_nginx "$@";
+
+  pkg -a "$@" -- libmaxminddb libmaxminddb-devel php-maxmind-db-reader php-maxminddb python-maxminddb-doc python3-maxminddb libgcrypt libgcrypt-devel libxslt libxslt-devel libgpg-error libgpg-error-devel gperftools gperftools-devel;
+
+}
+
+main_www_initial_nginx_script_source "$@";

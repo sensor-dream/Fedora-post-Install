@@ -1,0 +1,86 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : initial_memcached.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-10 17:28:19
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx www_initial_memcached_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $www_initial_memcached_script_source";
+
+function initial_memcached(){
+
+  check_root;
+
+  local cachesize="$memcached_cache_size";
+  local options="$memcached_options";
+
+  [[ -n "$cachesize" ]] || cachesize="64";
+  [[ -n "$options" ]] || cachesize="-l 127.0.0.1";
+
+  local install_pkg=(\
+memcached \
+);
+
+  if [[ "$1" == "-u" ]];then
+    remove_packages "${install_pkg[*]}";
+  else
+    install_packages "${install_pkg[*]}";
+
+    if ! grep -q "^CACHESIZE" /etc/sysconfig/memcached; then
+	echo "CACHESIZE=\"$cachesize\"" >> /etc/sysconfig/memcached;
+    else
+        sed -i "s/^CACHESIZE.*$/CACHESIZE=\"$cachesize\"/" /etc/sysconfig/memcached;
+    fi
+
+    if ! grep -q "^OPTIONS" /etc/sysconfig/memcached; then
+	echo "OPTIONS=\"$options\"" >> /etc/sysconfig/memcached;
+    else
+        sed -i "s/^OPTIONS.*$/OPTIONS=\"$options\"/" /etc/sysconfig/memcached;
+    fi
+
+    systemctl_activate_and_start_or_restart_service memcached;
+
+  fi
+
+}
+
+initial_memcached "$@";

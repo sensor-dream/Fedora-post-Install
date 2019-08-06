@@ -1,0 +1,75 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : orientdb
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 24.04.2019, 8:59:25
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx db_orientdb_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $db_orientdb_script_source)";
+
+function preparation_orientdb(){
+
+  local install_pkg=(\
+
+);
+
+  if [[ "$1" == "-u" ]];then
+    remove_packages "${install_pkg[*]}";
+  else
+    if [[ -z "$(check_install_packages '')"  ]]; then
+      install_packages "${install_pkg[*]}";
+    else
+      echo_m " is install";
+    fi
+  fi
+}
+
+function main_db_orientdb_script_source(){
+
+  echo_m "Initialise main function";
+
+
+}
+
+main_db_orientdb_script_source "$@";

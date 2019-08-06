@@ -1,0 +1,96 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : hashes_packs
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 12.05.2019, 3:11:40
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_hashes_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_hashes_packs_script_source)";
+
+
+function main_pkg_hashes_packs_script_source(){
+
+  echo_m "Initialise main function of hashes_library script source";
+
+  check_root;
+
+  local install_pkg=(\
+#
+#   tools to compute hashes
+#
+#   This is md5deep, a set of cross-platform tools to compute hashes, or
+#        : message digests, for any number of files while optionally recursively
+#        : digging through the directory structure.  It can also take a list of known
+#        : hashes and display the filenames of input files whose hashes either do or
+#        : do not match any of the known hashes. This version supports MD5, SHA-1,
+#        : SHA-256, Tiger, and Whirlpool hashes.
+md5deep \
+#   file hashing utility that uses the
+#         : SHA-1, SHA-256, SHA-384, & SHA-512 hash algorithms.
+#         : It can be used for file integrity checking,
+#         : remote file comparisons, etc.
+#         : The portable algorithm implementations
+#         : can be useful in other projects too
+sha sha-devel \
+#   The library implements the SHA-256, SHA-384, and SHA-512 hash algorithms. The
+#        : interface is similar to the interface to SHA-1 found in the OpenSSL library.
+#        : sha2 is a simple program that accepts input from either STDIN or reads one or
+#        : more files specified on the command line, and then generates the specified hash
+#        : (either SHA-256, SHA-384, SHA-512, or any combination thereof, including all
+#        : three at once).
+sha2 sha2-devel \
+#   This script will compute and check the SHA3 message digest of a file
+sha3sum \
+#   cfv is a utility to both test and create .sfv, .csv, .crc, .md5(sfv-like),
+#        : md5sum, bsd md5, sha1sum, and .torrent files. These files are commonly used to
+#        : ensure the correct retrieval or storage of data. It also has test-only support
+#        : for PAR and PAR2 files
+#cfv \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+main_pkg_hashes_packs_script_source "$@";

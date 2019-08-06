@@ -1,0 +1,106 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : yandex
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 02.07.2019, 19:23:50
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_repo_yandex_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_repo_yandex_script_source)";
+
+function pkg_repo_install_yandex(){
+
+  local rel="";
+  local initial="";
+
+  OPTIND=1
+
+  while getopts "sbu" OPT
+  do
+    case $OPT in
+      s   ) rel="stable"; ;;
+      b   ) rel="beta"; ;;
+      u   ) initial="-u"; ;;
+      *   ) ;;
+    esac
+  done
+  shift $(($OPTIND - 1));
+  [ "${1:-}" = "--" ] && shift;
+
+  if [[ "${initial}" == "-u" ]];then
+
+    echo_w "Remove Yandex repos.";
+
+    dnf config-manager --set-disabled yandex-browser-${rel};
+
+    if [ -n "$( find  /etc/yum.repos.d/yandex-browser-${rel}* 2> /dev/null )" ]; then
+      rm "/etc/yum.repos.d/yandex-browser-${rel}.repo";
+    fi
+
+  else
+
+    if [ -z "$( find  /etc/yum.repos.d/yandex-browser-${rel}* 2> /dev/null )" ]; then
+
+      echo_w "Install Yandex repos.";
+
+      dnf config-manager --add-repo="https://github.com/RussianFedora/fedora-extra-repos/raw/master/yandex-browser-${rel}.repo";
+
+      dnf config-manager --set-enabled yandex-browser-${rel};
+
+    fi
+
+  fi
+
+}
+
+function main_pkg_repo_yandex_script_source(){
+
+  check_root;
+
+  echo_m "Initialise main function of yandex script source";
+
+  pkg_repo_install_yandex "$@";
+
+}
+
+main_pkg_repo_yandex_script_source "$@";

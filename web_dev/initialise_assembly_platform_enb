@@ -1,0 +1,47 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : initialise_assembly_platform_enb.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2018-11-29 16:24:05
+
+#
+#   Декларируем имя файла
+#
+
+declare -r initialise_assembly_platform_enb_script_source="$BASH_SOURCE";
+
+[[ ! -f "package.json" ]] && npm init;
+
+list_global=(\
+'npm-gui' \
+'enb' \
+'yo' \
+'generator-bem-stub' \
+'bem-tools' \
+'bem-core' \
+'bem-components' \
+'bem-xjst' \
+'stylus' \
+'bem-html' \
+'bh' \
+'enb-beautify' \
+'autoprefixer' \
+'stylus'\
+);
+
+list_local=(\
+'bem-core'\
+);
+
+for i in ${!list_global[*]}; do
+#    sudo npm remove "${list[$i]}" -g;
+    sudo npm install "${list_global[$i]}" -g --save-dev;
+#    npm install "${list[$i]}" --save-dev;
+done
+
+for i in ${!list_local[*]}; do
+#    sudo npm remove "${list[$i]}" -g;
+    npm install "${list_local[$i]}" -S --save-dev;
+#    npm install "${list[$i]}" --save-dev;
+done

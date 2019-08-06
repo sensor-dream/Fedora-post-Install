@@ -1,0 +1,102 @@
+#!/bin/env bash
+
+declare -rx pkg_repo_fedora_workstation_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $pkg_repo_fedora_workstation_script_source";
+
+add_fedora_workstation_repo(){
+
+    check_root;
+    if [[ -z "$(check_install_packages 'fedora-workstation-repositories')"  ]]; then
+        install_packages fedora-workstation-repositories;
+    fi
+
+}
+
+del_fedora_workstation_repo() {
+
+    check_root;
+
+    if [[ -n "$(check_install_packages 'fedora-workstation-repositories')"  ]]; then
+      dnf remove fedora-workstation-repositories -y;
+      if [[ -n "$( find  "/etc/yum.repos.d/_copr_phracek-PyCharm"* 2> /dev/null )"  ]]; then
+          remove_fp "/etc/yum.repos.d/_copr_phracek-PyCharm"*;
+      fi
+      if [[ -n "$( find  "/etc/yum.repos.d/rpmfusion-nonfree-nvidia-driver"* 2> /dev/null )"  ]]; then
+          remove_fp "/etc/yum.repos.d/rpmfusion-nonfree-nvidia-driver"*;
+      fi
+      if [[ -n "$( find  "/etc/yum.repos.d/rpmfusion-nonfree-steam"* 2> /dev/null )"  ]]; then
+          remove_fp "/etc/yum.repos.d/rpmfusion-nonfree-steam"*;
+      fi
+      if [[ -n "$( find  "/etc/yum.repos.d/google-chrome"* 2> /dev/null )"  ]]; then
+          remove_fp "/etc/yum.repos.d/google-chrome"*;
+      fi
+    fi
+
+}
+
+enable_nvidia_drv(){
+  check_root;
+  dnf config-manager --set-enabled rpmfusion-nonfree-nvidia-driver;
+}
+
+enable_steam(){
+  check_root;
+  dnf config-manager --set-enabled rpmfusion-nonfree-steam;
+}
+
+enable_google_chrome(){
+  check_root;
+  dnf config-manager --set-enabled google-chrome;
+}
+
+disable_nvidia_drv(){
+  check_root;
+  dnf config-manager --set-disabled rpmfusion-nonfree-nvidia-driver;
+}
+
+disable_steam(){
+  check_root;
+  dnf config-manager --set-disabled rpmfusion-nonfree-steam;
+}
+
+disable_google_chrome(){
+  check_root;
+  dnf config-manager --set-disabled google-chrome;
+}
+
+add_fedora_workstation_repo;
+# del_fedora_workstation_repo;

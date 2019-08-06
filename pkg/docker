@@ -1,0 +1,101 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : docker
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 07.05.2019, 2:03:11
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_docker_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_docker_script_source)";
+
+
+function main_pkg_docker_script_source(){
+
+  echo_m "Initialise main function";
+
+  check_root;
+
+  install_pkg=(\
+#   Docker`изация
+#
+# Docker
+'docker docker-client docker-common docker-compose docker-anaconda-addon docker-devel docker-distribution docker-fish-completion docker-logrotate docker-lvm-plugin docker-novolume-plugin docker-vim docker-zsh-completion docker-selinux docker-rhel-push-plugin oci-register-machine' \
+#
+'containerd container-selinux' \
+#
+#
+# 'docker-engine-selinux docker-engine' \
+#
+'docker-client-java' \
+# latest
+# 'docker-latest docker-latest-devel docker-latest-fish-completion docker-latest-logrotate docker-latest-rhsubscription docker-latest-unit-test docker-client-latest docker-latest-v1.10-migrator docker-latest-vim docker-latest-zsh-completion' \
+#
+# 'docker-latest-unit-tests' \
+#
+#  Для Создания docker image на основе deb
+'debootstrap' \
+);
+
+  install_packages -n -- "${install_pkg[*]}";
+
+  local chk_groups="$(getent group docker)";
+
+  if ! grep -q  docker <<< "$chk_groups"; then
+    echo_w "Группа docker не существует, создаем.";
+    groupadd docker;
+  else
+    if ! grep -q  docker <<< "$chk_groups"; then
+      echo_m "Добавляем $main_user в группу docker";
+      usermod -a -G docker "$main_user";
+    else
+      echo_m "Пользователь $main_user уже в группе docker";
+    fi
+  fi
+
+  systemctl daemon-reload;
+
+  systemctl_activate_and_start_or_restart_service docker;
+
+}
+
+main_pkg_docker_script_source "$@";

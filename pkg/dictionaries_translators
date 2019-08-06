@@ -1,0 +1,109 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : dictionary
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 04.10.2019, 3:33:38
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_dictionaries_translators_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_dictionaries_translators_script_source})";
+
+function install_pkg_dictionaries_translators(){
+
+  local install_pkg=(\
+# Summary      : A powerful dictionary platform written in GTK+2
+# URL          : http://stardict-4.sourceforge.net/
+# Лицензия     : GPLv3+ and GPLv2+ and CPL
+# Description  : StarDict is a cross-platform and international dictionary written in GTK+.
+# : It has powerful features such as glob-style pattern matching,
+# : scan selection, and fuzzy matching.
+'stardict espeak stardict-dic-en' \
+# Summary      : Console version of StarDict program
+# URL          : http://sdcv.sourceforge.net/
+# Лицензия     : GPLv2+
+# Description  : SDCV is simple, cross-platform text-base utility for work with
+# : dictionaries in StarDict's format.
+'sdcv' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  # Wikit позволяет быстро осуществлять поиск в Википедии с вашего терминала и просматривать краткий обзор для любого термина, охватываемого энциклопедией, поддерживаемой мировым сообществом.
+  npm i -g wikit;
+
+  install_pkg=(\
+# Summary      : A command-line online translator
+# URL          : https://github.com/soimort/translate-shell
+# Лицензия     : Public Domain
+# Description  : Translate Shell (formerly Google Translate CLI) is a command-line
+# : translator powered by Google Translate (default), Bing Translator,
+# : Yandex.Translate and Apertium.
+'translate-shell' \
+# Summary      : Display dialog boxes from shell scripts
+# URL          : https://wiki.gnome.org/Projects/Zenity
+# Лицензия     : LGPLv2+
+# Description  : Zenity lets you display Gtk+ dialog boxes from the command line and through
+# : shell scripts. It is similar to gdialog, but is intended to be saner. It comes
+# : from the same family as dialog, Xdialog, and cdialog.
+'zenity' \
+# Summary      : Command line clipboard and X selection tool
+# URL          : http://www.vergenet.net/~conrad/software/xsel/
+# Лицензия     : MIT
+# Description  : XSel is a command line or script utility, similar to xclip, that can copy the
+# : primary and secondary X selection, or any highlighted text, to or from a file,
+# : stdin or stdout. It can also append to and delete the clipboard or buffer that
+# : you would paste with the middle mouse button.
+'xsel' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_dictionaries_translators_script_source(){
+
+  echo_m "Initialise main function of dictionaries_translators script source";
+
+  install_pkg_dictionaries_translators "$@";
+
+}
+
+main_pkg_dictionaries_translators_script_source "$@";

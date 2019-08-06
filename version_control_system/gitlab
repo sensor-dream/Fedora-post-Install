@@ -1,0 +1,137 @@
+#!/bin/env bash
+
+declare -rx version_control_system_gitlab_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $version_control_system_gitlab_script_source";
+
+if [[ -z "$gitlab_repo_script_source" ]]; then
+    . "$main_project_path/pkg/repo/gitlab";
+fi
+
+function install_gitlab() {
+
+    check_root;
+
+    add_gitlab_repo;
+
+    # install_packages curl "policycoreutils-python openssh-server cronie";
+    install_packages curl "python2-policycoreutils openssh-server cronie";
+
+    install_packages "gitlab-ee";
+
+}
+
+function configure_gitlab() {
+
+    check_root;
+
+    local cfg_file="/etc/gitlab/gitlab.rb";
+    create_back_file "$cfg_file";
+
+    local my_gitlab_domain="gitlab.$my_domain";
+    local git_data_dirs="/mnt/sda/GitLab";
+
+    # systemctl_activate_and_start_or_restart_service 'gitlab-runsvdir.service';
+
+    gitlab-ctl stop unicorn;
+    gitlab-ctl stop sidekiq;
+
+cat<<EOF > "$cfg_file";
+external_url 'https://$my_gitlab_domain'
+
+git_data_dirs({
+    "default" => {
+        "path" => "$git_data_dirs/git-data"
+    }
+})
+
+high_availability['mountpoint'] = [ "$git_data_dirs/git-data", "$git_data_dirs/gitlab-rails/shared" ]
+runtime_dir '/tmp'
+
+gitlab_rails['rake_cache_clear'] = false
+
+gitlab_rails['rack_attack_git_basic_auth'] = {
+  'enabled' => true, # Enable/Disable Rack Attack
+  'ip_whitelist' => ["127.0.0.1"], # Whitelisted urls
+  'maxretry' => 10, # Limit the number of Git HTTP authentication attempts per IP
+  'findtime' => 60, # Reset the auth attempt counter per IP after 60 seconds
+  'bantime' => 3600 # Ban an IP for one hour (3600s) after too many auth attempts
+}
+
+nginx['enable'] = false
+web_server['external_users'] = ['apache']
+gitlab_rails['trusted_proxies'] = [ '192.168.0.0/24', "127.0.0.0/8", "${ip_device}" ]
+gitlab_workhorse['listen_network'] = "tcp"
+gitlab_workhorse['listen_addr'] = "127.0.0.1:8181"
+
+ # Disable the built-in Postgres
+postgresql['enable'] = false
+
+# Disable the built-in Postgres
+postgresql['enable'] = false
+
+# Fill in the values for database.yml
+gitlab_rails['db_adapter'] = 'mysql2'
+gitlab_rails['db_encoding'] = 'utf8'
+gitlab_rails['db_host'] = '127.0.0.1'
+gitlab_rails['db_port'] = 3306
+gitlab_rails['db_database'] = 'gitlab'
+gitlab_rails['db_username'] = 'gitlab'
+gitlab_rails['db_password'] = 'gitlab'
+
+
+EOF
+
+    create_name_in_hosts_file $my_gitlab_domain;
+
+    gitlab-ctl reconfigure;
+    gitlab-ctl restart;
+
+
+
+}
+
+function remove_gitlab(){
+
+    remove_packages "gitlab-ee";
+    remove_fp "/etc/gitlab" "/var/opt/gitlab" "/var/log/gitlab" "$git_data_dirs" "/opt/gitlab";
+    del_gitlab_repo;
+
+}
+
+# install_gitlab;
+# configure_gitlab;
+# remove_gitlab;

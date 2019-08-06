@@ -1,0 +1,135 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : twm
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 03.09.2019, 16:06:06
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_twm_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_twm_script_source})";
+
+function install_pkg_twm(){
+
+  local install_pkg=(\
+# Summary      : Improved tiling window manager
+# URL          : https://i3wm.org
+# Лицензия     : BSD
+# Description  : Key features of i3 are correct implementation of XrandR, horizontal and vertical
+# : columns (think of a table) in tiling. Also, special focus is on writing clean,
+# : readable and well documented code. i3 uses xcb for asynchronous communication
+# : with X11, and has several measures to be very fast.
+# : Please be aware that i3 is primarily targeted at advanced users and developers.
+'i3' \
+'i3status' \
+'i3-ipc' \
+'i3lock' \
+);
+
+  # pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Summary      : Highly configurable, framework window manager for X. Fast, light and extensible
+# URL          : https://awesomewm.org
+# Лицензия     : GPLv2+ and BSD
+# Description  : Awesome is a highly configurable, next generation framework window
+# : manager for X. It is very fast, light and extensible.
+# : It is primary targeted at power users, developers and any people
+# : dealing with every day computing tasks and want to have fine-grained
+# : control on its graphical environment.
+'awesome' \
+'awesome-doc' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Summary      : A tiling window manager
+# URL          : https://hackage.haskell.org/package/xmonad
+# Лицензия     : BSD
+# Description  : Xmonad is a tiling window manager for X. Windows are arranged automatically to
+# : tile the screen without gaps or overlap, maximising screen use. All features of
+# : the window manager are accessible from the keyboard: a mouse is strictly
+# : optional. xmonad is written and extensible in Haskell. Custom layout
+# : algorithms, and other extensions, may be written by the user in config files.
+# : Layouts are applied dynamically, and different layouts may be used on each
+# : workspace. Xinerama is fully supported, allowing windows to be tiled on several
+# : screens.
+# :
+# : This is a meta-package that installs xmonad-basic and ghc-xmonad-contrib-devel,
+# : allowing xmonad to be customized with "~/.xmonad/xmonad.hs".
+# :
+# : To use xmonad with GNOME/MATE, please install xmonad-mate.
+'xmonad' \
+'xmonad-basic' \
+'xmonad-config' \
+'xmonad-core' \
+# 'xmonad-log-applet-mate' \
+# 'xmonad-log-applet-xfce' \
+# 'xmonad-mate' \
+);
+
+  # pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Summary      : Dynamic window manager for X
+# URL          : http://dwm.suckless.org/
+# Лицензия     : MIT
+# Description  : dwm is a dynamic window manager for X. It manages windows in tiled, monocle and
+# : floating layouts. All of the layouts can be applied dynamically, optimizing
+# : the environment for the application in use and the task performed.
+'dwm' \
+'dwm-user' \
+'st' \
+);
+
+  # pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_twm_script_source(){
+
+  echo_m "Initialise main function of twm script source";
+
+  install_pkg_twm "$@";
+
+}
+
+main_pkg_twm_script_source "$@";

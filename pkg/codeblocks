@@ -1,0 +1,62 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : codeblocks
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 11.05.2019, 1:35:46
+
+# The open source, cross platform, free C, C++ and Fortran IDE.
+# http://www.codeblocks.org
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_codeblocks_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+echo_w "Подключаем $(readlink -m $pkg_codeblocks_script_source)";
+
+
+function main_pkg_codeblocks_script_source(){
+
+  echo_m "Initialise main function of codeblocks script source";
+
+  pkg -a "$@" -- 'codeblocks codeblocks-contrib codeblocks-contrib-devel codeblocks-devel codeblocks-libs codeblocks-contrib-libs';
+
+}
+
+main_pkg_codeblocks_script_source "$@";

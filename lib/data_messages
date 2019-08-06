@@ -1,0 +1,227 @@
+#!/bin/env bash
+
+declare -rx main_data_messages_script_source="$BASH_SOURCE";
+
+declare -rx main_msg_000000000="";
+
+declare -rx main_sys_msg=( \
+);
+
+declare -rx main_msg_data=( \
+# 0
+"Enter your username in system" \
+# 1
+"Enter your primary email address" \
+# 2
+"Enter the current password for yor user" \
+# 3
+"Enter your organization name" \
+# 4
+"Enter yur full organization name" \
+# 5
+"Enter your primary domain name" \
+# 6
+"Enter the domain of your local group" \
+# 7
+"Enter the full name of your host" \
+# 8
+"Enter user name for smtp server" \
+# 9
+"Enter the current password for smtp server user" \
+# 10
+"Enter host name or ip addres for smtp server" \
+# 11
+"Enter port for smtp server" \
+# 12
+"Enter protocol for smtp server" \
+# 13
+"Enter user name for db server" \
+# 14
+"Enter the current password for db server user" \
+# 15
+"Enter host name or ip addres for db server" \
+# 16
+"Enter port for db server" \
+# 17
+"Enter the white ip address issued by your provider" \
+# 18
+"Enter ip address device on your local network" \
+# 19
+"Enter ip address gateway on your local network" \
+# 20
+"Enter link-local address for network interface" \
+# 21
+"Enter ip mask for network interface" \
+# 22
+"Enter name for network interface" \
+# 23
+"Setup ipv6 broker configuration. Registered in tunnelbroker.net or ipv6.ip4market.ru ( tb.ip4market.ru ) and read parameters" \
+# 24
+"Enter name broker, tunnelbroker.net (DEFAULT !!!) or ipv6.ip4market.ru or tb.ip4market.ru" \
+# 25
+"Enter the remote IP-V4 address given by your broker" \
+# 26
+"Enter the gateway IP-V6 address given by your broker" \
+# 27
+"Enter the white IP-V6 address given by your broker" \
+# 28
+"Enter the network pull address given by your broker" \
+# 29
+"Enter global path in main storage" \
+# 30
+"Connect" \
+# 31
+"Main project path" \
+# 32
+"Main repo path" \
+# 33
+"Main root repo path" \
+# 34
+"Run script" \
+# 35
+"Run script as ROOT." \
+# 36
+"Run script under your USER" \
+# 37
+"ERROR: You must be able to sudo to run this script, or run it as root." \
+# 38
+"Testing sudo/root..." \
+# 39
+"Testing sudo/root... is OK !!!" \
+# 40
+"Invalid number type format:" \
+# 41
+"Initialization packagee manager." \
+# 42
+"Qery string" \
+# 43
+"and options" \
+# 44
+"Not find" \
+# 45
+"for remove" \
+# 46
+"Start force remove packages:" \
+# 47
+"Start" \
+# 48
+"packages:" \
+# 49
+"Instal group" \
+# 50
+"package" \
+# 51
+"Already install packages:" \
+# 52
+"Clearing package cache" \
+# 53
+"no interval specified" \
+# 54
+"no command specified" \
+# 55
+"no action specified" \
+# 56
+"Stop" \
+# 57
+"systemd unit service" \
+# 58
+"is STOPPED" \
+# 59
+"is STARTED" \
+# 60
+"Disable or disable and masked (key '-m' in options)" \
+# 61
+"is DISABLED and MASKED" \
+# 62
+"Masked" \
+# 63
+"Service is Disabled" \
+# 64
+"Restart" \
+# 65
+"Configure" \
+# 66
+"service" \
+# 67
+"to start automatically" \
+# 68
+"using systemd" \
+# 69
+"Unmask" \
+# 70
+"Enable" \
+# 71
+"Service" \
+# 72
+"is Active" \
+# 73
+"no such user" \
+# 74
+"no such group" \
+# 75
+"Set permissions" \
+# 76
+"is OK" \
+# 77
+"Create" \
+# 78
+"file" \
+# 79
+"completed" \
+# 80
+"already" \
+# 81
+"exists" \
+# 82
+"Back" \
+# 83
+"Removed" \
+# 84
+"NOT found" \
+# 85
+"Add domain name to the hosts file ( if the web server is on the same your machine ) ?" \
+# 86
+"added in hosts file" \
+# 87
+"No hosts file" \
+# 88
+"Enter current password for root (mariadb):" \
+# 89
+"Press RETURN to continue, or CTRL+C to cancel." \
+# 90
+"message OK" \
+# 91
+"Enter public value of recaptcha v2 ( checkbox )" \
+# 92
+"Enter private value of recaptcha v2 ( checkbox )" \
+# 93
+"Enter public value of recaptcha v2 ( hidden )" \
+# 94
+"Enter private value of recaptcha v2 ( hidden )" \
+# 95
+"Enter public value of recaptcha v3" \
+# 96
+"Enter private value of recaptcha v3" \
+# 97
+"Enter IP-V6 mask for broker network interface, see settings on the broker's website." \
+# 98
+"Enter IPV6 pools mask for local network interface, save settings on the broker's website ( 64 or 48, usually 64 )" \
+# 99
+"interface" \
+# 100
+"Select and enter a name for the custom" \
+# 101
+"done" \
+# 102
+"Enter the local time zone " \
+# 103
+"default" \
+# 104
+"Sudoers" \
+# 105
+"configured" \
+# 106
+"Not found configuration shared file" \
+# 107
+"Script runs from" \
+);

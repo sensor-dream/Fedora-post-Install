@@ -1,0 +1,16 @@
+    {
+        "short_name": "SDBS",
+        "name": "Sensor-Dream Boxed System ",
+        "icons": [
+        {
+            "src": "Media/Icons/favicon.ico",
+            "type": "image/x-icon",
+            "sizes": "36x36"
+        }
+        ],
+        "start_url": "index.php",
+        "display": "browser",
+        "orientation": "landscape",
+        "theme_color": "white",
+        "background_color": "white"
+    }

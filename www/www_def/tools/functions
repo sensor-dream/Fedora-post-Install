@@ -1,0 +1,1263 @@
+#!/bin/env bash
+
+declare -rx main_lib_functions_script_source="$BASH_SOURCE"
+
+function set_echo_compat() {
+  case $(echo "testing\c"),$(echo -n testing) in
+  *c*,-n*) echo_n= echo_c= ;;
+  *c*,*) echo_n=-n echo_c= ;;
+  *) echo_n= echo_c='\c' ;;
+  esac
+}
+
+set_echo_compat
+
+function trim_space() {
+  echo "$(sed -e 's/[[:space:]]\+/ /g; s/^[ ]//; s/[ \t]$//;' <<<$@)"
+}
+
+# http://andrew.bogdanovs.com/post/bash_format_indents.html
+# DOTSTRING=`for i in {1..50}; do echo -n "."; done`
+# DOTSTRING=".................................................."
+function align_left() {
+  local chars="$1"
+  local str="${@:2}"
+  echo -n ${str}${chars:${#str}}
+}
+# align_left $DOTSTRING "Hello"; echo "OK"
+# align_left $DOTSTRING "BigBigString"; echo "OK"
+
+# http://andrew.bogdanovs.com/post/bash_format_indents.html
+# DOTSTRING=".................................................."
+function align_right() {
+  local chars="$1"
+  local str="${@:2}"
+  echo -n ${chars:${#str}}${str}
+}
+# echo -n "OK"; align_right $DOTSTRING "Hello"; echo
+# echo -n "OK"; align_right $DOTSTRING "BigBigString"; echo
+
+# http://andrew.bogdanovs.com/post/bash_format_indents.html
+# DOTSTRING=".................................................."
+function align_central() {
+  local chars="$1"
+  local str="${@:2}"
+  local half=$(((${#chars} - ${#str}) / 2))
+  local rest=$((${#chars} - ${#str} - $half))
+  echo -n ${chars:0:$half}${str}${chars:0:$rest}
+}
+# align_central $DOTSTRING " Hello "; echo
+# align_central $DOTSTRING " BigBigString "; echo
+
+#
+#   Сообщение-Предупреждение (Warning):  echo_w <string>
+#
+function echo_w() {
+  local n='-e'
+  if [[ -n "$1" && "$1" == "-n" ]]; then
+    n='-en'
+    shift 1
+  fi
+  echo "$n" '\e[31m'"!!! $@ !!!\033[0m"
+  tput sgr0
+}
+
+#
+#   Сообщение-Обычное:  echo_m <string>
+#
+function echo_m() {
+  local n='-e'
+  if [[ -n "$1" && "$1" == "-n" ]]; then
+    n='-en'
+    shift 1
+  fi
+  echo "$n" '\e[30m'"$@\033[0m"
+  tput sgr0
+}
+
+#
+#   Сообщение-Нотация:  echo_n <string>
+#
+function echo_n() {
+  local n='-e'
+  if [[ -n "$1" && "$1" == "-n" ]]; then
+    n='-en'
+    shift 1
+  fi
+  echo "$n" '\e[4;37;44m'"$@\033[0m  "
+  tput sgr0
+}
+
+#
+#   Проверяем на суперадмина
+#
+function check_root() {
+  echo_w "${main_msg_data[34]} $USER"
+  if [[ "$USER" != "root" ]]; then
+    echo_w "${main_msg_data[35]}"
+    exit 1
+  fi
+}
+
+function chk_root() {
+  check_root
+}
+
+#
+#   Проверяем на неадмина
+#
+function check_user() {
+  echo_w "${main_msg_data[34]} $USER"
+  if [[ "$USER" == "root" ]]; then
+    echo_w "${main_msg_data[36]}"
+    exit 1
+  fi
+}
+
+function chk_user() {
+  check_user
+}
+
+function chk_sudo_root() {
+
+  echo_w "${main_msg_data[38]}"
+
+  if [[ $EUID -ne 0 ]]; then # Check if we're root. If we are, continue.
+    sudo true
+    SUDO="sudo"
+    if [[ $? -ne 0 ]]; then
+      echo "${main_msg_data[37]}"
+      exit 1
+    fi
+
+  fi
+
+  echo_w "${main_msg_data[39]}"
+
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   N={0,1,2,3,...} by syntaxerror
+#
+function isNaturalNumber() {
+  [[ ${1} =~ ^[0-9]+$ ]]
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   Z={...,-2,-1,0,1,2,...} by karttu
+#
+function isInteger() {
+  [[ ${1} == ?(-)+([0-9]) ]]
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   Q={...,-½,-¼,0.0,¼,½,...} by karttu
+#
+function isFloat() {
+  [[ ${1} == ?(-)@(+([0-9]).*([0-9])|*([0-9]).+([0-9]))?(E?(-|+)+([0-9])) ]]
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   R={...,-1,-½,-¼,0.E+n,¼,½,1,...}
+#
+function isNumber() {
+  isNaturalNumber $1 || isInteger $1 || isFloat $1
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   Этот подход обрабатывает целые числа, float, отрицательные числа и терпит неудачу во всем остальном, включая незаявленные и пустые переменные
+#
+function isNumberBC() {
+  if (($(echo "$var == $var" | bc -l 2>/dev/null))); then
+    # echo "It a number"
+    return true
+  else
+    # echo "not a number"
+    return false
+  fi
+}
+
+#
+#   http://qaru.site/questions/17669/how-do-i-test-if-a-variable-is-a-number-in-bash
+#   (($(check_number $var "${CHECK_INTEGER}" "Error: Found $var - An integer is required."))) && { echo "$var+5" | bc; }
+#
+## <arg 1> Number - Number to check
+## <arg 2> String - Number type to check
+## <arg 3> String - Error message
+function check_number() {
+  local NUMBER="${1}"
+  local NUMBER_TYPE="${2}"
+  local ERROR_MESG="${3}"
+  local -i PASS=1
+  local -i FAIL=0
+  case "${NUMBER_TYPE}" in
+  "${CHECK_FLOAT}")
+    if ((!$(
+      printf "${CHECK_FLOAT}" "${NUMBER}" &>/dev/random
+      echo $?
+    ))); then
+      echo "${PASS}"
+    else
+      echo "${ERROR_MESG}" 1>&2
+      echo "${FAIL}"
+    fi
+    ;;
+  "${CHECK_INTEGER}")
+    if ((!$(
+      printf "${CHECK_INTEGER}" "${NUMBER}" &>/dev/random
+      echo $?
+    ))); then
+      echo "${PASS}"
+    else
+      echo "${ERROR_MESG}" 1>&2
+      echo "${FAIL}"
+    fi
+    ;;
+  *)
+    echo "${main_msg_data[40]} ${NUMBER_TYPE} to check_number()." 1>&2
+    echo "${FAIL}"
+    ;;
+  esac
+}
+
+#
+#   get arguments list in file
+#
+function get_arguments_list_in_file() {
+  local list=($(cat $1))
+  local out_list=()
+  for i in ${!list[*]}; do
+    if ! echo ${list[$i]} | grep -Eqsr "^(#|#[[:space:]]+|^$|^[[:space:]]+$)" -; then
+      out_list+=("${list[$i]}")
+    fi
+  done
+  echo "${out_list[*]}"
+}
+
+#
+#   Список файлов пакета и где они находятся
+#
+function get_list_rpm_file() {
+
+  echo "$(repoquery -lq $1)"
+
+}
+
+#
+#   Список местонахождения файлов библиотеки
+#
+function get_list_lib_file() {
+
+  echo "$(ldconfig -p | grep $1)"
+
+}
+
+#
+#   check_install_packages <${array[*]}>
+#   check_install_packages <"a b c d">
+#   return list text  string
+#
+function check_install_packages() {
+  echo $(rpm -qa $@)
+}
+
+#
+#   check_install_packages <${array[*]}>
+#   check_install_packages <"a b c d">
+#   использовать:
+#     preparationPackages=()
+#     mapfile -t preparationPackages <<< $(find_packages_installation <${array[*]}> | <"a b c d">
+#     ${preparationPackages[0]} - пакеты которые нужно ставить
+#     ${preparationPackages[1]} - пакеты которые уже стоят
+#
+function find_packages_installation() {
+  local Arg=($(trim_space $@))
+  # local Arg=("$@");
+  # echo ${Arg[*]};
+  local installPackages=($(check_install_packages ${Arg[*]}))
+  local Install=()
+  for i in ${!Arg[*]}; do
+    if ! grep -q "${Arg[$i]}" <<<${installPackages[*]}; then
+      Install+=("${Arg[$i]}")
+    fi
+  done
+  echo ${Install[*]}
+  echo ${installPackages[*]}
+}
+
+function manager_packages() {
+
+  local installPackages=''
+  local action='install'
+  local options='--skip-broken'
+  local force=0
+  local clearpackages=0
+  local help=0
+  local file=''
+  local mainlistoptions=''
+  local exclude=''
+  local sudo=''
+
+  echo_w "${main_msg_data[41]}"
+  echo_m "${main_msg_data[42]} $@"
+
+  OPTIND=1
+
+  while getopts "feruMmgcanhl:o:v:A:x:s" OPT; do
+    case $OPT in
+    f)
+      options="${options} --allowerasing --best"
+      force=1
+      ;;
+    e) action='remove' ;;
+    r) action='reinstall' ;;
+    u) action='update' ;;
+    M) action='upgrade' ;;
+    m) action="upgrade-minimal" ;;
+    g) action="groupinstall" ;;
+    c) clearpackages=1 ;;
+    a) options="${options} --assumeyes" ;;
+    n) options="${options} --noautoremove" ;;
+    h) help=1 ;;
+    l) file="$OPTARG" ;;
+    o) mainlistoptions="${mainlistoptions} $OPTARG" ;;
+    v) options="${options} --releasever $OPTARG" ;;
+    A) options="${options} --forcearch $OPTARG" ;;
+    x) exclude="${exclude} -x $OPTARG" ;;
+    s) sudo="sudo $OPTARG" ;;
+    *) ;;
+    esac
+  done
+
+  shift $(($OPTIND - 1))
+  [ "${1:-}" = "--" ] && shift
+
+  echo_m "${main_msg_data[42]} ${action} ${main_msg_data[43]} ${options}"
+
+  if [[ $help -eq 0 ]]; then
+
+    if [[ -z "$file" ]]; then
+      installPackages=($@)
+    else
+      installPackages=("$(get_arguments_list_in_file $file)")
+    fi
+    # dnf clean packages;
+    local preparationPackages=''
+    mapfile -t preparationPackages <<<$(find_packages_installation ${installPackages[*]})
+
+    if [[ "${action}" == 'remove' ]]; then
+
+      if [[ -n "${preparationPackages[0]}" ]]; then
+        echo_m "${main_msg_data[44]} \"${preparationPackages[0]}\" ${main_msg_data[45]}"
+      fi
+
+      if [[ -n "${preparationPackages[1]}" ]]; then
+        if [[ $force -eq 1 ]]; then
+          echo_w "${main_msg_data[46]} ${preparationPackages[1]}"
+          ${sudo} rpm -e --force "${mainlistoptions}" ${preparationPackages[1]}
+        else
+          echo_w "${main_msg_data[47]} ${action} ${main_msg_data[48]} ${preparationPackages[1]}"
+          ${sudo} dnf ${action} ${options} ${mainlistoptions} ${preparationPackages[1]} ${exclude}
+        fi
+      fi
+
+    elif [[ "${action}" == 'groupinstall' ]]; then
+
+      local IFS_OLD=$IFS
+      IFS=','
+      local groups=($@)
+      local one_group_pkg=''
+
+      for i in ${!groups[*]}; do
+
+        # one_group_pkg=$(echo ${groups[$i]} | sed -e 's/[[:space:]]\+/ /g; s/^[ \t]//; s/[ \t]$//');
+        one_group_pkg=$(echo ${groups[$i]} | column -t | tr -s " ")
+        echo_m "${main_msg_data[49]} \"$one_group_pkg\" ${main_msg_data[50]}"
+
+        ${sudo} dnf ${action} ${options} ${mainlistoptions} ${one_group_pkg} ${exclude}
+
+      done
+
+      IFS=$IFS_OLD
+
+    else
+
+      if [[ -n "${preparationPackages[1]}" ]]; then
+        if [[ "${action}" != 'install' ]]; then
+          if [[ ${#installPackages[*]} -eq 0 ]]; then
+            echo_w "Start ${action} ${options} ${mainlistoptions} ${exclude}"
+            ${sudo} dnf ${action} ${options} "${mainlistoptions}" "${exclude}"
+          else
+            echo_w "Start ${action}  ${options} ${mainlistoptions} packages: ${preparationPackages[1]} ${exclude}"
+            ${sudo} dnf ${action} ${options} ${mainlistoptions} ${preparationPackages[1]} ${exclude}
+          fi
+        else
+          echo_m "${main_msg_data[51]} ${preparationPackages[1]}"
+        fi
+      fi
+
+      if [[ -n "${preparationPackages[0]}" ]]; then
+
+        echo_w "${main_msg_data[47]} ${action} ${options} ${mainlistoptions} ${main_msg_data[48]} ${preparationPackages[0]} ${exclude}"
+        ${sudo} dnf ${action} ${options} ${mainlistoptions} ${preparationPackages[0]} ${exclude}
+
+      fi
+
+    fi
+
+    if [[ $clearpackages -eq 1 ]]; then
+      echo_m "${main_msg_data[52]}"
+      ${sudo} dnf clean packages
+    fi
+
+    if [[ -n "${mainlistoptions}" ]]; then
+      mainlistoptions=(${mainlistoptions})
+      for i in ${!mainlistoptions[*]}; do
+        echo ${mainlistoptions[$i]}
+      done
+
+    fi
+
+  else
+
+    echo_m "help"
+
+  fi
+
+}
+
+function update_packages() {
+
+  install_packages dnf-utils
+  ${sudo} dnf update --skip-broken -y
+
+}
+
+function pkg() { manager_packages "$@"; }
+function install_packages() { manager_packages "$@"; }
+function force_install_packages() { manager_packages -f "$@"; }
+function update_packages() { manager_packages -u "$@"; }
+function upgrade_packages() { manager_packages -M "$@"; }
+function upgrade_min_packages() { manager_packages -m "$@"; }
+function force_upgrade_packages() { manager_packages -f -M "$@"; }
+function force_upgrade_min_packages() { manager_packages -f -m "$@"; }
+function group_install_packages() { manager_packages -g "$@"; }
+
+function remove_packages() { manager_packages -e -n "$@"; }
+function force_remove_packages() { manager_packages -e -f -n "$@"; }
+
+function install_packages_list_file() { manager_packages "$@"; }
+
+#
+#   загрузка списка модулей kernel из файла
+#
+function install_kernel_module_list_file() {
+  local list=($(get_arguments_list_in_file $1))
+  local out_list=()
+  for i in ${!list[*]}; do
+    # echo $(modinfo "${list[$i]}");
+    if /sbin/modprobe "${list[i]}" 2>/dev/null; then
+      out_list+=(${list[$i]})
+    fi
+    # if /sbin/insmod ${list[i]} 2>/dev/null; then out_list+=${list[$i]}; fi;
+
+  done
+  echo "${out_list[*]}"
+}
+
+#
+#   Взято из http://qaru.site/questions/28117/how-to-create-a-cron-job-using-bash-automatically-without-the-interactive-editor
+#   usage: cronjob_editor '<interval>' '<command>' '<add|remove>' '<user>'
+#
+function cronjob_editor() {
+
+  if [[ -z "$1" ]]; then printf " ${main_msg_data[53]}\n"; fi
+  if [[ -z "$2" ]]; then printf " ${main_msg_data[54]}\n"; fi
+  if [[ -z "$3" ]]; then printf " ${main_msg_data[55]}\n"; fi
+
+  if [[ "$3" == "add" ]]; then
+    # add cronjob, no duplication:
+    if [[ -n "$4" ]]; then
+      (
+        crontab -u "$4" -l | grep -v -F -w "$2"
+        echo "$1 $2"
+      ) | crontab -u "$4" -
+    else
+      (
+        crontab -l | grep -v -F -w "$2"
+        echo "$1 $2"
+      ) | crontab -
+    fi
+  elif [[ "$3" == "remove" ]]; then
+    # remove cronjob:
+    if [[ -n "$4" ]]; then
+      (crontab -u "$4" -l | grep -v -F -w "$2") | crontab -u "$4" -
+    else
+      (crontab -l | grep -v -F -w "$2") | crontab -
+    fi
+  fi
+}
+
+#
+#   usage: add_cron_job '<interval>' '<command>' '<user>'
+#
+function add_cron_job() {
+  cronjob_editor "$1" "$2" "add" "$3"
+}
+
+#
+#   usage: del_cron_job '<interval>' '<command>' '<user>'
+#
+function del_cron_job() {
+  cronjob_editor "$1" "$2" "remove" "$3"
+}
+
+#
+# проверка на активность сервиса
+#
+function chk_active_service() {
+  if [[ "$(systemctl is-active $1 2>/dev/null)" == "active" ]]; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+#
+# проверка на автозапуск сервиса
+#
+function chk_enabled_service() {
+  if [[ "$(systemctl is-enabled $1 2>/dev/null)" == "enabled" ]]; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+#
+#   Остановка сервисов
+#   systemctl_stop_services <list services>
+function systemctl_stop_services() {
+
+  local srv=($@)
+
+  for i in ${!srv[*]}; do
+
+    if [[ $(chk_active_service ${srv[i]}.service) -eq 1 ]]; then
+      echo_m "${main_msg_data[56]} ${main_msg_data[57]}: ${srv[i]}.service "
+      systemctl stop "${srv[i]}.service"
+    else
+      echo_w "${main_msg_data[57]} ${srv[i]}.service ${main_msg_data[58]}"
+    fi
+
+  done
+
+}
+
+#
+#   Запуск сервисов
+#   systemctl_start_services <list services>
+function systemctl_start_services() {
+
+  local srv=($@)
+
+  for i in ${!srv[*]}; do
+
+    if [[ $(chk_active_service ${srv[i]}.service) -eq 1 ]]; then
+      echo_w "${main_msg_data[57]} ${srv[i]}.service ${main_msg_data[59]}"
+    else
+      echo_m "${main_msg_data[47]} ${main_msg_data[57]}: ${srv[i]}.service "
+      systemctl start "${srv[i]}.service"
+    fi
+
+  done
+
+}
+
+#
+#   Удаление из автозапуска и маскирование сервисов
+#   systemctl_disabled_services <services | list services>
+function systemctl_disabled_services() {
+
+  local srv=''
+  local status=''
+  local masked=0
+
+  OPTIND=1
+
+  while getopts "m" OPT; do
+    case $OPT in
+    m) masked=1 ;;
+    *) ;;
+    esac
+  done
+
+  shift $(($OPTIND - 1))
+  # shift `expr $OPTIND - 1`;
+  [ "${1:-}" = "--" ] && shift
+
+  local srv=($@)
+
+  for i in ${!srv[*]}; do
+
+    status="$(systemctl status ${srv[i]}.service | awk '/Active/ { print $2 }')"
+
+    if [[ "$status" == "active" ]]; then
+      echo_m "${main_msg_data[60]} ${main_msg_data[57]}: ${srv[i]}.service "
+      systemctl stop "${srv[i]}.service"
+      systemctl disable "${srv[i]}.service"
+      [[ ${masked} -eq 1 ]] && systemctl mask "${srv[i]}.service"
+    elif [[ "$status" == "inactive" || "$status" == "failed" ]]; then
+      echo_m "${main_msg_data[60]} ${main_msg_data[57]}: ${srv[i]}.service "
+      systemctl disable "${srv[i]}.service"
+      [[ ${masked} -eq 1 ]] && systemctl mask "${srv[i]}.service"
+    elif [[ "$status" == "masked" ]]; then
+      echo_w "${main_msg_data[57]} ${srv[i]}.service ${main_msg_data[61]}"
+    elif [[ $(systemctl status "$service.service" | awk '/Loaded/ { print $4 }') == "disabled;" ]]; then
+      if [[ ${masked} -eq 1 ]]; then
+        echo_m "${main_msg_data[62]} ${main_msg_data[57]}: ${srv[i]}.service. ${main_msg_data[63]}."
+        systemctl mask "${srv[i]}.service"
+      fi
+    fi
+
+  done
+
+  systemctl daemon-reload
+
+}
+
+#
+#   Активация и запуск или перезапуск сервиса
+#   systemctl_activate_and_start_or_restart_service <name>
+function systemctl_activate_and_start_or_restart_service() {
+
+  local service="$@"
+
+  if [[ -n "$service" ]]; then
+
+    if [[ $(systemctl status "$service.service" | awk '/Active/ { print $2 }') == "active" ]]; then
+      echo_m "${main_msg_data[64]} ${main_msg_data[57]}: ${service}.service "
+      systemctl restart "$service.service"
+    else
+      echo_m "${main_msg_data[65]} $service.service ${main_msg_data[66]} ${main_msg_data[67]} ${main_msg_data[68]}."
+
+      systemctl daemon-reload
+
+      if [[ $(systemctl status "$service.service" | awk '/Loaded/ { print $2 }') == "masked" ]]; then
+        echo_m "${main_msg_data[69]} ${main_msg_data[57]}: ${service}.service "
+        systemctl unmask "$service.service"
+      fi
+      if [[ $(systemctl status "$service.service" | awk '/Loaded/ { print $4 }') == "disabled;" ]]; then
+        echo_m "${main_msg_data[70]} ${main_msg_data[57]}: ${service}.service "
+        systemctl enable "$service.service"
+      fi
+      if [[ $(systemctl status "$service.service" | awk '/Active/ { print $2 }') == "inactive" ]]; then
+        echo_m "${main_msg_data[47]} ${main_msg_data[57]}: ${service}.service "
+        systemctl start "$service.service"
+      fi
+      if [[ $(systemctl status "$service.service" | awk '/Active/ { print $2 }') == "failed" ]]; then
+        echo_m "${main_msg_data[47]} ${main_msg_data[57]}: ${service}.service "
+        systemctl start "$service.service"
+      fi
+
+    fi
+
+    # systemctl status "$service.service";
+
+    echo "${main_msg_data[71]} ${service} ${main_msg_data[72]}: $(systemctl is-active ${service})"
+
+  fi
+
+}
+
+#
+# @@ ставим флаг исполняемого файла для bash, sh, python, js, perl, php по его начальному заголовку в файле
+# @ set_flag_executable_file argument
+# @ arguments: file or path
+#
+function set_flag_executable_file() {
+
+  local list="$1"
+
+  local sudoer="$2"
+
+  [[ -z "$list" ]] && list=*
+
+  if [[ -n "$list" ]]; then
+    export alias sudoer="sudo"
+  fi
+
+  list="$(grep -aiHsrE -m 1 '^#!(/usr/|/)[sb]+in(/env[[:space:]]+|/)(bash|sh|py[thon]+|js|perl|php)$' $list)"
+  [[ -n "$list" ]] && $(echo "$list" | $sudoer chmod +x $(awk -F ':' '{ print $1 }'))
+  ## grep -iHsrE '^#!(/usr/|/)[sb]+in(/env[[:space:]]+|/)(bash|sh|py[thon]+|js|perl|php)$' $list | chmod +x $(awk -F ':' '{ print $1 }');
+}
+
+#
+# @@ Установка владельца файл(а|ов) или директори(и|й), права доступа к файл(у|ам) или директори(и|ям). Установка executable флага на файлы bash, sh, python, js, perl, php ( функция set_flag_executable_file ).
+# @ set_permission arg value .... (-- or empty) <path or file or list path or list file>
+# @ arg value:
+# @   : -u <$USER - default> - пользователь
+# @   : -g <$USER - default> - группа
+# @   : -r [no recursion - default] - рекурсия на поддиректории
+# @   : -f <0664 - default> - права на файл
+# @   : -d <0755 - default> - права на дирректорию
+# @   : -s flag sudoers
+# @   : (-- or ) <path or file or list path or list file>
+# @ set_permission -r
+#
+function set_permission() {
+
+  local r=""
+  local d="775"
+  local f="664"
+  local u=""
+  local g=""
+  local flag_sudoer
+  local sudoer=""
+
+  while getopts "u:g:f:d:rs" OPT; do
+    case $OPT in
+    u) u="$OPTARG" ;;
+    g) g="$OPTARG" ;;
+    f) f="$OPTARG" ;;
+    d) d="$OPTARG" ;;
+    r) r="-R" ;;
+    s)
+      export alias sudoer="sudo"
+      flag_sudoer=1
+      ;;
+    *) ;;
+    esac
+  done
+  shift $(($OPTIND - 1))
+  # shift `expr $OPTIND - 1`
+  [ "${1:-}" = "--" ] && shift
+
+  local ge=$(getent passwd $u 2>/dev/null)
+  if [[ -z "$ge" ]]; then
+    echo "Нет такого пользователя $u"
+    exit $E_OPTERROR
+  fi
+
+  ge=$(getent group $g 2>/dev/null)
+  if [[ -z "$ge" ]]; then
+    echo "Нет такой группы $g"
+    exit $E_OPTERROR
+  fi
+
+  [[ -z "$u" ]] && u="$USER"
+  [[ -z "$g" ]] && g="$u"
+
+  #   $@, $*
+  local list=($@)
+
+  if [[ -z "${list}" ]]; then
+    list=($(ls -A))
+  fi
+
+  local i=0
+
+  for i in ${!list[*]}; do
+    echo "Prepare permission for: ${list[$i]}"
+    if [[ -f "${list[$i]}" && "${list[$i]}" != "setperm" && "${list[$i]}" != "setperm.bash" ]]; then
+      $sudoer chown $u.$g "${list[$i]}"
+      $sudoer chmod $f "${list[$i]}"
+    elif [[ -d "${list[$i]}" ]]; then
+      $sudoer chown $r $u.$g "${list[$i]}"
+      $sudoer find "${list[$i]}" -type d -name '.git' -exec chown -R $u.$u {} \;
+      $sudoer find "${list[$i]}" -type d -name '.vscode' -exec chown -R $u.$u {} \;
+      $sudoer find "${list[$i]}" -type d -name '.github' -exec chown -R $u.$u {} \;
+      $sudoer find "${list[$i]}" -type d -name '.history' -exec chown -R $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.gitignore' -exec chown $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.gitattributes' -exec chown $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.editorconfig' -exec chown $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.push' -exec chown $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.push_clear_all_history' -exec chown $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.push_merge_all' -exec chown $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.setperm' -exec chown $u.$u {} \;
+      $sudoer find "${list[$i]}" -type f -name '.setperm.bash' -exec chown $u.$u {} \;
+
+      # find "${list[$i]}" -type d -name 'node_modules' -exec chmod -R a+x {} \; # or npm rebuild; # or rm -Rf "${main_project_path}/node_modules"; npm install;
+
+      find "${list[$i]}" -type d -name '.git' -print0 | xargs -0 echo
+
+      if [[ $r == "-R" ]]; then
+        $sudoer find "${list[$i]}" -type d -exec chmod $d {} \;
+        $sudoer find "${list[$i]}" -type f -exec chmod $f {} \;
+      else
+        $sudoer chmod $d "${list[$i]}"
+      fi
+    fi
+    set_flag_executable_file "${list[$i]}" $flag_sudoer
+  done
+
+  echo "Set permissions is ok"
+
+}
+
+#
+# Определение номера последней строки совпадающей с заданным поиском
+# last_number_found_string_in_text_file <serch text> <file>
+#
+function last_number_found_string_in_text_file() {
+  local Num=
+  if ! grep -q "$1" "$2"; then
+    echo "# $1" >>"$2"
+    Num=($(sed -n "/$1/=" "$2"))
+  else
+    Num=($(sed -n "/$1/=" "$2"))
+  fi
+  echo "${Num[${#Num[*]} - 1]}"
+}
+
+#
+# Вставка строки перед последней найденной строкой совпадающей с заданным поиском
+# insert_before_found_text_file <serch text> <insert string> <file>
+#
+function insert_before_found_text_file() {
+  sed -i $(last_number_found_string_in_text_file "$1" "$3")"i\\$2" "$3"
+}
+
+#
+# Вставка строки перед последней найденной строкой совпадающей с заданным поиском
+# insert_before_found_text_one_file <serch text> <insert string> <file>
+#
+function insert_before_found_text_one_file() {
+  if ! grep -qE "^$2" "$3"; then
+    insert_before_found_text_file "$1" "$2" "$3"
+  fi
+}
+
+#
+# последняя найденная строка, совпадающей с заданным поиском,комментируется и производится
+# вставка строки после нее
+# insert_after_found_text_and_commit_found <serch text> <insert string>  <file>
+#
+function insert_before_found_text_and_commit_found() {
+  local pasteNum=$(last_number_found_string_in_text_file "$1" "$3")
+  sed -i -e $pasteNum"s/^$1/#$1/;"$pasteNum"i\\$2" "$3"
+}
+
+#
+# последняя найденная строка, совпадающей с заданным поиском <serch text>,комментируется и производится
+# вставка строки после нее. Если она не совпадает с <insert string>
+# insert_after_found_text_one_and_commit_found <serch text> <insert string>  <file>
+#
+function insert_before_found_text_one_and_commit_found() {
+  if ! grep -qE "^$2" "$3"; then
+    insert_before_found_text_and_commit_found "$1" "$2" "$3"
+  fi
+}
+
+#
+# Вставка строки после последней найденной строки совпадающей с заданным поиском
+# insert_after_found_text_file <serch text> <insert string>  <file>
+#
+function insert_after_found_text_file() {
+  sed -i $(last_number_found_string_in_text_file "$1" "$3")"a\\$2" "$3"
+}
+
+#
+# Вставка строки после последней найденной строки совпадающей с заданным поиском
+# insert_after_found_text_one_file <serch text> <insert string>  <file>
+#
+function insert_after_found_text_one_file() {
+  if ! grep -qE "^$2" "$3"; then
+    insert_after_found_text_file "$1" "$2" "$3"
+  fi
+}
+
+#
+# последняя найденная строка, совпадающей с заданным поиском,комментируется и производится
+# вставка строки после нее
+# insert_after_found_text_and_commit_found <serch text> <insert string>  <file>
+#
+function insert_after_found_text_and_commit_found() {
+  local pasteNum=$(last_number_found_string_in_text_file "$1" "$3")
+  sed -i -e $pasteNum"s/^$1/#$1/;"$pasteNum"a\\$2" "$3"
+}
+
+#
+# последняя найденная строка, совпадающей с заданным поиском <serch text>,комментируется и производится
+# вставка строки после нее. Если она не совпадает с <insert string>
+# insert_after_found_text_one_and_commit_found <serch text> <insert string>  <file>
+#
+function insert_after_found_text_one_and_commit_found() {
+  if ! grep -qE "^$2" "$3"; then
+    insert_after_found_text_and_commit_found "$1" "$2" "$3"
+  fi
+}
+
+#
+# Создание файла и назначение ему разрещения для пользователя
+# create_file <file> <user>
+#
+function create_file() {
+  if [[ ! -e "$1" ]]; then
+    touch "$1"
+    chmod 0664 "$1"
+    if [[ -n "$2" ]]; then
+      chown "$2.$2" "$1"
+    fi
+    echo_m "${main_msg_data[77]} ${main_msg_data[78]} $1 ${main_msg_data[79]}"
+  else
+    echo_m "${main_msg_data[78]} $1 ${main_msg_data[80]} ${main_msg_data[81]}"
+  fi
+}
+
+#
+# Создание back файла и назначение ему разрещения для пользователя
+# create_back_file <file> <user>
+#
+function create_back_file() {
+  create_file $1 $2
+  if [[ ! -f "$1.back" ]]; then
+    cp "$1" "$1.back"
+    if [[ -n "$2" ]]; then
+      chown "$2.$2" "$1.back"
+    fi
+    echo_m "${main_msg_data[82]} ${main_msg_data[78]} $1.back {main_msg_data[79]}"
+  else
+    echo_m "${main_msg_data[82]} ${main_msg_data[78]} $1.back ${main_msg_data[80]} ${main_msg_data[81]}"
+  fi
+}
+
+#
+#   Удаление директории
+#
+function remove_fp() {
+  local list=($@)
+  for i in ${!list[*]}; do
+    if [[ -e "${list[$i]}" ]]; then
+      rm -f -r "${list[$i]}"
+      echo_m "${main_msg_data[83]} ${list[$i]} ${main_msg_data[76]}"
+    else
+      echo_w "${list[$i]} ${main_msg_data[84]}"
+    fi
+  done
+
+}
+
+#
+#   Количество точек в слове
+#
+function get_count_dot() {
+
+  echo "$(echo -n $1 | sed s/[^\.]//g | wc -c)"
+  #echo "$(grep -o '\.' <<< $1 | wc -l)";
+
+}
+
+#
+#   Количество точек в слове
+#
+function get_a_count_dot() {
+
+  #local OLD_IFS=$IFS;
+  # IFS='.';
+  # local dot=($@);
+  # IFS=$OLD_IFS;
+  local dot=(${@//./ })
+  echo $((${#dot[*]} - 1))
+  #echo "$(grep -o '\.' <<< $1 | wc -l)";
+
+}
+
+#
+#   START http://qaru.site/questions/25835/join-elements-of-an-array
+#
+#   Объединение массива в строку с произвольным разделителем
+#
+#
+# joinStrings "$myDelimiter" "${myArray[@]}"
+#
+function join_strings() {
+  local a=("${@:3}")
+  printf "%s" "$2${a[@]/#/$1}"
+}
+
+#
+# join with separator
+#
+# $ join_ws , a b c
+# a,b,c
+# $ join_ws '' a b c
+# abc
+# $ join_ws $'\n' a b c
+# a
+# b
+# c
+# $ join_ws ' \/ ' A B C
+# A \/ B \/ C
+#
+function join_ws() {
+  local IFS=
+  local s="${*/#/$1}"
+  echo "${s#"$1$1$1"}"
+}
+
+#
+#  END  http://qaru.site/questions/25835/join-elements-of-an-array
+#
+
+#
+#   занесение домена в hosts файл
+#   create_name_in_hosts_file <domain_name>
+#
+function create_name_in_hosts_file() {
+
+  if [[ -z "$hosts_file" ]]; then
+    local hosts_file="/etc/hosts"
+  fi
+
+  if [[ -f "$hosts_file" ]]; then
+    local pat1="127.0.0.1   $1"
+    local pat2="::1         $1"
+    local pat3="127.0.0.1   $1 www.$1"
+    local pat4="::1         $1 www.$1"
+    if ! grep -qE "127.0.0.1[[:space:]]+$1" $hosts_file; then
+      local key=''
+      while getopts "y" OPT; do
+        case $OPT in
+        # y   ) key="$OPTARG"; ;;
+        y) key="y" ;;
+        *) ;;
+        esac
+      done
+      shift $(($OPTIND - 1))
+
+      if [[ -z "$key" ]]; then
+        echo_w -n "$1 - ${main_msg_data[85]} (n) (y/n): "
+        read key
+      fi
+
+      if [ -n "$key" ] && [ "$key" == "y" ]; then
+        local count="$(grep -o '\.' <<<$1 | wc -l)"
+        if [[ "$count" -ne "1" ]]; then
+          echo "$pat1" | tee -a "$hosts_file"
+          echo "$pat2" | tee -a "$hosts_file"
+        else
+          echo "$pat3" | tee -a "$hosts_file"
+          echo "$pat4" | tee -a "$hosts_file"
+        fi
+        echo_m "$1 ${main_msg_data[86]}"
+      fi
+    else
+      echo_w "$1 ${main_msg_data[80]} ${main_msg_data[86]}"
+    fi
+  else
+    echo_w "${main_msg_data[87]}"
+  fi
+}
+
+function validate_reply() {
+  local ret=0
+  if [[ -z "$1" ]]; then
+    reply='n'
+    echo $ret
+    return $ret
+  fi
+
+  case $1 in
+  'y' | 'Y' | 'yes' | 'Yes' | 'YEs' | 'yEs' | 'yES' | 'yeS' | 'YeS' | 'YES')
+    reply='y'
+    ret=1
+    ;;
+  'n' | 'N' | 'no' | 'No' | 'nO' | 'NO')
+    reply='n'
+    ret=0
+    ;;
+  *) ret=2 ;;
+  esac
+  echo $ret
+  return $ret
+}
+
+function do_mysql_query() {
+  echo "$1" >$mySqlCommand
+  mysql --defaults-file=$mySqlConfig <$mySqlCommand
+  return $?
+}
+
+function do_mysql_query_file() {
+  mysql --defaults-file=$mySqlConfig <$1
+  return $?
+}
+
+function make_config_mysql_quiery() {
+  echo "# mysql secure config file" >$mySqlConfig
+  echo "[mysql]" >>$mySqlConfig
+  echo "user=root" >>$mySqlConfig
+  echo "password='$1'" >>$mySqlConfig
+}
+
+function prepare_mysql_quiery() {
+  touch $mySqlConfig $mySqlCommand
+  chmod 600 $mySqlConfig $mySqlCommand
+}
+
+function remove_config_mysql_quiery() {
+  rm -f $mySqlConfig $mySqlCommand
+}
+
+function get_root_password_mysql_quiery() {
+  local status=1
+  local password=''
+  while [ $status -eq 1 ]; do
+    stty -echo
+    echo $echo_n "${main_msg_data[88]} $echo_c"
+    read password
+    echo
+    stty echo
+    make_config_mysql_quiery $password
+    do_mysql_query ""
+    status=$?
+  done
+}
+
+function create_mysql_shell() {
+  prepare_mysql_quiery
+  get_root_password_mysql_quiery
+}
+
+function destroy_mysql_shell() {
+  remove_config_mysql_quiery
+}
+
+function confirm() {
+
+  echo_m -n "\n${main_msg_data[89]}\n"
+
+  read -e ignored
+
+}
+
+function countdown_console() {
+
+  local s=$1
+  [[ -z ${s} ]] && s=0
+  local d=$(($(date +%s) + ${s}))
+
+  while [[ "${d}" -ne $(date +%s) ]]; do
+
+    echo_m -n "!!! ${main_msg_data[89]}" "$(date -u --date @$((${d} - $(date +%s))) +%H:%M:%S) \r"
+
+  done
+
+  echo ""
+
+}
+
+function send_notify_main_user() {
+
+  chk_user
+
+  if [[ "$USER" == "$main_user" ]]; then
+
+    local s=$1
+    [[ -z "${s}" ]] && s=1
+
+    local m=$2
+    [[ -z "${m}" ]] && m="${main_user} ${main_msg_data[89]} :)"
+
+    sleep ${s} && notify-send "${m}"
+
+  fi
+
+}
+
+function stop_xdg_autostart_desktop() {
+
+  if [[ -n "$(find "/etc/xdg/autostart/${1}" 2>/dev/null)" ]]; then
+    if ! grep "^X-GNOME-Autostart-enabled.*$" "/etc/xdg/autostart/${1}"; then
+      echo 'X-GNOME-Autostart-enabled=false' >>"/etc/xdg/autostart/${1}"
+    else
+      sed -i 's/X-GNOME-Autostart-enabled.*/X-GNOME-Autostart-enabled=false/' "/etc/xdg/autostart/${1}"
+    fi
+    if [ ! -d "/root/.config/autostart" ]; then
+      mkdir -p "/root/.config/autostart"
+    fi
+    if [[ -z "$(find "/root/.config/autostart/${1}" 2>/dev/null)" ]]; then
+      cp -f "/etc/xdg/autostart/${1}" "/root/.config/autostart/"
+    else
+      if ! grep "^X-GNOME-Autostart-enabled.*$" "/root/.config/autostart/${1}"; then
+        echo 'X-GNOME-Autostart-enabled=false' >>"/root/.config/autostart/${1}"
+      else
+        sed -i 's/X-GNOME-Autostart-enabled.*/X-GNOME-Autostart-enabled=false/' "/root/.config/autostart/${1}"
+      fi
+    fi
+    if [[ ! -d "/home/$main_user/.config/autostart" ]]; then
+      mkdir -p "/home/$main_user/.config/autostart"
+      chown "$main_user"."$main_user" "/home/$main_user/.config/autostart/"
+    fi
+    if [[ -z "$(find "/home/$main_user/.config/autostart/${1}" 2>/dev/null)" ]]; then
+      cp -f "/etc/xdg/autostart/${1}" "/home/$main_user/.config/autostart/"
+      chown "$main_user"."$main_user" "/home/$main_user/.config/autostart/${1}"
+    else
+      if ! grep "^X-GNOME-Autostart-enabled.*$" "/home/$main_user/.config/autostart/${1}"; then
+        echo 'X-GNOME-Autostart-enabled=false' >>"/home/$main_user/.config/autostart/${1}"
+      else
+        sed -i 's/X-GNOME-Autostart-enabled.*/X-GNOME-Autostart-enabled=false/' "/home/$main_user/.config/autostart/${1}"
+      fi
+    fi
+
+  fi
+
+}
+
+#
+# FOR GIT UTILITES
+#
+
+function git_push_clear_all_history() {
+
+  echo "Initialise main function of push_clear_all_history script source"
+
+  git add --all
+  git commit -m "mailto: ${main_email} commiter: auto-clear-history-commit"
+
+  git reset --soft $(git log --reverse --format=%H | head -n 1)
+  git commit --amend -m "mailto: ${main_email} commiter: auto-clear-history-commit"
+  git push origin --force
+  git push gitlab --force
+  git push bitbucket --force
+
+}
+
+function git_push_merge_all() {
+
+  git add --all
+  git commit -m "mailto: ${main_email} commiter: auto-merge-commit"
+
+  git reset $(git commit-tree HEAD^{tree} -m "mailto: ${main_email} commiter: auto-merge-commit")
+
+  git push origin --force
+  git push gitlab --force
+  git push bitbucket --force
+
+}
+
+function git_push() {
+
+  git add --all
+
+  if [[ -z "$@" ]]; then
+
+    git commit -m "mailto: ${main_email} commiter: auto-commit"
+
+  else
+
+    git commit -m "message: $@ mailto: ${main_email}"
+
+  fi
+
+  git push origin
+  git push gitlab
+  git push bitbucket
+
+}

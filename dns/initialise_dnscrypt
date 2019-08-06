@@ -1,0 +1,83 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : dns_initialise_dnscrypt
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 21.03.2019, 19:44:47
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx dns_initialise_dnscrypt_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $dns_initialise_dnscrypt_script_source)";
+
+
+function initialise_install_dnscrypt(){
+
+  check_root;
+
+  local install_pkg=(\
+'dnscrypt-proxy' \
+'dnscrypt-proxy-gui' \
+);
+
+  if [[ "$1" == "-u" ]];then
+    if [[ -n "$(check_install_packages 'dnscrypt-proxy')"  ]]; then
+      remove_packages "${install_pkg[*]}";
+    fi
+  else
+    if [[ -z "$(check_install_packages 'dnscrypt-proxy')"  ]]; then
+      install_packages "${install_pkg[*]}";
+      systemctl_activate_and_start_or_restart_service 'dnscrypt-proxy';
+    fi
+  fi
+
+}
+
+
+function main_dns_initialise_dnscrypt_script_source(){
+
+  echo_m "Initialise main function";
+
+  initialise_install_dnscrypt "$@";
+
+}
+
+main_dns_initialise_dnscrypt_script_source "$@";

@@ -1,0 +1,11 @@
+!.editorconfig
+!.gitattributes
+!.gitignore
+!.htaccess
+!.user.ini
+.git
+tmp
+node_modules
+package.json
+package-lock.json
+_*

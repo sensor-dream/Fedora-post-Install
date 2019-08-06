@@ -1,0 +1,336 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : games_packs
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 20.09.2019, 20:44:38
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_games_packs_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${pkg_games_packs_script_source})";
+
+function install_pkg_games_packs(){
+
+  local install_pkg=(\
+'compat-libstdc++-33 compat-libstdc++-33.i686' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# First Person Shooter game based on the Quake 3 engine
+# URL          : http://tremulous.net
+# Лицензия     : GPLv2+
+# Description  : Tremulous is a free, open source game that blends a team based FPS with elements
+# : of an RTS. Players can choose from 2 unique races, aliens and humans.
+# : Players on both teams are able to build working structures in-game like an RTS.
+# : These structures provide many functions, the most important being spawning.
+# : The designated builders must ensure there are spawn structures or other players
+# :  will not be able to rejoin the game after death. Other structures provide
+# : automated base defense (to some degree), healing functions and much more...
+# :
+# : Player advancement is different depending on which team you are on.
+# : As a human, players are rewarded with credits for each alien kill.
+# : These credits may be used to purchase new weapons and upgrades from the Armoury
+# : The alien team advances quite differently. Upon killing a human foe,
+# : the alien is able to evolve into a new class. The more kills gained the more
+# : powerful the classes available.
+# :
+# : The overall objective behind Tremulous is to eliminate the opposing team.
+# : This is achieved by not only killing the opposing players but also
+# : removing their ability to respawn by destroying their spawn structures.
+'tremulous' \
+# Mission and Objective based 2D Platform Game
+# URL          : http://www.parallelrealities.co.uk/p/blob-wars-metal-blob-solid.html
+# Лицензия     : GPLv2+ and CC-BY-SA and CC-BY and BSD and Public Domain
+# Description  : Blob Wars : Metal Blob Solid. This is Episode I of the Blob Wars Saga.
+# : You must undertake the role of fearless Blob solider, Bob, as he infiltrates
+# : various enemy installations and hideouts in an attempt to rescue as many
+# : MIAs as possible.
+'blobwars' \
+#Funny turn-based artillery game, featuring fighting Hedgehogs!
+# URL          : http://www.hedgewars.org/
+# Лицензия     : GPL+
+# Description  : Hedgewars is a turn based strategy game but the real buzz is from watching the
+# : devastation caused by those pesky hedgehogs with those fantastic weapons.
+# :
+# : Each player controls a team of several hedgehogs. During the course of the
+# : game, players take turns with one of their hedgehogs. They then use whatever
+# : tools and weapons are available to attack and kill the opponents' hedgehogs,
+# : thereby winning the game. Hedgehogs may move around the terrain in a variety
+# : of ways, normally by walking and jumping but also by using particular tools
+# : such as the "Rope" or "Parachute", to move to otherwise inaccessible areas.
+'hedgewars hedgewars-server' \
+# Bos Wars is a futuristic real-time strategy game
+# URL          : http://www.boswars.org/
+# Лицензия     : GPLv2
+# Description  : Bos Wars is a futuristic real-time strategy game. It is possible to play
+# : against human opponents over LAN, internet, or against the computer.
+# : Bos Wars aims to create a completly original and fun open source RTS game.
+'boswars boswars-addons' \
+# Summary      : A drug dealing game
+# URL          : http://dopewars.sourceforge.net/
+# Лицензия     : GPLv2+
+# Description  : Based on John E. Dell's old Drug Wars game, dopewars is a simulation of an
+# : imaginary drug market. dopewars is an All-American game which features
+# : buying, selling, and trying to get past the cops!
+# :
+# : The first thing you need to do is pay off your debt to the Loan Shark. After
+# : that, your goal is to make as much money as possible (and stay alive)! You
+# : have one month of game time to make your fortune.
+# :
+# : dopewars supports multiple players via. TCP/IP. Chatting to and fighting
+# : with other players (computer or human) is supported; check the command line
+# : switches (via dopewars -h) for further information.
+'dopewars dopewars-sdl' \
+# Summary      : Hack and slash top-down view RPG game
+# URL          : http://sumwars.org
+# Лицензия     : GPLv3+
+# Description  : Summoning Wars is an open source role-playing game, featuring both
+# : a single-player and a multiplayer mode for about 2 to 8 players.
+'sumwars sumwars-data' \
+# Summary      : Fast paced 3D first person shooter
+# URL          : https://www.warsow.net/
+# Лицензия     : GPLv2+
+# Description  : Warsow is a fast paced first person shooter consisting of cel-shaded
+# : cartoon-like graphics with dark, flashy and dirty textures. Warsow is based on
+# : the E-novel "Chasseur de bots" ("Bots hunter" in English) by Fabrice Demurger.
+# : Warsow's codebase is built upon Qfusion, an advanced modification of the Quake
+# : II engine.
+# :
+# : This package installs the client to play Warsow.
+'warsow warsow-data warsow-server' \
+# Summary      : World Of Padman - Comic 3D-Shooter
+# URL          : http://padworld.myexp.de/
+# Лицензия     : GPLv2+
+# Description  : World of Padman (WoP) is a first-person shooter computer game available in
+# : both English and German. The idea is based on the Padman comic strip for the
+# : magazine PlayStation Games created by the professional cartoon artist Andreas
+# : 'ENTE' Endres, who is also the man who made many of the maps included with the
+# : game in 1998. Most of the maps in the game are lilliput style.
+# :
+# : World of Padman uses the GPL licensed ioquake3 engine, however the Wop data-
+# : files are not freely redistributable. This package will install a World of
+# : Padman menu entry, which will automatically download the necessary datafiles
+# : (1GB!) the first time you start World of Padman.
+'worldofpadman autodownloader quake3' \
+# Summary      : Game based loosely on the classic DOS game Scorched Earth
+# URL          : http://www.scorched3d.co.uk/
+# Лицензия     : GPLv2+ and CC-BY-SA
+# Description  : Scorched 3D is a game based on the classic DOS game Scorched Earth
+# : "The Mother Of All Games".  Scorched 3D adds amongst other new
+# : features a 3D island environment and LAN and internet play.  At its
+# : lowest level, Scorched 3D is just an artillery game with two+ tanks
+# : taking turns to destroy opponents in an arena.  Choose the angle,
+# : direction and power of each shot, launch your weapon, and try to blow
+# : up other tanks.  But Scorched 3D can be a lot more complex than that,
+# : if you want it to be.  You can earn money from successful battles and
+# : use it to invest in additional weapons and accessories.  You can play
+# : with up to twenty four other players at a time, mixing computer
+# : players with humans.  There's a variety of changing environmental
+# : conditions and terrains to be dealt with.
+'scorched3d' \
+# Summary      : Multiplayer retro sci-fi deathmatch game
+# URL          : http://red.planetarena.org/
+# Лицензия     : GPLv2+
+# Description  : Alien Arena: Mercury Edition is an online deathmatch game with over 30 levels,
+# : seven modes of play, loads of mutators, built-in bots, multiple player
+# : characters and weapons (with alt-fire modes).
+'alienarena alienarena-data alienarena-server' \
+# Summary      : Addictive realtime multiplayer 2D shoot-em-up
+# URL          : http://openlierox.sourceforge.net/
+# Лицензия     : LGPLv2+
+# Description  : OpenLierox is an extremely addictive realtime multiplayer 2D shoot-em-up
+# : backed by an active gamers community. Dozens of levels and mods are available
+# : to provide endless gaming pleasure.
+'openlierox' \
+# Summary      : Jump'n run like game
+# URL          : https://www.supertux.org
+# Лицензия     : GPLv2+
+# Description  : SuperTux is a jump'n run like game, Run and jump through multiple worlds,
+# : fighting off enemies by jumping on them or bumping them from below.
+# : Grabbing power-ups and other stuff on the way.
+'supertux' \
+# Summary      : Kids 3D go-kart racing game featuring Tux
+# URL          : http://supertuxkart.sourceforge.net/
+# Лицензия     : GPLv2+ and GPLv3 and CC-BY-SA and OFL and ASL 2.0
+# Description  : 3D go-kart racing game for kids with several famous OpenSource mascots
+# : participating. Race as Tux against 3 computer players in many different fun
+# : race courses (Standard race track, Dessert, Mathclass, etc). Full information
+# : on how to add your own race courses is included. During the race you can pick
+# : up powerups such as: (homing) missiles, magnets and portable zippers.
+'supertuxkart supertuxkart-data' \
+# Summary      : Online multi-player platform 2D shooter
+# URL          : https://www.teeworlds.com/
+# Лицензия     : Teeworlds and zlib and BSD
+# Description  : The game features cartoon-themed graphics and physics,
+# : and relies heavily on classic shooter weaponry and gameplay.
+# : The controls are heavily inspired by the FPS genre of computer games.
+'teeworlds teeworlds-data teeworlds-server' \
+# Summary      : B.A.L.L.Z. - platform/puzzle game where you control a rolling ball
+# URL          : https://gitlab.com/groups/ballz
+# Лицензия     : BSD
+# Description  : The game is a platformer with some puzzle elements. You take control
+# : of a ball which is genetically modified by the British secret
+# : service. Your mission is to rescue captured British soldiers from a
+# : prison in Iran.
+# :
+# : The game was written in 72 hours for the TINS competition, a
+# : competition similar to Speedhack. The name TINS is an recursive
+# : acronym for 'TINS is not Speedhack'.
+'ballz' \
+# Summary      : A Brick Busting game
+# URL          : http://linux.tlk.fr/games/TecnoballZ/
+# Лицензия     : GPLv3+
+# Description  : A exciting Brick Breaker with 50 levels of game and 11 special levels,
+# : distributed on the 2 modes of game to give the player a sophisticated
+# : system of attack weapons with an enormous power of fire that can be
+# : build by gaining bonuses. Numerous decors, musics and sounds
+# : complete this great game. This game was ported from the Commodore Amiga.
+'tecnoballz' \
+# Summary      : Funny battle on your desk
+# URL          : http://btanks.sourceforge.net/
+# Лицензия     : GPLv2+ with exceptions and LGPLv2+
+# Description  : Battle Tanks is a funny battle on your desk, where you can choose one of three
+# : vehicles and eliminate your enemy using the whole arsenal of weapons. has
+# : original cartoon-like graphics and cool music, it is fun and dynamic, it has
+# : several network modes for deathmatch and cooperative.
+# : What else is needed to have fun with your friends?
+# :
+# : And all is packed and ready for you in Battle Tanks.
+'btanks btanks-data' \
+# Summary      : 3D multi-player tank battle game
+# URL          : http://bzflag.org
+# Лицензия     : LGPLv2
+# Description  : BZFlag is a 3D multi-player tank battle game  that  allows users to play
+# : against each other in a networked environment.  There are five teams: red,
+# : green, blue, purple and rogue (rogue tanks are black).  Destroying a player
+# : on another team  scores a win, while being destroyed or destroying a teammate
+# : scores a loss.  Rogues have no teammates (not even other rogues), so they
+# : cannot shoot teammates and they do not have a team score.
+# : There are two main styles of play: capture-the-flag and free-for-all.
+'bzflag bzflag-maps-sample' \
+# Summary      : A puzzle game where the player has to arrange balls in triplets ( Cloned Zuma )
+# URL          : http://zaz.sourceforge.net/
+# Лицензия     : GPLv3+ and CC-BY-SA
+# Description  : Zaz is an arcade action puzzle game where the goal is to get rid of all
+# : incoming balls by rearranging their order and making triplets.
+# :
+# : A 3D accelerator is needed for decent gameplay.
+'zaz' \
+# Summary      : A unique arcade logic game
+# URL          : http://www.biniax.com/
+# Лицензия     : zlib
+# Description  : The gaming field is 5x7 pairs of elements. Every pair consists of two elements
+# : out of four possible types (colors). Player is a single element, who can move on
+# : empty fields or can take a pair, if the player's element is present in the pair.
+# : If a pair is taken, the player's element is swapped to the other element of the
+# : pair. The field is scrolling down on time event or after certain moves are spend
+# : (depending on the game mode). Game over is when there is no move for the player.
+'biniax' \
+# Summary      : Multiplayer wargame with liquid armies
+# URL          : http://www.ufoot.org/liquidwar/v5
+# Лицензия     : GPLv2+
+# Description  : Liquid War is a unique multiplayer wargame. You control an army of liquid
+# : and have to try and eat your opponents. A single player mode is available,
+# : but the game is definitely designed to be multiplayer, and has network
+# : support.
+'liquidwar liquidwar-doc liquidwar-server' \
+# Summary      : Game where you control a marble with the mouse
+# URL          : http://www.nongnu.org/enigma/
+# Лицензия     : GPLv2+
+# Description  : Enigma is a tribute to and a re-implementation of one of the most
+# : original and intriguing computer games of the 1990's: Oxyd.  Your
+# : objective is easily explained: find and uncover all pairs of identical
+# : Oxyd stones in each landscape.  Sounds simple?  It would be, if it
+# : weren't for hidden traps, vast mazes, insurmountable obstacles and
+# : innumerable puzzles blocking your direct way to the Oxyd stones...
+'enigma enigma-data' \
+# Summary      : Steer a marble ball through a labyrinth
+# URL          : http://trackballs.sourceforge.net/
+# Лицензия     : GPLv2+
+# Description  : Trackballs is a game in which you steer a marble ball through tracks of varying
+# : difficulty. The game features 3D graphics, an integerated level editor and high
+# : quality soundeffects and background music.
+'trackballs trackballs-music' \
+# Summary      : Portable chess game
+# URL          : http://www.dreamchess.org/
+# Лицензия     : GPLv3+ and BSD
+# Description  : DreamChess is an open source chess game.
+# :
+# : Features:
+# : - 3D OpenGL graphics
+# : - various chess board sets: from classic wooden to flat figurines
+# : - music, sound effects
+# : - on-screen move lists using SAN notation
+# : - undo functionality
+# : - save-games in PGN format
+# :
+# : A moderately strong chess engine as a sub-package: Dreamer.
+'dreamchess dreamchess-data dreamchess-engine' \
+# Summary      : A brain teaser game and trainer to keep your brain trained
+# URL          : https://wiki.gnome.org/Apps/gbrainy
+# Лицензия     : GPLv2
+# Description  : gbrainy is a brain teaser game and trainer to have
+# : fun and to keep your brain trained.
+# :
+# : It provides the following types of games:
+# :
+# : * Logic puzzles. Games designed to challenge your
+# :     reasoning and thinking skills.
+# : * Mental calculation. Games based on arithmetical
+# :     operations designed to prove your mental calculation skills.
+# : * Memory trainers. Games designed to challenge your short term memory.
+'gbrainy gbrainy-devel' \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+}
+
+function main_pkg_games_packs_script_source(){
+
+  echo_m "Initialise main function of games_packs script source";
+
+  install_pkg_games_packs "$@";
+
+}
+
+main_pkg_games_packs_script_source "$@";

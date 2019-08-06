@@ -1,0 +1,111 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : preparation
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 25.04.2019, 20:55:11
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_1C_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $preparation_1C_script_source)";
+
+function install_packages_for_1C(){
+
+  check_root;
+
+  local install_pkg=(\
+'ImageMagick' \
+'unixODBC' \
+'libgsf' \
+'t1utils' \
+);
+
+  if [[ "$1" == "-u" ]];then
+
+    remove_packages "${install_pkg[*]}";
+
+  else
+    install_packages "${install_pkg[*]}";
+
+  fi
+
+}
+
+function main_preparation_1C_script_source(){
+
+  echo_m "Initialise main function";
+
+  local key='';
+  local base='';
+
+  OPTIND=1
+
+  while getopts "ub:" OPT
+  do
+    case $OPT in
+      b   ) base="$OPTARG"; ;;
+      u   ) key="-u"; ;;
+      *   ) ;;
+    esac
+  done
+  shift $(($OPTIND - 1));
+  [ "${1:-}" = "--" ] && shift;
+
+  if [[ "$1" == "-u" ]];then
+
+    install_packages_for_1C "$key";
+
+  else
+
+    install_packages_for_1C;
+    create_name_in_hosts_file -y "$main_hostname";
+
+    if [[ -n "$base" ]];then
+
+      /opt/1C/v8.3/x86_64/rac infobase create --cluster=bff5cb4a-2877-11e3-b590-d43d7eeced69 --name=user_db_empty --create-database --dbms=PostgreSQL --db-server=127.0.0.1 --db-name=user_db_empty --locale=ru --db-user=postgres --db-pwd=<пароль> --cluster-user=admin --cluster-pwd=<пароль>
+    fi
+
+  fi
+
+}
+
+main_preparation_1C_script_source "$@";

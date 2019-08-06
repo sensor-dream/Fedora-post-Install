@@ -1,0 +1,100 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : run.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2018-11-27 05:10:57
+
+#
+#   Декларируем имя файла
+#
+
+declare -r run_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $run_script_source";
+
+echo_n "Начальная рабочая установка системы";
+
+. "${main_project_path}/preparation/network_ifaces";
+. "${main_project_path}/preparation/default";
+. "${main_project_path}/preparation/sysctl";
+. "${main_project_path}/preparation/user";
+### systemctl status;
+### systemctl --failed;
+su - ${main_user} -c "export XDG_RUNTIME_DIR=/run/user/$(id -u ${main_user}); cd ${main_project_path}; bash ${main_project_path}/preparation/tunning;";
+. "${main_project_path}/pkg/repo/rpmfusion";
+. "${main_project_path}/pkg/repo/fedora_workstation";
+. "${main_project_path}/pkg/repo/adobe";
+. "${main_project_path}/dns/unbound";
+
+main_preparation_network_ifaces_script_source "$@";
+nmcli c up "${brocker_device_interface}";
+
+. "${main_project_path}/pkg/core_packs";
+. "${main_project_path}/firewall/install";
+. "${main_project_path}/pkg/archiving_packs";
+. "${main_project_path}/pkg/hashes_packs";
+. "${main_project_path}/pkg/universally_unique_identifier";
+. "${main_project_path}/pkg/compare_and_merge_packs";
+. "${main_project_path}/pkg/console_file_manager";
+. "${main_project_path}/pkg/terminal_packs";
+. "${main_project_path}/pkg/date_time_utilites";
+. "${main_project_path}/pkg/dictionaries_translators";
+. "${main_project_path}/pkg/cups";
+. "${main_project_path}/pkg/gnome_extensions_pack";
+. "${main_project_path}/pkg/graphical_library_packs";
+. "${main_project_path}/pkg/graphical_system_packs";
+. "${main_project_path}/pkg/media_packs";
+. "${main_project_path}/pkg/monitoring_utilites_system_like_packs";
+. "${main_project_path}/pkg/monitoring_utilites_system_packs";
+. "${main_project_path}/pkg/hardware_system_packs";
+. "${main_project_path}/pkg/multimedia_library_packs";
+. "${main_project_path}/pkg/openssh";
+. "${main_project_path}/pkg/other_pack":
+. "${main_project_path}/pkg/torrent";
+. "${main_project_path}/pkg/twm";
+. "${main_project_path}/pkg/flash_player";
+. "${main_project_path}/pkg/programming/nodejs";
+. "${main_project_path}/pkg/programming/lua";
+. "${main_project_path}/pkg/programming/vala";
+. "${main_project_path}/pkg/krusader";
+. "${main_project_path}/pkg/graphical_redactors_pack";
+. "${main_project_path}/version_control_system/git";
+. "${main_project_path}/pkg/fonts";
+. "${main_project_path}/pkg/brausers";
+. "${main_project_path}/pkg/libre_office";
+. "${main_project_path}/pkg/offline_documentation_browsers";
+. "${main_project_path}/vallpapers/variety_vallpaper_changer";

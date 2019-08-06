@@ -1,0 +1,57 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : run.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-10 22:06:33
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx www_run_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $www_run_script_source";
+
+  check_root;
+
+  . "${main_project_path}/www/initial_httpd";
+  . "${main_project_path}/www/initial_php";
+  . "${main_project_path}/www/initial_fcgiwrap";
+  . "${main_project_path}/www/initial_geoip";
+  . "${main_project_path}/www/initial_memcached";
+  . "${main_project_path}/www/initial_certbot";
+  . "${main_project_path}/www/vhttpd" ${main_www_domain_list[*]};

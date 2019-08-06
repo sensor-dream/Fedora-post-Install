@@ -1,0 +1,74 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : webpub
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 25.04.2019, 23:11:44
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx webpub_1c_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $webpub_1c_script_source)";
+
+
+function main_webpub_1c_script_source(){
+
+  echo_m "Initialise main function";
+
+  local www_dir="${main_www_base_path}/1C";
+
+  [[ -n "$1" ]] || $(printf 'exit \n' && exit 1);
+
+  if [[ ! -d "$www_dir" ]]; then
+    mkdir -p -m 0774 "$www_dir";
+    chown -R "$main_user"."$main_user" "$www_dir";
+  fi
+
+  if [[ ! -d "$www_dir/$1" ]]; then
+    mkdir -p -m 0774 "$www_dir/$1";
+    chown -R "$main_user"."$main_user" "$www_dir/$1";
+  fi
+
+  # ./webinst -publish -apache24 -wsdir demo -dir ${main_www_base_path}/1C/demo -connstr "File=\"${main_storage}/System/db/1C/demo\";" -confpath /etc/apache2/apache2.conf
+
+}
+
+main_webpub_1c_script_source "$@";

@@ -1,0 +1,85 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : vscodium
+## @Author : sensor-dream (SDBS)
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 10.05.2019, 13:53:27
+
+#
+# https://vscodium.github.io/
+# vscodium analogue vscode no surveillance
+#
+
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_repo_vscodium_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_repo_vscodium_script_source)";
+
+
+function main_pkg_repo_vscodium_script_source(){
+
+  check_root;
+
+  echo_m "Initialise main function";
+
+  if [[ -z "$( find  /etc/yum.repos.d/vscodium* 2> /dev/null )"  ]]; then
+
+    # rpm --import 'https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg';
+
+    # dnf config-manager --add-repo 'https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/repos/rpms/';
+
+tee -a /etc/yum.repos.d/vscodium.repo << 'EOF'
+[gitlab.com_paulcarroty_vscodium_repo]
+name=gitlab.com_paulcarroty_vscodium_repo
+baseurl=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/repos/rpms/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
+EOF
+
+  fi
+
+
+}
+
+main_pkg_repo_vscodium_script_source "$@";

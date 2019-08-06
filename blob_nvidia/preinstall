@@ -1,0 +1,122 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : preinstall
+## @Author : 
+## @Email  : 
+## @Site   : 
+## @Date   : 04.11.2019, 1:18:17
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx blob_nvidia_preinstall_script_source="$BASH_SOURCE";
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Script runs from ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1;
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      declare -rx main_project_path="$(pwd)";
+      . "${main_project_path}/main.cfg";
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Connect $(readlink -m ${blob_nvidia_preinstall_script_source})";
+
+function install_blob_nvidia_preinstall(){
+
+  local install_pkg=(\
+wget \
+kernel-devel kernel-headers gcc make dkms acpid libglvnd-glx libglvnd-opengl libglvnd-devel pkgconf-pkg-config libdrm libdrm-devel drm-utils \
+vdpauinfo libva-vdpau-driver libva-utils \
+);
+
+  pkg -a "$@" -- "${install_pkg[*]}";
+
+  local kernel=$(uname -r | awk -F. '{ print $1"."$2 }');
+
+  if [[ ! -f "${main_project_path}/blob_nvidia/NVIDIA-Linux-x86_64-340.107-kernel-${kernel}-patched.run" ]]; then
+    
+    wget -O "${main_project_path}/blob_nvidia/NVIDIA-Linux-x86_64-340.107-kernel-${kernel}-patched.run" "https://nvidia.if-not-true-then-false.com/NVIDIA-Linux-x86_64-340.107-kernel-${kernel}-patched.run";
+
+    chmod +x "${main_project_path}/blob_nvidia/NVIDIA-Linux-x86_64-340.107-kernel-${kernel}-patched.run";
+
+  fi
+
+  if [[ ! -f '/etc/modprobe.d/blacklist.conf' ]]; then
+    
+    echo "blacklist nouveau" > '/etc/modprobe.d/blacklist.conf';
+
+  fi
+  
+  if ! grep -q "blacklist nouveau" '/etc/modprobe.d/blacklist.conf'; then
+
+    echo "blacklist nouveau" >> '/etc/modprobe.d/blacklist.conf';
+
+  fi
+  
+  if ! grep -q "rd.driver.blacklist=nouveau" /etc/default/grub; then
+
+    cp "/etc/default/grub" "/etc/default/grub.not_nvidia.back";
+
+    ## sed -i -e '/rhgb quiet/s/rhgb quiet/rd.driver.blacklist=nouveau nvidia-drm.modeset=1 rhgb quiet/' '/etc/default/grub';
+    sed -i -e '/rhgb quiet/s/rhgb quiet/rd.driver.blacklist=nouveau rhgb quiet/' '/etc/default/grub';
+
+  fi
+
+  ## Реконфигурем загрузчик
+  ## BIOS ## 
+  grub2-mkconfig -o '/boot/grub2/grub.cfg';
+
+  pkg -e "$@" -- 'xorg-x11-drv-nouveau';
+
+  ## Backup old initramfs nouveau image ##
+  if [[ ! -f /boot/initramfs-$(uname -r)-nouveau.img ]]; then 
+    
+    mv /boot/initramfs-$(uname -r).img /boot/initramfs-$(uname -r)-nouveau.img;
+
+  fi
+
+  ## Create new initramfs image ##
+  dracut /boot/initramfs-$(uname -r).img $(uname -r) --force;
+
+  systemctl set-default multi-user.target;
+
+  reboot;
+
+}
+
+function main_blob_nvidia_preinstall_script_source(){
+
+  echo_m "Initialise main function of preinstall script source";
+
+  check_root;
+
+  install_blob_nvidia_preinstall "$@";
+
+}
+
+main_blob_nvidia_preinstall_script_source "$@";

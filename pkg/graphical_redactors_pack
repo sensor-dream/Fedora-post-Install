@@ -1,0 +1,196 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : graphical_redactors_pack
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 12.05.2019, 4:47:49
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx pkg_graphical_redactors_pack_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "${main_project_path}/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $pkg_graphical_redactors_pack_script_source)";
+
+
+function main_pkg_graphical_redactors_pack_script_source(){
+
+  echo_m "Initialise main function of graphical_redactors_pack script source";
+
+  check_root;
+
+  . "${main_project_path}/pkg/gimp";
+  . "${main_project_path}/pkg/inkscape";
+
+  local install_pkg=(\
+# Shared libraries for krita.
+krita-libs \
+# OCIO enables color transforms and image display to be handled in a consistent
+# : manner across multiple graphics applications. Unlike other color management
+# : solutions, OCIO is geared towards motion-picture post production, with an
+# : emphasis on visual effects and animation color pipelines.
+OpenColorIO \
+# yaml-cpp is a YAML parser and emitter in C++ written around the YAML 1.2 spec
+yaml-cpp \
+# Krita is a sketching and painting program.
+# : It was created with the following types of art in mind:
+# : - concept art
+# : - texture or matte painting
+# : - illustrations and comics
+krita \
+);
+
+  pkg "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# xfig
+# простой векторный графический редактор,
+# использующий для рисования изображения такие объекты как окружности,
+# прямоугольники, линии, сплайны, текст и др.
+# Все возможные чертежи и схемы в XFig создаются при помощи определенного набора фигур,
+# их комбинаций и переплетений.
+'netpbm-progs urw-base35-fonts-legacy xfig transfig' \
+);
+
+  install_packages "${install_pkg[*]}";
+
+  install_pkg=(\
+# gthumb is an application for viewing, editing, and organizing
+# : collections of images.
+gthumb \
+# Geeqie has been forked from the GQview project with the goal of picking up
+# : development and integrating patches. It is an image viewer for browsing
+# : through graphics files. Its many features include single click file
+# : viewing, support for external editors, previewing images using thumbnails,
+# : and zoom.
+# A full screen, distraction-free writing program
+geeqie \
+# An image viewer.
+gwenview \
+# nomacs is image viewer based on Qt5 library.
+# : nomacs is small, fast and able to handle the most common image formats.
+# : Additionally it is possible to synchronize multiple viewers
+# : running on the same computer or via LAN is possible.
+# : It allows to compare images and spot the differences
+# : e.g. schemes of architects to show the progress).
+nomacs \
+# Advanced color picker
+gpick \
+# Summary      : A photo organizer for the GNOME desktop
+# URL          : https://wiki.gnome.org/Apps/Shotwell
+# Лицензия     : LGPLv2+ and CC-BY-SA
+# Description  : Shotwell is an easy-to-use, fast photo organizer designed for the GNOME
+# : desktop.  It allows you to import photos from your camera or disk, organize
+# : them by date and subject matter, even ratings.  It also offers basic photo
+# : editing, like crop, red-eye correction, color adjustments, and straighten.
+# : Shotwell's non-destructive photo editor does not alter your master photos,
+# : making it easy to experiment and correct errors.
+'shotwell' \
+);
+
+  pkg "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+#   Rawtherapee is a RAW image processing software. It gives full control over many parameters to enhance the raw picture before finally exporting it to some common image format.
+rawtherapee \
+#   Shutter is a GTK+ 2.x based screenshot application written in Perl.
+#    : Shutter covers all features of common command line tools like
+#    : scrot or import and adds reasonable new features combined
+#    : with a comfortable GUI using the GTK+ 2.x framework.
+shutter \
+);
+
+  pkg "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# Darktable is a virtual light-table and darkroom for photographers:
+# : it manages your digital negatives in a database and lets you view them
+# : through a zoom-able light-table.
+# : It also enables you to develop raw images and enhance them.
+darktable \
+# digiKam is an easy to use and powerful digital photo management application,
+# : which makes importing, organizing and manipulating digital photos a "snap".
+# : An easy to use interface is provided to connect to your digital camera,
+# : preview the images and download and/or delete them.
+# :
+# : digiKam built-in image editor makes the common photo correction a simple task.
+# : The image editor is extensible via plugins, can also make use of the KIPI image
+# : handling plugins to extend its capabilities even further for photo
+# : manipulations, import and export, etc. Install the kf5-kipi-plugins packages
+# : to use them.
+#
+####  digikam \
+#
+# Luminance is a graphical program for assembling bracketed photos into High
+# : Dynamic Range (HDR) images.  It also provides a number of tone-mapping
+# : operators for creating low dynamic range versions of HDR images.
+'luminance-hdr' \
+);
+
+  pkg "$@" -- "${install_pkg[*]}";
+
+  install_pkg=(\
+# gthumb is an application for viewing, editing, and organizing
+# : collections of images.
+gthumb \
+# Geeqie has been forked from the GQview project with the goal of picking up
+# : development and integrating patches. It is an image viewer for browsing
+# : through graphics files. Its many features include single click file
+# : viewing, support for external editors, previewing images using thumbnails,
+# : and zoom.
+# A full screen, distraction-free writing program
+geeqie \
+# An image viewer.
+gwenview \
+# nomacs is image viewer based on Qt5 library.
+# : nomacs is small, fast and able to handle the most common image formats.
+# : Additionally it is possible to synchronize multiple viewers
+# : running on the same computer or via LAN is possible.
+# : It allows to compare images and spot the differences
+# : e.g. schemes of architects to show the progress).
+nomacs \
+# Advanced color picker
+gpick \
+);
+
+  pkg "$@" -- "${install_pkg[*]}";
+
+}
+
+main_pkg_graphical_redactors_pack_script_source "$@";

@@ -1,0 +1,98 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : user.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-13 06:08:34
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx preparation_user_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $preparation_user_script_source";
+
+function usermod_group(){
+
+  check_root;
+
+  ## Добавляем себя в различные группы
+  local groups=(\
+'wheel' \
+# 'vboxusers' \
+# 'vboxsf' \
+# 'nginx' \
+'apache' \
+# 'qemu' \
+# 'kvm' \
+# 'pdns' \
+# 'pdns-recursor' \
+# 'unbound' \
+# 'libvirt' \
+# 'docker' \
+# 'dialout' \
+);
+
+  local chk_groups="$(getent group ${groups[*]})";
+
+  for i in ${!groups[*]}; do
+    if ! grep -q  "${groups[$i]}" <<< "$chk_groups"; then
+      echo_w "Группа ${groups[$i]} не существует, создаем.";
+      groupadd "${groups[$i]}";
+    else
+      if ! grep -q  "${groups[$i]}" <<< "$chk_groups"; then
+        echo_m "Добавляем $main_user в группу ${groups[$i]}";
+        usermod -a -G "${groups[$i]}" "$main_user";
+      else
+        echo_m "Пользователь $main_user уже в группе ${groups[$i]}";
+      fi
+    fi
+  done
+
+  ## снимаем запрос пароля при sudo
+  if ! grep -q  "^%wheel.*NOPASSWD:.*$" '/etc/sudoers'; then
+    sed -i -e '/^%wheel/s/%wheel/# %wheel/' -e '/NOPASSWD:/s/# %wheel/%wheel/' '/etc/sudoers';
+    echo_w "add $main_user in wheel group";
+  else
+    echo_w "already $main_user in wheel group";
+  fi
+
+  echo_m "user settings done";
+
+}
+
+usermod_group;

@@ -1,0 +1,732 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @File   : run
+## @Author : sensor-dream
+## @Email  : sensor-dream@sensor-dream.ru
+## @Site   : https://sensor-dream.ru
+## @Date   : 29.07.2019, 23:30:52
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx version_control_system_phabricator_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd ${main_run_script_path};
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $(readlink -m $version_control_system_phabricator_script_source)";
+
+declare -rx version_control_system_phabricator_script_path="${main_project_path}/version_control_system/phabricator";
+
+#
+##
+### START INSTALL PHABRICATOR
+
+function version_control_system_install_phabricator(){
+
+  chk_sudo_root;
+
+  local domain="$1";
+  local domain_base_path="$2";
+  local domain_root_path="$3";
+  local www_user="$4";
+  local phd_user="$5";
+  local vcs_user="$6";
+  local aphd_user="$7";
+  local sshd_port="$8";
+  local ph_sshd_port="$9";
+  local mysql_port="${10}";
+  local mysql_host="${11}";
+  local mysql_user="${12}";
+  local mysql_pass="${13}";
+  local mail_host="${14}";
+  local mail_port=${15};
+  local mail_proto="${16}";
+  local mail_user="${17}";
+  local mail_pass="${18}";
+  local phabricator_share_path="${19}"
+  local repository_default_local_path="${20}";
+  local storage_local_disk_path="${21}";
+  local phabricator_www_path="${22}"
+  local local_zone="${23}";
+  local recaptcha_pub="${24}"
+  local recaptcha_priv="${25}"
+
+  #
+  ##
+  ### START PREINSTALL CHECK
+
+  pidof httpd 2>&1 > /dev/null;
+  if [[ $? -ne 0 ]]; then
+    echo_w "Please remember to start the httpd with: systemctl start httpd";
+    confirm;
+  fi
+
+  pidof php-fpm 2>&1 > /dev/null;
+  if [[ $? -ne 0 ]]; then
+    echo_w "Please remember to start the php-fpm with: systemctl start php-fpm";
+    confirm;
+  fi
+
+  if [[ -z $(php -i | grep apc$) ]]; then
+    echo_w "Please install php-pecl-apc";
+    confirm;
+  fi
+
+  pidof mysqld 2>&1 > /dev/null;
+  if [[ $? -ne 0 ]]; then
+    echo_w "Please remember to start the mariadb with: systemctl start mariadb";
+    confirm;
+  fi
+
+  ### END PREINSTALL CHECK
+  ##
+  #
+
+  . ${version_control_system_phabricator_script_path}/../git;
+
+  if [[ ! -e ${main_www_base_path}/phabricator ]]; then
+    . "${main_project_path}/www/vhttpd" "${domain}";
+  fi
+
+  sed -i -e "s%${phabricator_www_path}%${phabricator_www_path}/phabricator/webroot%" "/etc/httpd/conf.d/$domain.conf";
+
+  insert_before_found_text_one_file "<\\/VirtualHost>" "  <IfModule mod_lua.c>\n    RewriteEngine on\n    RewriteRule ^(.*)\$ /index.php?__path__=\$1 [B,L,QSA]\n  </IfModule>\n" "/etc/httpd/conf.d/$domain.conf";
+
+  httpd -k graceful;
+
+  [[ -f '/etc/php.ini.back' ]] || $(cp '/etc/php.ini' '/etc/php.ini.back');
+
+  if ! grep -q 'opcache.validate_timestamps' '/etc/php.ini'; then
+    echo -e "\nopcache.validate_timestamps = 0\n" >> '/etc/php.ini';
+  else
+    sed -i 's/^opcache.validate_timestamps.*$/opcache.validate_timestamps = 0/' '/etc/php.ini';
+  fi
+
+
+  [[ -f '/etc/my.cnf.d/mariadb-server.cnf.back' ]] || $(cp '/etc/my.cnf.d/mariadb-server.cnf' '/etc/my.cnf.d/mariadb-server.cnf.back');
+
+  insert_after_found_text_one_file "\[server\]" "max_allowed_packet=33554432" '/etc/my.cnf.d/mariadb-server.cnf';
+
+  insert_after_found_text_one_file "\[mysqld\]" "innodb_buffer_pool_size=1600M" '/etc/my.cnf.d/mariadb-server.cnf';
+
+  insert_after_found_text_one_file "\[mysqld\]" "sql_mode=STRICT_ALL_TABLES" '/etc/my.cnf.d/mariadb-server.cnf';
+
+  insert_after_found_text_one_file "\[mysqld\]" "local_infile=0" '/etc/my.cnf.d/mariadb-server.cnf';
+
+  systemctl restart mariadb;
+
+
+  [[ $(chk_active_service 'httpd') -eq 1 ]] && systemctl stop 'httpd';
+  [[ $(chk_active_service 'phabricator-phd') -eq 1 ]] && systemctl stop 'phabricator-phd';
+
+
+  if [[ ! -e "${phabricator_www_path}/libphutil" ]]; then
+    sudo -u "${main_user}" git clone https://github.com/phacility/libphutil.git ${phabricator_www_path}/libphutil;
+  else
+    cd ${phabricator_www_path}/libphutil && sudo -u ${www_user} git add * && sudo -u ${www_user} git commit -m 'auto' && sudo -u ${www_user} git pull --rebase;
+  fi
+
+  if [[ ! -e "${phabricator_www_path}/arcanist" ]]; then
+    sudo -u "${main_user}" git clone https://github.com/phacility/arcanist.git ${phabricator_www_path}/arcanist;
+  else
+    cd ${phabricator_www_path}/arcanist && sudo -u ${www_user} git add * && sudo -u ${www_user} git commit -m 'auto' && sudo -u ${www_user} git pull --rebase;
+  fi
+
+  if [[ ! -e "${phabricator_www_path}/phabricator" ]]; then
+    sudo -u "${main_user}" git clone https://github.com/phacility/phabricator.git ${phabricator_www_path}/phabricator;
+  else
+    cd ${phabricator_www_path}/phabricator && sudo -u ${www_user} git add * && sudo -u ${www_user} git commit -m 'auto' && sudo -u ${www_user} git pull --rebase;
+  fi
+
+  if [[ ! -e "${phabricator_share_path}/${repository_default_local_path}" ]]; then
+    mkdir -p "${phabricator_share_path}/${repository_default_local_path}";
+    mkdir -p "${phabricator_share_path}/${storage_local_disk_path}";
+    set_permission -r -u ${phd_user} -g ${www_user} "${phabricator_share_path}";
+  elif [[ "$(ls -dl ${phabricator_share_path} | awk '{ print $3 }')" != ${phd_user} ]]; then
+    set_permission -u ${phd_user} -g ${www_user} "${phabricator_share_path}";
+  fi
+
+  if [[ ! -e "${phabricator_www_path}/service" ]]; then
+    mkdir -p "${phabricator_www_path}/service";
+    set_permission -r -u ${phd_user} -g ${main_user} "${phabricator_www_path}/service";
+  fi
+
+  if [[ ! -e "${phabricator_www_path}/accounts" ]]; then
+    mkdir -p "${phabricator_www_path}/accounts";
+    set_permission -r -u ${phd_user} -g ${main_user} "${phabricator_www_path}/accounts";
+  fi
+
+  if [[ ! -e "${phabricator_www_path}/backups" ]]; then
+    mkdir -p "${phabricator_www_path}/backups";
+    set_permission -r -u ${phd_user} -g ${main_user} "${phabricator_www_path}/backups";
+  fi
+
+  #
+  ##
+  ### LOCAL.JSON
+  . ${version_control_system_phabricator_script_path}/local_json;
+  ###
+  ##
+  #
+  if [[ ! -e "${phabricator_www_path}/phabricator/src/extensions/phabricator-russian" ]]; then
+    sudo -u "${main_user}" git clone https://github.com/believer-ufa/phabricator-russian.git ${phabricator_www_path}/phabricator/src/extensions/phabricator-russian;
+  else
+    cd ${phabricator_www_path}/phabricator/src/extensions/phabricator-russian && sudo -u ${www_user} git add * && sudo -u ${www_user} git commit -m 'auto' && sudo -u ${www_user} git pull --rebase;
+  fi
+  #
+  ##
+  ### SPRINT
+  ### if [[ ! -e "${phabricator_www_path}/sprint" ]]; then
+  ###  sudo -u "${main_user}" git clone https://github.com/wikimedia/phabricator-extensions-Sprint.git ${phabricator_www_path}/sprint;
+  ### else
+  ###  cd ${phabricator_www_path}/sprint && sudo -u ${www_user} git pull --rebase;
+  ###fi
+  ### cd ${phabricator_www_path}/phabricator/bin && ./config set load-libraries "{\"sprint\":\"${phabricator_www_path}/sprint/src\"}";
+  ###
+  ##
+  #
+  if [[ ! -f  "${main_project_path}/security_file/phabricator" ]]; then
+    mkdir -p "${main_project_path}/security_file/phabricator";
+    chown ${main_user}.${main_user} "${main_project_path}/security_file/phabricator";
+    if ! grep -q "security_file" "${main_project_path}/.gitignore"; then
+      echo -e "security_file\nsecurity_file/*\nsecurity_file/*.*\nsecurity_file.*\n" >> "${main_project_path}/.gitignore";
+    fi
+  fi
+
+  if [[ ! -f  "${main_project_path}/security_file/phabricator/mailer.json" ]]; then
+
+    . ${version_control_system_phabricator_script_path}/mailer_sample_json;
+
+  fi
+
+  cd ${phabricator_www_path}/phabricator/bin && ./config set --stdin cluster.mailers < "${main_project_path}/security_file/phabricator/mailer.json";
+
+  cd ${phabricator_www_path}/phabricator/bin && ./auth lock;
+
+  . "${main_project_path}/pkg/nodejs" -a;
+
+  cd ${phabricator_www_path}/phabricator/support/aphlict/server && echo "{}" > package.json && npm install ws;
+
+  npm --global install git-http-backend;
+
+  . ${version_control_system_phabricator_script_path}/aphlict_json;
+
+  cd ${phabricator_www_path}/phabricator/bin && ./celerity map;
+
+  # cd ${phabricator_www_path}/arcanist/bin && ./arc liberate;
+
+  cd ${phabricator_www_path}/phabricator/bin && ./storage upgrade --force
+
+  set_permission -r -u ${www_user} -g ${main_user} "${phabricator_www_path}/phabricator";
+  set_permission -r -u ${www_user} -g ${main_user} "${phabricator_www_path}/arcanist";
+  set_permission -r -u ${www_user} -g ${main_user} "${phabricator_www_path}/libphutil";
+
+}
+
+### END INSTALL PHABRICATOR
+##
+#
+
+#
+##
+### START INSTALL PHABRICATOR MANAGE SERVICES
+
+function version_control_system_phabricator_manage_services() {
+
+  local arg="${1}";
+  local domain_root_path="${2}";
+  local phd_user="${3}";
+  local vcs_user="${4}";
+  local aphld_user="${5}";
+
+  local flag_services=0;
+  local flag_daemon_reload=0;
+
+  [[ -z ${arg} ]] && arg="add";
+
+  if [[ "${arg}" == "add" ]]; then
+
+    # version_control_system_phabricator_manage_system_users "add" "${www_user}" "${phd_user}" "${vcs_user}" "${aphld_user}";
+
+    if [[ -z "$(ls -1 /usr/lib/systemd/system | grep phabricator-phd.service)" ]]; then
+
+      . ${version_control_system_phabricator_script_path}/phabricator_phd_service;
+
+      if [[ ! -e ${domain_root_path}/phabricator/logs/phd ]]; then
+        mkdir -p ${domain_root_path}/phabricator/logs/phd;
+        set_permission -r -u ${phd_user} -g ${main_user} "${domain_root_path}/phabricator/logs/phd";
+      fi
+
+      flag_daemon_reload=1;
+
+    fi
+
+    if [[ -z "$(ls -1 /usr/lib/systemd/system | grep phabricator-aphld.service)" ]]; then
+
+      . ${version_control_system_phabricator_script_path}/phabricator_aphld_service;
+
+      if [[ ! -e ${domain_root_path}/phabricator/logs/aphld ]]; then
+        mkdir -p ${domain_root_path}/phabricator/logs/aphld;
+        set_permission -r -u ${aphld_user} -g ${main_user} "${domain_root_path}/phabricator/logs/aphld";
+      fi
+
+      if [[ ! -e /var/tmp/phabricator-aphld ]]; then
+        mkdir -p /var/tmp/phabricator-aphld;
+        set_permission -r -u ${aphld_user} -g ${main_user} /var/tmp/phabricator-aphld;
+      fi
+
+      flag_daemon_reload=1;
+
+    fi
+
+    if [[ -z "$(ls -1 /usr/lib/systemd/system | grep phabricator-sshd.service)" ]]; then
+
+      if [[ ! -f ${phabricator_www_path}/phabricator/resources/sshd/main_phabricator_ssh_hook.sh ]]; then
+
+        . ${version_control_system_phabricator_script_path}/main_phabricator_ssh_hook_sh;
+
+        # set_permission -u root -g root /usr/libexec/main_phabricator_ssh_hook.sh;
+        chmod 0755 /usr/libexec/main_phabricator_ssh_hook.sh;
+
+      fi
+
+      if [[ ! -f ${phabricator_www_path}/phabricator/resources/sshd/sshd_config.phabricator ]]; then
+
+        . ${version_control_system_phabricator_script_path}/sshd_config_phabricator;
+
+        if [[ ! -e /var/temp/phabricator-sshd ]]; then
+          mkdir -p /var/temp/phabricator-sshd;
+          chown ${phd_user}.${phd_user} /var/temp/phabricator-sshd;
+        fi
+
+        set_permission -u ${www_user} -g ${main_user} ${phabricator_www_path}/phabricator/resources/sshd/sshd_config.phabricator;
+
+      fi
+
+      . ${version_control_system_phabricator_script_path}/phabricator_sshd_service;
+
+      if [[ ! -e /var/tmp/phabricator-sshd ]]; then
+        mkdir -p /var/tmp/phabricator-sshd;
+        set_permission -r -u ${vcs_user} -g ${main_user} /var/tmp/phabricator-sshd;
+      fi
+
+      if [[ ! -e ${domain_root_path}/phabricator/logs/sshd ]]; then
+        mkdir -p ${domain_root_path}/phabricator/logs/sshd;
+        set_permission -r -u ${vcs_user} -g ${main_user} "${domain_root_path}/phabricator/logs/sshd";
+      fi
+
+      if [[ ${sshd_port} -ne 0 ]]; then
+
+        if ! grep -q -E "^[#]?Port\s.*$" '/etc/ssh/sshd_config'; then
+          echo "Port ${sshd_port}" >> '/etc/ssh/sshd_config';
+        else
+          sed -i -r "s/^[#]?Port\s.*$/Port ${sshd_port}/" '/etc/ssh/sshd_config';
+        fi
+
+        [[ $(chk_active_service sshd) -eq 1 ]] && systemctl_activate_and_start_or_restart_service sshd;
+      fi
+
+      flag_daemon_reload=1;
+
+    fi
+
+    echo_w "Add services done."
+
+  elif [[ "${arg}" == "del" ]]; then
+
+    if [[ -n "$(ls -1 /usr/lib/systemd/system | grep phabricator-phd.service)" ]]; then
+      systemctl_stop_services phabricator-phd;
+      systemctl disable phabricator-phd;
+      rm -f /usr/lib/systemd/system/phabricator-phd.service;
+
+      if [[ -e /var/temp/phabricator-sshd ]]; then
+        rm -r -f /var/temp/phabricator-sshd;
+      fi
+
+      if [[ -e ${domain_root_path}/phabricator/logs/phd ]]; then
+        rm -r -f ${domain_root_path}/phabricator/logs/phd;
+      fi
+
+      flag_daemon_reload=1;
+    fi
+
+    if [[ -n "$(ls -1 /usr/lib/systemd/system | grep phabricator-aphld.service)" ]]; then
+      systemctl_stop_services phabricator-aphld;
+      systemctl disable phabricator-aphld;
+      rm -f /usr/lib/systemd/system/phabricator-aphld.service;
+
+      if [[ -e ${domain_root_path}/phabricator/logs/aphld ]]; then
+        rm -r -f ${domain_root_path}/phabricator/logs/aphld;
+      fi
+
+      if [[ -e /var/tmp/phabricator-aphld ]]; then
+        rm -r -f /var/tmp/phabricator-aphld;
+      fi
+      flag_daemon_reload=1;
+    fi
+
+    if [[ -n "$(ls -1 /usr/lib/systemd/system | grep phabricator-sshd.service)" ]]; then
+      systemctl_stop_services phabricator-sshd;
+      systemctl disable phabricator-sshd;
+      rm -f /usr/lib/systemd/system/phabricator-sshd.service;
+
+      if [[ -f /etc/ssh/sshd_config.phabricator ]]; then
+        rm -f /etc/ssh/sshd_config.phabricator;
+      fi
+
+      if [[ -f /usr/libexec/main_phabricator_ssh_hook.sh ]]; then
+        rm -f /usr/libexec/main_phabricator_ssh_hook.sh;
+      fi
+
+      if [[ -e ${domain_root_path}/phabricator/logs/sshd ]]; then
+        rm -r -f ${domain_root_path}/phabricator/logs/sshd;
+      fi
+
+      if [[ -e /var/tmp/phabricator-ssh/phabricator-sshd ]]; then
+        rm -r -f /var/tmp/phabricator-sshd;
+      fi
+
+      if [[ ${sshd_port} -ne 0 ]]; then
+        if ! grep -q -E "^[#]?Port\s.*$" '/etc/ssh/sshd_config'; then
+          echo "Port ${main_sshd_port}" >> '/etc/ssh/sshd_config';
+        else
+          sed -i -r "s/^[#]?Port\s.*$/Port ${main_sshd_port}/" '/etc/ssh/sshd_config';
+        fi
+
+        [[ $(chk_active_service sshd) -eq 1 ]] && systemctl_activate_and_start_or_restart_service sshd;
+      fi
+
+      flag_daemon_reload=1;
+    fi
+
+    echo_w "Delete services done."
+    # version_control_system_phabricator_manage_system_users "del" "${www_user}" "${phd_user}" "${vcs_user}" "${aphld_user}";
+  elif [[ "${arg}" == "stop" ]]; then
+    systemctl_stop_services phabricator-aphld;
+    systemctl_stop_services phabricator-sshd;
+    systemctl_stop_services phabricator-phd;
+    echo_w "Stop services done."
+  elif [[ "${arg}" == "start" ]]; then
+    systemctl_start_services phabricator-phd;
+    systemctl_start_services phabricator-aphld;
+    systemctl_start_services phabricator-sshd;
+    echo_w "Start services done."
+  fi
+
+  if [[ ${flag_daemon_reload} -eq 1 ]]; then
+    systemctl daemon-reload;
+  fi
+
+}
+
+### END INSTALL PHABRICATOR MANAGE SERVICES
+##
+#
+
+#
+##
+### START PHABRICATOR UTILITES
+
+function version_control_system_phabricator_recovering_inaccessible_accounts() {
+  cd $1/phabricator/www/phabricator/bin && ./auth recover "$2";
+}
+
+### END PHABRICATOR UTILITES
+##
+#
+
+#
+##
+### CREATE PHABRICATOR SYSTEM USERS and CONFIGURED
+
+function version_control_system_phabricator_manage_system_users() {
+
+  local arg=$1;
+  [[ -z ${arg} ]] && arg="add";
+  local www_user="$2";
+  local phd_user="$3";
+  local vcs_user="$4";
+  local aphld_user="$5";
+
+  if [[ "${arg}" == "add" ]]; then
+
+    if [[ -z $(getent passwd ${phd_user} 2>/dev/null) ]]; then
+      echo_w "Create ${phd_user}";
+      groupadd -f "${phd_user}";
+      useradd -M -p NP -s /usr/sbin/nologin -g "${phd_user}" -G "${www_user}" -c 'phabricator daemon user' "${phd_user}";
+      # usermod -p NP "${phd_user}";
+      # exec su -l ${phd_user};
+    else
+      echo_w "User: ${phd_user}, already in system";
+    fi
+
+    if [[ -z $(getent passwd ${vcs_user} 2>/dev/null) ]]; then
+      echo_w "Create ${vcs_user}";
+      groupadd -f "${vcs_user}";
+      useradd -M -p NP -s /usr/bin/sh -g ${vcs_user} -G "${www_user}","${phd_user}" -c 'phabricator vcs daemon user' "${vcs_user}";
+      # usermod  "${vcs_user}";
+      # exec su -l ${vcs_user};
+    else
+      echo_w "User: ${vcs_user}, already in system";
+    fi
+
+    if [[ -z $(getent passwd ${aphld_user} 2>/dev/null) ]]; then
+      echo_w "Create ${aphld_user}";
+      groupadd -f "${aphld_user}";
+      useradd -M -p NP -s /usr/sbin/nologin -g "${aphld_user}" -G "${www_user}" -c 'phabricator aplict daemon user'  "${aphld_user}";
+      # usermod -p NP "${aphld_user}";
+      # exec su -l ${aphld_user};
+    else
+      echo_w "User: ${aphld_user}, already in system";
+    fi
+
+    if [[ ! -f "/etc/sudoers.d/pabricator" ]]; then
+
+      echo "Defaults:${phd_user}  !requiretty" | tee -a "/etc/sudoers.d/pabricator";
+      echo "Defaults:${www_user}  !requiretty" | tee -a "/etc/sudoers.d/pabricator";
+      echo "Defaults:${vcs_user}  !requiretty" | tee -a "/etc/sudoers.d/pabricator";
+
+      echo "${www_user} ALL=(${phd_user}) SETENV: NOPASSWD: /bin/git, /bin/sh, /bin/bash, /usr/libexec/git-core/git-http-backend" | tee -a "/etc/sudoers.d/pabricator";
+
+      echo "${vcs_user} ALL=(${phd_user}) SETENV: NOPASSWD: /bin/git, /bin/sh, /bin/bash, /bin/git-upload-pack, /bin/git-receive-pack" | tee -a "/etc/sudoers.d/pabricator";
+      # echo "${vcs_user} ALL=(root) SETENV: NOPASSWD: /usr/libexec/main_phabricator_ssh_hook.sh" | tee -a "/etc/sudoers.d/pabricator";
+
+    else
+
+      echo_w "${main_msg_data[104]}: ${phd_user}, ${vcs_user}, ${www_user} ${main_msg_data[80]} ${main_msg_data[105]}";
+
+    fi
+
+  elif [[ "${arg}" == "del" ]]; then
+
+    local selinux_flag="";
+
+    [[ "$(getenforce)" == "Disabled" ]] || selinux_flag="-Z";
+
+    if [[ -n $(getent passwd ${vcs_user} 2>/dev/null) ]]; then
+      echo_w "User: ${vcs_user}, delete ${vcs_user}";
+      userdel -f -r ${selinux_flag} "${vcs_user}";
+      groupdel -f "${vcs_user}";
+    else
+      echo_w "User: ${vcs_user}, deleted in system";
+    fi
+
+    if [[ -n $(getent passwd ${phd_user} 2>/dev/null) ]]; then
+      systemctl_stop_services phabricator-phd;
+      echo_w "User: ${phd_user}, delete ${phd_user}";
+      userdel -f -r ${selinux_flag} "${phd_user}";
+      groupdel -f "${phd_user}";
+    else
+      echo_w "User: ${phd_user}, deleted in system.";
+    fi
+
+    if [[ -n $(getent passwd ${aphld_user} 2>/dev/null) ]]; then
+      systemctl_stop_services phabricator-aphlict;
+      echo_w "User: ${aphld_user}, delete ${aphld_user}";
+      userdel -f -r ${selinux_flag} "${aphld_user}";
+      groupdel -f "${aphld_user}";
+    else
+      echo_w "User: ${aphld_user}, deleted in system";
+    fi
+
+    if [[ -f "/etc/sudoers.d/pabricator" ]]; then
+      echo_w "Deleting sudoers: ${phd_user}, ${vcs_user}, ${www_user}."
+      rm -f "/etc/sudoers.d/pabricator";
+    else
+      echo_w "Sudoers: ${phd_user}, ${vcs_user}, ${www_user}. Already deleted.";
+    fi
+
+  elif [[ "${arg}" == "lock" ]]; then
+
+    if [[ -n $(getent passwd ${phd_user} 2>/dev/null) ]]; then
+      echo_w "Lock of ${phd_user}";
+      usermod -L "${phd_user}";
+    else
+      echo_w "User: ${phd_user}, already locked in system.";
+    fi
+
+    if [[ -z $(getent passwd ${vcs_user} 2>/dev/null) ]]; then
+      echo_w "Lock of ${vcs_user}";
+      usermod -L "${vcs_user}";
+    else
+      echo_w "User: ${vcs_user}, already locked in system";
+    fi
+
+    if [[ -z $(getent passwd ${aphld_user} 2>/dev/null) ]]; then
+      echo_w "Lock of ${aphld_user}";
+      usermod -L "${aphld_user}";
+    else
+      echo_w "User: ${aphld_user}, already locked in system";
+    fi
+
+  elif [[ "${arg}" == "unlock" ]]; then
+
+    if [[ -n $(getent passwd ${phd_user} 2>/dev/null) ]]; then
+      echo_w "Unlock of ${phd_user}";
+      usermod -U "${phd_user}";
+    else
+      echo_w "User: ${phd_user}, already unlocked in system.";
+    fi
+
+    if [[ -z $(getent passwd ${vcs_user} 2>/dev/null) ]]; then
+      echo_w "Unlock of ${vcs_user}";
+      usermod -U "${vcs_user}";
+    else
+      echo_w "User: ${vcs_user}, already unlocked in system";
+    fi
+
+    if [[ -z $(getent passwd ${aphld_user} 2>/dev/null) ]]; then
+      echo_w "Unlock of ${aphld_user}";
+      usermod -U "${aphld_user}";
+    else
+      echo_w "User: ${aphld_user}, already unlocked in system";
+    fi
+
+  else
+
+    echo_w "Wrong argument";
+
+  fi
+
+}
+
+### END CREATE PHABRICATOR SYSTEM USERS
+##
+#
+
+function version_control_system_main_phabricator_script_source(){
+
+  echo_m "Initialise main function of phabricator script source";
+
+  local flag_confirm=1;
+  local flag_services='empty';
+
+  local domain="phabricator.${main_domain}";
+  local domain_base_path=(${domain//./ });
+  local len=${#domain_base_path[*]};
+  local domain_root_path="${main_www_base_path}/${domain_base_path[$len-1]}/${domain_base_path[$len-2]}";
+
+  local phabricator_www_path="${domain_root_path}/phabricator/www";
+
+  local www_user="apache";
+  local phd_user="mPhd";
+  local vcs_user="mGit";
+  local aphld_user="mAphld";
+  # local aphld_user="${phd_user}";
+
+  local ph_sshd_port=22;
+  local sshd_port=0;
+
+  if [[ ${main_sshd_port} -eq ${ph_sshd_port} ]];then
+    sshd_port=20000;
+  fi
+
+  local local_zone="${main_local_zone}";
+
+  local mysql_port=${db_mysql_port};
+  local mysql_host=${db_mysql_server};
+  local mysql_user=${db_mysql_login};
+  local mysql_pass=${db_mysql_password};
+
+  local recaptcha_pub="${main_publick_recaptcha_v2_checkbox}";
+  local recaptcha_priv="${main_private_recaptcha_v2_checkbox}";
+
+  local mail_user="${smtp_login}";
+  local mail_pass="${smtp_password}";
+  local mail_host="${smtp_server}";
+  local mail_port=${smtp_port};
+  local mail_proto="${smtp_protocol}";
+
+  local phabricator_share_path="${main_root_repo_path}/phabricator_share";
+  local repository_default_local_path="repo";
+  local storage_local_disk_path="storage";
+
+  echo_m "\nPhabricator is a set of mutually integrated web tools for effective collaborative software development.\n";
+  echo_m "Phabricator — набор взаимоинтегрированных веб-инструментов для совместной эффективной разработки программного обеспечения.\n";
+
+  echo_w -n "Pre-visit https://secure.phabricator.com/book/phabricator";
+
+  echo_m "\n\nPlease pre-install and configure: \n  httpd \n  php php-fpm php-cli php-mysqlnd php-process php-devel php-gd php-pecl-apc php-pecl-json php-mbstring \n  pcre-devel \n  mariadb mariadb-server \n";
+  echo_w "./phabricator -h for help options.";
+
+  # countdown_console 2;
+
+  # exit 0;
+
+  OPTIND=1;
+
+  while getopts "ir:s:u:h" OPT $@; do
+    case $OPT in
+      i)  confirm; version_control_system_install_phabricator "${domain}" "${domain_base_path}" "${domain_root_path}" "${www_user}" "${phd_user}" "${vcs_user}" "${aphd_user}" "${sshd_port}" "${ph_sshd_port}" "${mysql_port}" "${mysql_host}" "${mysql_user}" "${mysql_pass}" "${mail_host}" "${mail_port}" "${mail_proto}" "${mail_user}" "${mail_pass}" "${phabricator_share_path}" "${repository_default_local_path}" "${storage_local_disk_path}" "${phabricator_www_path}" "${local_zone}" "${recaptcha_pub}" "${recaptcha_priv}"; ;;
+      r)  version_control_system_phabricator_recovering_inaccessible_accounts "${domain_root_path}" $OPTARG; ;;
+      s)  confirm; flag_services=$(version_control_system_phabricator_manage_services $OPTARG "${domain_root_path}" "${phd_user}" "${vcs_user}" "${aphld_user}"); ;;
+      u)  confirm; version_control_system_phabricator_manage_system_users $OPTARG "${www_user}" "${phd_user}" "${vcs_user}" "${aphld_user}";  ;;
+      h)  echo_m "\n\nScript use options: \n  -i: install phabricator \n  -r <USER>: Recovering Inaccessible Accounts \n  -s: <add|del|stop|start> phabricator services phpd aphld sshd. If use restart, then run ./run script without options \n  -u <add(default)|del|lock|unlock>: manger users daemon services \n"; echo_w -n "Before you can create or delete services, or create or remove users of the services."; echo_m "\n"; flag_confirm=0; ;;
+      *)  ;;
+    esac
+  done
+
+  shift $(($OPTIND - 1));
+  # shift `expr $OPTIND - 1`;
+  [ "${1:-}" = "--" ] && shift;
+
+  if [[ ${flag_confirm} -eq 1 ]]; then
+    systemctl_activate_and_start_or_restart_service 'httpd';
+    systemctl_activate_and_start_or_restart_service 'php-fpm';
+
+    if [[ "${flag_services}" == 'empty' ]]; then
+
+      if [[ -n "$(ls -1 /usr/lib/systemd/system | grep phabricator-phd.service)" ]]; then
+        systemctl_activate_and_start_or_restart_service 'phabricator-phd';
+      fi
+
+      if [[ -n "$(ls -1 /usr/lib/systemd/system | grep phabricator-aphld.service)" ]]; then
+        systemctl_activate_and_start_or_restart_service 'phabricator-aphld';
+      fi
+
+      if [[ -n "$(ls -1 /usr/lib/systemd/system | grep phabricator-sshd.service)" ]]; then
+        systemctl_activate_and_start_or_restart_service 'phabricator-sshd';
+      fi
+
+    else
+      echo_m ${flag_services[@]};
+    fi
+
+  fi
+
+}
+
+version_control_system_main_phabricator_script_source "$@";

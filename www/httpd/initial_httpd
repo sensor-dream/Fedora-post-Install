@@ -1,0 +1,130 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+## @File   : initial_httpd.bash
+## @Author : sensor-dream (sensor-dream@sensor-dream.ru)
+## @Link   : https://sensor-dream.ru
+## @Date   : 2019-1-10 17:28:19
+
+#
+#   Декларируем имя файла
+#
+
+declare -rx www_initial_httpd_script_source="$BASH_SOURCE";
+
+if [[ -z "$main_run_script_path" ]]; then
+  declare -rx main_run_script_path="$(pwd)";
+  echo "Скрипт запускается из ${main_run_script_path}";
+fi
+
+#
+#   Подключаем общую библиотеку и общую конфигурацию
+#
+
+if [[ -z "$main_cfg_script_source" ]]; then
+  check=1;
+  while [[ "$check" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../;
+      else
+        cd "${main_run_script_path}";
+        check=0;
+        echo '\e[47;31m'"!!! Не найден общий файл конфигурации !!!\033[0m";
+        tput sgr0;
+        exit 1;
+      fi
+    else
+      check=0;
+      if [[ -z "$main_cfg_script_source" ]]; then
+        declare -rx main_project_path="$(pwd)";
+        . "$main_project_path/main.cfg";
+      fi
+      cd "${main_run_script_path}";
+    fi
+  done
+fi
+
+echo_w "Подключаем $www_initial_httpd_script_source";
+
+function initial_httpd(){
+
+  check_root;
+
+  . "${main_project_path}/pkg/httpd";
+
+  local httpd_conf="/etc/httpd/conf/httpd.conf";
+  local httpd_ssl_conf="/etc/httpd/conf.d/ssl.conf";
+  local httpd_path_modules="/etc/httpd/modules";
+  local httpd_path_conf_d="/etc/httpd/conf.d";
+  local lookup_identity_conf="/etc/httpd/conf.modules.d/*lookup_identity.conf";
+  local httpd_server_admin="$main_email";
+  local httpd_server_name="$main_hostname";
+
+  if [[ -f "$httpd_conf" ]];then
+
+    if ! grep -q -E "^([# ]+)?ServerAdmin $httpd_server_admin" $httpd_conf 2> /dev/null; then
+      sed -i -r "s%([# ]+)?ServerAdmin.*@.*$%ServerAdmin $httpd_server_admin%" $httpd_conf;
+      echo_w "ServerAdmin in httpd.conf prepared";
+    else
+      echo_w "ServerAdmin in httpd.conf already prepared";
+    fi
+    if ! grep -q -E "^([# ]+)?ServerName $httpd_server_name:${main_apache_server_http_port}" $httpd_conf 2> /dev/null; then
+      sed -i -r "s/^([# ]+)?ServerName.*([:0-9]+)$/ServerName $httpd_server_name:${main_apache_server_http_port}/" $httpd_conf;
+      echo_w "ServerName in httpd.conf prepared";
+    else
+      echo_w "ServerName in httpd.conf already prepared";
+    fi
+
+    if ! grep -q -E "^([# ]+)?ServerName $httpd_server_name:${main_apache_server_https_port}" $httpd_ssl_conf 2> /dev/null; then
+      sed -i -r "s/^([# ]+)?ServerName.*([:0-9]+)$/ServerName $httpd_server_name:${main_apache_server_https_port}/" $httpd_ssl_conf;
+      echo_w "ServerName in ssl.conf prepared";
+    else
+      echo_w "ServerName in ssl.conf already prepared";
+    fi
+
+    if ! grep -q -E "^([# ]+)?Listen([ ]+)?${main_apache_server_http_port}$" $httpd_conf 2> /dev/null; then
+      sed -i -r "s/^([# ]+)?Listen([ 0-9]+)$/Listen ${main_apache_server_http_port}/g" $httpd_conf;
+      echo_w "Listen in httpd.conf prepared";
+    else
+      echo_w "Listen in httpd.conf already prepared";
+    fi
+
+    if ! grep -q -E "^([# ]+)?Listen ${main_apache_server_https_port}([ https]+)$" $httpd_ssl_conf 2> /dev/null; then
+      sed -i -r "s/^([# ]+)?Listen([ 0-9https]+)$/Listen ${main_apache_server_https_port} https/" $httpd_ssl_conf;
+      echo_w "Listen in ssl.conf prepared";
+    else
+      echo_w "Listen in ssl.conf already prepared";
+    fi
+
+    if grep -q -E "^([# ]+).*mod_lookup_identity.so" $lookup_identity_conf 2> /dev/null; then
+      sed -i -r "s/^([# ]+)//" $lookup_identity_conf;
+      echo_w "Listen in lookup_identity.conf prepared";
+    else
+      echo_w "Listen in lookup_identity.conf already prepared";
+    fi
+
+    if grep -q -E "^Alias.*/usr/share/httpd/noindex/index.html" "${httpd_path_conf_d}/welcome.conf" 2> /dev/null; then
+      insert_after_found_text_one_and_commit_found "<Directory" "<Directory ${main_www_base_path}/noindex>" "${httpd_path_conf_d}/welcome.conf";
+      insert_after_found_text_one_and_commit_found 'Alias' "Alias /.noindex.html ${main_www_base_path}/index.html" "${httpd_path_conf_d}/welcome.conf";
+      echo_w "Alias and Directory in welcome.conf prepared";
+    else
+      echo_w "Alias and Directory in welcome.conf already prepared";
+    fi
+
+    if ! grep -q -E "^([# ]+)?.*mod_ident.so" "${httpd_conf}" 2> /dev/null; then
+      wget "https://raw.githubusercontent.com/omnigroup/Apache/master/httpd/modules/metadata/mod_ident.c";
+      apxs -a -i -c  mod_ident.c;
+      rm -r -f .libs;
+      rm -f mod_ident*;
+      echo_w "Module mod_ident.so install";
+    else
+      echo_w "Module mod_ident.so already install";
+    fi
+
+  fi
+
+  systemctl_activate_and_start_or_restart_service httpd;
+
+}
+
+initial_httpd "$@";

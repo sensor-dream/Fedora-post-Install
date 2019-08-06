@@ -1,0 +1,7 @@
+#!/bin/env bash
+
+cp ras1cv83.service /usr/lib/systemd/system/ras1cv83.service;
+
+systemctl daemon-reload;
+systemctl enable ras1cv83.service;
+#systemctl start ras1cv83.service;
