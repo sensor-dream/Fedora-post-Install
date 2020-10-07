@@ -174,7 +174,7 @@ function generate_certivecate_for_main_domain_and_also_using_csr() {
 
   [[ -f ${main_project_path}/security_file/${domain}.csr ]] || openssl req -new -sha256 -key "${main_project_path}/security_file/private.key" -subj "/CN=${domain}" -reqexts SAN -config <(printf "[SAN]\nsubjectAltName=DNS:*.${domain},DNS:${domain}") -out "${main_project_path}/security_file/${domain}.csr"
 
-  certbot certonly --manual $test --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory --rsa-key-size $letsencrypt_rsa_key_size --agree-tos \
+  certbot certonly --manual $test --must-staple --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory --rsa-key-size $letsencrypt_rsa_key_size --agree-tos \
     --expand -m "$main_email"  --eff-email \
     --csr "${main_project_path}/security_file/${domain}.csr" \
     --manual-public-ip-logging-ok;
