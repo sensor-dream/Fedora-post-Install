@@ -6,7 +6,7 @@
 
 [![GitHub issues](https://img.shields.io/github/issues/sensor-dream/Fedora-post-Install.svg?style=flat)](https://github.com/sensor-dream/Fedora-post-Install/issues) [![star this repo](http://githubbadges.com/star.svg?user=sensor-dream&repo=Fedora-post-Install&style=flat)](https://github.com/sensor-dream/Fedora-post-Install) [![fork this repo](http://githubbadges.com/fork.svg?user=sensor-dream&repo=Fedora-post-Install&style=flat)](https://github.com/sensor-dream/Fedora-post-Install/fork)
 
-[![GitHub license](https://img.shields.io/github/license/sensor-dream/Post-installation-of-Fedora.svg?style=flat)](https://github.com/sensor-dream/Post-installation-of-Fedora/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/sensor-dream/Fedora-post-Install.svg?style=flat)](https://github.com/sensor-dream/Fedora-post-Install/blob/master/LICENSE)
 
 ```
     Scripts to configure the test places and workstations.
