@@ -59,7 +59,7 @@ function main_pkg_archiving_packs_script_source(){
 #
 #   file archiving program and tools, utility and library and encoding
 #
-gzip zlib zziplib zip unzip p7zip p7zip-plugins p7zip-gui p7zip-doc unar tar bzip2 lha lzma getdata-lzma libknet1-compress-lzma-plugin lzma-sdk lzma-sdk-devel lzma-sdk457-devel lzma-sdk457 lzma-java lzma-java-javadoc xz-lzma-compat unace unrar zlib-devel zlib-static zlibrary zlibrary-devel xz-devel arj \
+gzip zlib zziplib zip unzip p7zip p7zip-plugins p7zip-gui p7zip-doc unar tar bzip2 lha lzma getdata-lzma libknet1-compress-lzma-plugin lzma-sdk lzma-sdk-devel lzma-sdk457-devel lzma-sdk457 xz-lzma-compat unace unrar zlib-devel zlib-static zlibrary zlibrary-devel xz-devel arj \
 );
 
   pkg -a "$@" -- "${install_pkg[*]}";
