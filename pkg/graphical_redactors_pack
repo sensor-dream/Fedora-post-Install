@@ -91,6 +91,7 @@ krita \
   install_packages "${install_pkg[*]}";
 
   install_pkg=(\
+  mypaint
 # gthumb is an application for viewing, editing, and organizing
 # : collections of images.
 gthumb \

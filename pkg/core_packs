@@ -11,11 +11,11 @@
 #   Декларируем имя файла
 #
 
-declare -rx pkg_core_packs_script_source="$BASH_SOURCE";
+declare -rx pkg_core_packs_script_source="$BASH_SOURCE"
 
 if [[ -z "${main_run_script_path}" ]]; then
-  declare -rx main_run_script_path="$(pwd)";
-  echo "Script runs from ${main_run_script_path}";
+  declare -rx main_run_script_path="$(pwd)"
+  echo "Script runs from ${main_run_script_path}"
 fi
 
 #
@@ -23,144 +23,144 @@ fi
 #
 
 if [[ -z "${main_cfg_script_source}" ]]; then
-  check=1;
+  check=1
   while [[ "${check}" -eq 1 ]]; do
     if [[ ! -f 'main.cfg' ]]; then
       if [[ "$(pwd)" != "/" ]]; then
-        cd ../;
+        cd ../
       else
-        cd ${main_run_script_path};
-        check=0;
-        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m";
-        tput sgr0;
-        exit 1;
+        cd ${main_run_script_path}
+        check=0
+        echo '\e[47;31m'"!!! Not found configuration shared file !!!\033[0m"
+        tput sgr0
+        exit 1
       fi
     else
-      check=0;
-      declare -rx main_project_path="$(pwd)";
-      . "${main_project_path}/main.cfg";
-      cd "${main_run_script_path}";
+      check=0
+      declare -rx main_project_path="$(pwd)"
+      . "${main_project_path}/main.cfg"
+      cd "${main_run_script_path}"
     fi
   done
 fi
 
-echo_w "Connect $(readlink -m ${pkg_core_packs_script_source})";
+echo_w "Connect $(readlink -m ${pkg_core_packs_script_source})"
 
-function install_pkg_core_packs(){
-  
-  local install_pkg=(\
+function install_pkg_core_packs() {
+
+  local install_pkg=(
     #   for kernels
-    kernel-devel kernel-headers kernel-cross-headers kernel-modules kernel-modules-extra kernel-tools kernel-tools-libs kernel-tools-libs-devel \
+    kernel-devel kernel-headers kernel-cross-headers kernel-modules kernel-modules-extra kernel-tools kernel-tools-libs kernel-tools-libs-devel
     #   Dynamic Kernel Module Support Framework
-    dkms elfutils-libelf-devel zlib-devel \
+    dkms elfutils-libelf-devel zlib-devel
     #   Akmods startup script will rebuild akmod packages during system
     #            : boot while its background daemon will build them for kernels right
     #            : after they were installed.
-    akmods \
+    akmods
     #   This package contains tools and list of recent kernels that get used when building kmod-packages.
-    kmodtool \
+    kmodtool
     #   The Linux Standard Base (LSB) Core module support provides the fundamental
     #            : system interfaces, libraries, and runtime environment upon which all conforming
     #            : applications and libraries depend.
-    redhat-lsb-core \
+    redhat-lsb-core
     # ZRAM is a Linux block device that can be used for compressed swap in memory.
     # : It's useful in memory constrained devices. This provides a service to setup
     # : ZRAM as a swap device based on criteria such as available memory.
-    zram \
+    zram
     # Systemd unit generator for zram devices.
-    zram-generator \
+    zram-generator
     #   ACPI Event Daemon
-    acpid \
+    acpid
     #   irqbalance is a daemon that evenly distributes IRQ load across
-    irqbalance \
+    irqbalance
     #   ПЕРЕСБОРКА и прочее
-    dracut \
+    dracut
     #   Various compilers (C, C++, Objective-C, ...)
-    gcc cpp gcc-gdb-plugin libgcc glibc libasan libubsan gmp isl libgomp libmpc libmpc-devel mpfr gcc-c++ \
+    gcc cpp gcc-gdb-plugin libgcc glibc libasan libubsan gmp isl libgomp libmpc libmpc-devel mpfr gcc-c++
     #   The GNU libc libraries, tools and utilites
-    glibc glibc-utils glibc-static glibc-nss-devel glibc-minimal-langpack glibc-locale-source glibc-langpack-eu glibc-langpack-ru glibc-benchtests glibc-headers glibc-devel \
+    glibc glibc-utils glibc-static glibc-nss-devel glibc-minimal-langpack glibc-locale-source glibc-langpack-eu glibc-langpack-ru glibc-benchtests glibc-headers glibc-devel
     #   A library of handy utility functions
-    glib \
+    glib
     #   Backends for the gio framework in GLib
-    gvfs gvfs-fuse gvfs-afc gvfs-afp gvfs-archive gvfs-client gvfs-goa gvfs-gphoto2 gvfs-mtp gvfs-smb gvfs-devel gvfs-nfs gvfs-tests \
+    gvfs gvfs-fuse gvfs-afc gvfs-afp gvfs-archive gvfs-client gvfs-goa gvfs-gphoto2 gvfs-mtp gvfs-smb gvfs-devel gvfs-nfs gvfs-tests
     #   The GNU Portable Library Tool
-    libtool \
+    libtool
     #    The free peer-reviewed portable C++ source libraries
-    boost boost-static \
+    boost boost-static
     #   A GNU tool for automatically configuring source code
-    autoconf \
+    autoconf
     # autoconf213 \
     #   The GNU Autoconf Archive is a collection of more than 450 macros for
     #            : GNU Autoconf that have been contributed as free software by friendly
     #            : supporters of the cause from all over the Internet.
-    autoconf-archive \
+    autoconf-archive
     #   A GNU tool which simplifies the build process for users
-    make \
+    make
     #   A GNU tool for automatically creating Makefiles
-    automake \
+    automake
     #   Cross-platform make system
-    cmake cmake-data cmake-filesystem cmake-doc cmake-rpm-macros cmake-gui \
+    cmake cmake-data cmake-filesystem cmake-doc cmake-rpm-macros cmake-gui
     # cmake-fedora \
     #   C/C++ compiler cache
-    ccache \
+    ccache
     #   General-purpose scalable concurrent malloc implementation
-    jemalloc \
+    jemalloc
     #   A GNU collection of binary utilities
-    binutils \
+    binutils
     #   Library for processing UTF-8 encoded Unicode strings
-    utf8proc \
+    utf8proc
     #   Libraries and header files for file development
-    file-devel \
+    file-devel
     #   The GNU macro processor
-    m4 \
+    m4
     #    Linear Algebra over F_2^e
-    m4ri m4ri-devel m4ri-static \
+    m4ri m4ri-devel m4ri-static
     #   Linear Algebra over F_2^e
-    m4rie m4rie-devel m4rie-static \
+    m4rie m4rie-devel m4rie-static
     #   Utility for modifying/upgrading files
-    patch \
+    patch
     #   A collection of programs for manipulating patch files
-    patchutils \
+    patchutils
     #   A utility for patching ELF binaries
-    patchelf \
+    patchelf
     #   A daemon to record and keep track of system up times
-    uptimed \
+    uptimed
     # pwgen generates random, meaningless but pronounceable passwords. These
     #            : passwords contain either only lowercase letters, or upper and lower case, or
     #            : upper case, lower case and numeric digits. Upper case letters and numeric
     #            : digits are placed in a way that eases memorizing the password.
-    pwgen \
+    pwgen
     #   This package provides the shim links for pkgconf to be automatically
-    pkgconf-pkg-config \
+    pkgconf-pkg-config
     #   secure communications library implementing the SSL, TLS and DTLS
     ## : protocols and technologies around them.
-    openssl openssl-libs openssl-pkcs11 xmlsec1-openssl gnutls gnutls-devel xmlsec1-gnutls gnutls-guile \
+    openssl openssl-libs openssl-pkcs11 xmlsec1-openssl gnutls gnutls-devel xmlsec1-gnutls gnutls-guile
     # openssl-devel  xmlsec1-gnutls-devel \
     #   Command line tool to create/retrieve/delete accounting objects
-    nfacct \
+    nfacct
     #   A utility for getting files from remote servers (FTP, HTTP, and others)
-    curl curlftpfs curlpp curlpp-devel libcurl-devel \
+    curl curlftpfs curlpp curlpp-devel libcurl-devel
     #   A utility for retrieving files using the HTTP or FTP protocols
-    wget \
+    wget
     #   A small text editor
-    'nano nanomsg nanomsg-devel nanomsg-doc' \
+    'nano nanomsg nanomsg-devel nanomsg-doc'
     # Joe is a powerful, easy to use, modeless text editor.
     # : It uses the same WordStar keybindings used in Borland's development
     # : environment.
-    'joe' \
+    'joe'
     # Bluefish is a powerful editor for experienced web designers and programmers.
     # : Bluefish supports many programming and markup languages, but it focuses on
     # : editing dynamic and interactive websites.
-    'bluefish' \
+    'bluefish'
     # NEdit is a GUI text editor for the X Window System. NEdit is
     # : very easy to use, especially if you are familiar with the
     # : Macintosh or Microsoft Windows style of interface.
-    'nedit' \
+    'nedit'
     #   A version of the VIM editor which includes recent enhancements
     #   VIM — Vi IMproved (улучшенный Vi)
-    vim-minimal vim-enhanced vim-common vim-filesystem \
+    vim-minimal vim-enhanced vim-common vim-filesystem
     #   A text-based Web browser
-    lynx \
+    lynx
     # Repository   : @System
     # Из репозитор : fedora
     # Summary      : A text-based modem control and terminal emulation program
@@ -170,38 +170,38 @@ function install_pkg_core_packs(){
     # : program somewhat similar to MSDOS Telix. Minicom includes a dialing
     # : directory, full ANSI and VT100 emulation, an (external) scripting
     # : language, and other features.
-    'minicom' \
+    'minicom'
     # inotify-tools is a set of command-line programs for Linux providing
     # : a simple interface to inotify. These programs can be used to monitor
     # : and act upon filesystem events.
-    'inotify-tools' \
+    'inotify-tools'
     #   udisks provides a daemon, D-Bus API and command line tools for managing disks and storage devices
-    udisks udisks-devel udisks2 udisks2-iscsi udisks2-bcache udisks2-btrfs udisks2-lsm udisks2-lvm2 udisks2-zram libstoragemgmt python3-libstoragemgmt python3-libstoragemgmt-clibs \
+    udisks udisks-devel udisks2 udisks2-iscsi udisks2-bcache udisks2-btrfs udisks2-lsm udisks2-lvm2 udisks2-zram libstoragemgmt
     #   The vconfig program configures and adjusts 802.1q VLAN parameters. This tool is deprecated in favor of "ip link" command.
-    vconfig \
+    vconfig
     #   The screen utility allows you to have multiple logins on just one terminal. Screen is useful for users who telnet into a machine or are connected via a dumb terminal, but want to use more than just one login.
-    screen \
+    screen
     #   This is a short perl script to colorize your logs. You can use your
     #        : own colors, you can simply modify your config file in your home
     #        : directory, or system-wide (/etc/colorize).
-    colorize \
-  );
-  
-  pkg -a "$@" -- "${install_pkg[*]}";
-  
-  install_pkg=(\
+    colorize
+  )
+
+  pkg -a "$@" -- "${install_pkg[*]}"
+
+  install_pkg=(
     #   for RPM tool
     #   rpm tool 1 install
-    rpm-build rpm-devel patch annobin dwz libzstd-devel redhat-rpm-config zstd rpmdevtools rpmspectool rpmrebuild rpm-cron rpmconf rpmconf-base rpmdeplint rpmreaper rpmlint rpm-ostree rpm-ostree-devel rpm-ostree-libs rpmbuild-order rpm-apidocs rpm-sign rpmemd \
+    rpm-build rpm-devel patch annobin dwz libzstd-devel redhat-rpm-config zstd rpmdevtools rpmspectool rpmrebuild rpm-cron rpmconf rpmconf-base rpmdeplint rpmreaper rpmlint rpm-ostree rpm-ostree-devel rpm-ostree-libs rpmbuild-order rpm-apidocs rpm-sign rpmemd
     #   rpm tool 2 install
     #efi-srpm-macros fpc-srpm-macros ghc-srpm-macros gnat-srpm-macros go-srpm-macros nim-srpm-macros ocaml-srpm-macros openblas-srpm-macros perl-srpm-macros popt-devel python-srpm-macros qt5-srpm-macros rust-srpm-macros
     #   rpm tool 3 install
     #rpm-plugin-ima rpm-plugin-prioreset rpm-mpi-hooks rpmgrill rpmlint-scl-config rpmorphan
-  );
-  
-  install_packages "${install_pkg[*]}";
-  
-  install_pkg=(\
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
     #   The curses library routines are a terminal-independent method of
     #          : updating character screens with reasonable optimization.  The ncurses
     #          : (new curses) library is a freely distributable replacement for the
@@ -210,52 +210,52 @@ function install_pkg_core_packs(){
     #          : This package contains support utilities, including a terminfo compiler
     #          : tic, a decompiler infocmp, clear, tput, tset, and a termcap conversion
     #          : tool captoinfo.
-    ncurses ncurses-libs ncurses-devel ncurses-static ncurses-c++-libs \
+    ncurses ncurses-libs ncurses-devel ncurses-static ncurses-c++-libs
     #   GNU libraries and utilities for producing multi-langual messages
-    gettext \
+    gettext
     #   File System in Userspace (FUSE) v3 utilitie
-    fuse3 fuse3-libs \
+    fuse3 fuse3-libs
     #   For SSH
-    fuse-sshfs libssh libssh-devel libssh2 \
-  );
-  
-  install_packages "${install_pkg[*]}";
-  
-  install_pkg=(\
+    fuse-sshfs libssh libssh-devel libssh2
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
     # GParted stands for Gnome Partition Editor and is a graphical frontend to
     # : libparted. Among other features it supports creating, resizing, moving
     # : and copying of partitions. Also several (optional) filesystem tools provide
     # : support for filesystems not included in libparted. These optional packages
     # : will be detected at runtime and don't require a rebuild of GParted
-    gparted \
-  );
-  
-  install_packages "${install_pkg[*]}";
-  
-  install_pkg=(\
+    gparted
+  )
+
+  install_packages "${install_pkg[*]}"
+
+  install_pkg=(
     # Utilities for interfacing with sysfs
     # URL : http://sourceforge.net/projects/linux-diag/
-    'sysfsutils' \
+    'sysfsutils'
     #   dconf is a low-level configuration system. Its main purpose is to provide a backend to the GSettings API in GLib.
-    dconf \
-    'dconf-devel' \
-    'dconf-editor' \
+    dconf
+    'dconf-devel'
+    'dconf-editor'
     # gconf-editor allows you to browse and modify GConf configuration sources.
-    'gconf-editor' \
+    'gconf-editor'
     #   Shell script analysis tool
-    ShellCheck \
-  );
-  
-  install_packages "${install_pkg[*]}";
-  
+    ShellCheck
+  )
+
+  install_packages "${install_pkg[*]}"
+
 }
 
-function main_pkg_core_packs_script_source(){
-  
-  echo_m "Initialise main function of core_packs script source";
-  
-  install_pkg_core_packs "$@";
-  
+function main_pkg_core_packs_script_source() {
+
+  echo_m "Initialise main function of core_packs script source"
+
+  install_pkg_core_packs "$@"
+
 }
 
-main_pkg_core_packs_script_source "$@";
+main_pkg_core_packs_script_source "$@"
