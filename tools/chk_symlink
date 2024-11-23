@@ -1,4 +1,4 @@
-#!/bin/nev bash
+#!/bin/env bash
 
 if [[ -z $@ ]]; then
     path="$(dirname $(readlink -m $0))";
@@ -6,7 +6,7 @@ else
     path="${@%/}";
 fi
 
-echo "Find fale in ${path}";
+echo "Find symlink in path ${path}";
 
 if [[ ! -d "${path}" ]]; then
     echo "Not found path: ${path}";
@@ -14,12 +14,13 @@ if [[ ! -d "${path}" ]]; then
 fi
 
 multiple_cmd() {
-    if [ -L ${@} ] ; then
-	if [ -e ${@} ] ; then
-    	    echo "Good link ${@}"
-        else
-            echo "Broken link and rm ${@}"
-	fi
+    if [[ -L ${@} ]] ; then
+	echo "Check link ${@}"
+	# if [[ -e ${@} ]] ; then
+    	#     echo "Good link ${@}"
+        # else
+        #     echo "Broken link and rm ${@}"
+	# fi
     fi
 }
 
