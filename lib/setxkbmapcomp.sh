@@ -1,1 +1,0 @@
-../../../../System/scripts/setxkbmapcomp.sh

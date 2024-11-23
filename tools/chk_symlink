@@ -14,16 +14,14 @@ if [[ ! -d "${path}" ]]; then
 fi
 
 multiple_cmd() {
-    if [[ -L ${@} ]] ; then
-	echo "Check link ${@}"
-	# if [[ -e ${@} ]] ; then
-    	#     echo "Good link ${@}"
-        # else
-        #     echo "Broken link and rm ${@}"
-	# fi
+    if [[ -e ${@} ]] ; then
+        echo "Good link ${@}"
+    else
+	echo "Broken link and rm ${@}"
+	rm "${@}"
     fi
 }
 
 export -f multiple_cmd
 
-find "${path}" -type f -exec bash -c 'multiple_cmd "$0"' {} \;
+find "${path}" -type l -exec bash -c 'multiple_cmd "$0"' {} \;
