@@ -1,0 +1,28 @@
+#!/bin/nev bash
+
+if [[ -z $@ ]]; then
+    path="$(dirname $(readlink -m $0))";
+else
+    path="${@%/}";
+fi
+
+echo "Find fale in ${path}";
+
+if [[ ! -d "${path}" ]]; then
+    echo "Not found path: ${path}";
+    exit 1;
+fi
+
+multiple_cmd() {
+    if [ -L ${@} ] ; then
+	if [ -e ${@} ] ; then
+    	    echo "Good link ${@}"
+        else
+            echo "Broken link and rm ${@}"
+	fi
+    fi
+}
+
+export -f multiple_cmd
+
+find "${path}" -type f -exec bash -c 'multiple_cmd "$0"' {} \;
